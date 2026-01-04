@@ -1,0 +1,24 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Фон -->
+  <rect width="512" height="512" fill="#3b82f6" rx="80"/>
+  
+  <!-- Главная иконка - Trophy -->
+  <g transform="translate(128, 100)">
+    <!-- Трофей -->
+    <path d="M128 40 L128 80 C128 120 160 152 200 152 L200 200 L160 200 L160 240 L240 240 L240 200 L200 200 L200 152 C240 152 272 120 272 80 L272 40 Z" fill="white"/>
+    
+    <!-- Боковые детали трофея -->
+    <path d="M280 60 C320 60 352 92 352 132 C352 172 320 204 280 204 L280 160 C300 160 316 144 316 124 C316 104 300 88 280 88 Z" fill="white" opacity="0.8"/>
+    <path d="M120 60 C80 60 48 92 48 132 C48 172 80 204 120 204 L120 160 C100 160 84 144 84 124 C84 104 100 88 120 88 Z" fill="white" opacity="0.8"/>
+    
+    <!-- Звездочки вокруг -->
+    <circle cx="50" cy="30" r="6" fill="#fbbf24"/>
+    <circle cx="350" cy="30" r="6" fill="#fbbf24"/>
+    <circle cx="30" cy="180" r="4" fill="#fbbf24"/>
+    <circle cx="370" cy="180" r="4" fill="#fbbf24"/>
+  </g>
+  
+  <!-- Текст -->
+  <text x="256" y="380" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="white">GYM</text>
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" fill="#fbbf24">QUEST</text>
+</svg>

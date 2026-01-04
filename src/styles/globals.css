@@ -1,0 +1,238 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-white text-black transition-colors duration-300;
+}
+
+.dark body {
+  @apply bg-gray-900 text-white;
+}
+
+/* Поле ввода текста */
+.input-text {
+  @apply p-1 border rounded w-full bg-white text-black border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600;
+}
+
+/* Поле ввода числа XP */
+.input-number {
+  @apply p-1 border rounded w-20 bg-white text-black border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600;
+}
+
+/* Дополнительная фиксация для темной темы */
+.dark .input-text,
+.dark .input-number {
+  color: #ffffff !important;
+  background-color: #1f2937 !important;
+  border-color: #4b5563 !important;
+  caret-color: #ffffff !important;
+}
+
+/* Анимации */
+@keyframes animate-in {
+  from {
+    opacity: 0;
+    transform: var(--tw-enter-translate, 0) var(--tw-enter-scale, 1)
+      var(--tw-enter-rotate, 0);
+  }
+}
+
+.animate-in {
+  animation: animate-in 0.5s ease-out forwards;
+}
+
+.slide-in-from-bottom-4 {
+  --tw-enter-translate: translateY(1rem);
+}
+
+.slide-in-from-top-4 {
+  --tw-enter-translate: translateY(-1rem);
+}
+
+.slide-in-from-left-2 {
+  --tw-enter-translate: translateX(-0.5rem);
+}
+
+.slide-in-from-right-4 {
+  --tw-enter-translate: translateX(1rem);
+}
+
+.fade-in-0 {
+  opacity: 0;
+}
+
+.zoom-in-95 {
+  --tw-enter-scale: scale(0.95);
+}
+
+/*──────────────────────────────────────
+  Базовые стили для всего документа
+──────────────────────────────────────*/
+/* БАЗА: все текстовые инпуты и textarea */
+@layer base {
+  /* Базовые стили для текстовых полей */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="search"],
+  textarea {
+    @apply p-1 border rounded bg-white text-black border-gray-300 
+           placeholder-gray-500 focus:outline-none focus:ring-2 
+           focus:ring-blue-500 focus:border-blue-500 appearance-none;
+    color-scheme: light;
+  }
+
+  /* Тёмная тема */
+  .dark input[type="text"],
+  .dark input[type="number"],
+  .dark input[type="email"],
+  .dark input[type="password"],
+  .dark input[type="search"],
+  .dark textarea {
+    @apply bg-gray-800 text-white border-gray-600 placeholder-gray-400;
+    color: #fff;
+    caret-color: #fff;
+    color-scheme: dark;
+    appearance: none;
+  }
+
+  .dark .input-text,
+  .dark .input-number {
+    color: #fff;
+    background-color: #1f2937; /* bg-gray-800 */
+    border-color: #4b5563; /* border-gray-600 */
+    caret-color: #fff;
+  }
+
+  /* Autofill fix для WebKit (Chrome, Edge, Safari) */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover,
+  input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #111827 !important; /* gray-900 */
+    transition: background-color 9999s ease-out, color 9999s ease-out;
+  }
+
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover,
+  .dark input:-webkit-autofill:focus {
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff;
+    transition: background-color 9999s ease-out, color 9999s ease-out;
+    box-shadow: 0 0 0px 1000px #1f2937 inset; /* gray-800 */
+    background-clip: padding-box;
+    appearance: none;
+  }
+
+  /* Placeholder стили */
+  input::placeholder,
+  textarea::placeholder {
+    @apply text-gray-500;
+  }
+
+  .dark input::placeholder,
+  .dark textarea::placeholder {
+    @apply text-gray-400;
+  }
+}
+
+/*──────────────────────────────────────
+  Семантические компонентные классы
+──────────────────────────────────────*/
+@layer components {
+  /* Карточка профиля */
+  .profile-card {
+    @apply p-4 bg-white text-black shadow rounded flex flex-col dark:bg-gray-900 dark:text-white;
+  }
+
+  /* Прогресс-бар: фон и заливка */
+  .progress-bg {
+    @apply mt-2 w-full bg-gray-200 h-2 rounded dark:bg-gray-700;
+  }
+  .progress-fill {
+    @apply bg-green-500 h-2 rounded dark:bg-green-400;
+  }
+
+  /* Список квестов */
+  .quest-list {
+    @apply space-y-2;
+  }
+  .quest-item {
+    @apply flex justify-between items-center p-3 bg-white border rounded dark:bg-gray-900 dark:border-gray-700;
+  }
+
+  .quest-actions {
+    @apply flex gap-2;
+  }
+
+  /* Кнопки управления квестом */
+  .btn-toggle {
+    @apply text-2xl;
+  }
+  .btn-delete {
+    @apply text-red-500 text-xl;
+  }
+
+  /* Кнопка сброса прогресса */
+  .btn-reset {
+    @apply text-blue-600 text-sm underline hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300;
+  }
+
+  /* Кнопка очистки всех квестов */
+  .btn-clear-all {
+    @apply text-red-600 text-sm underline hover:text-red-800 mb-4 dark:text-red-400 dark:hover:text-red-300;
+  }
+
+  /* Контейнер для графика */
+  .chart-container {
+    @apply bg-white p-4 shadow rounded;
+    height: 240px;
+  }
+
+  /* Фильтр квестов */
+  .btn-filter {
+    @apply px-2 py-1 text-sm bg-gray-200 rounded hover:bg-gray-300 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white;
+  }
+  .btn-filter-active {
+    @apply px-2 py-1 text-sm bg-blue-500 text-white rounded dark:bg-blue-600;
+  }
+  /* Поле ввода текста квеста */
+  .input-text {
+    @apply p-1 border rounded w-full bg-white text-black border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600;
+  }
+
+  /* Поле ввода числа XP */
+  .input-number {
+    @apply p-1 border rounded w-20 bg-white text-black border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600;
+  }
+
+  /* Кнопка сохранить изменения */
+  .btn-save {
+    @apply text-green-600 text-sm underline hover:text-green-800 dark:text-green-400 dark:hover:text-green-300;
+  }
+  /* Кнопка отменить редактирование */
+  .btn-cancel {
+    @apply text-gray-600 text-sm underline hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-100;
+  }
+
+  /* Кнопка начать редактирование */
+  .btn-edit {
+    @apply text-blue-500 text-xl;
+  }
+  /* Оверлей модального окна */
+  .modal-overlay {
+    @apply z-50 fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center;
+  }
+  /* Само окно */
+  .modal-box {
+    @apply bg-white p-6 rounded shadow-lg max-w-sm w-full dark:bg-gray-800 dark:text-white dark:border dark:border-gray-600;
+  }
+  /* Кнопки подтверждения/отмены */
+  .btn-confirm {
+    @apply bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-400;
+  }
+  .btn-cancel-modal {
+    @apply bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 ml-2 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600;
+  }
+}

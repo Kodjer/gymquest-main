@@ -1,0 +1,50 @@
+﻿{
+  "name": "GymQuest",
+  "short_name": "GymQuest",
+  "description": "Геймификация задач с системой уровней, XP и достижений",
+  "theme_color": "#3b82f6",
+  "background_color": "#1f2937",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "16x16 32x32",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Создать квест",
+      "short_name": "Создать",
+      "description": "Быстро создать новый квест",
+      "url": "/?action=create",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Профиль",
+      "short_name": "Профиль",
+      "description": "Открыть профиль игрока",
+      "url": "/profile",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "categories": ["productivity", "games", "lifestyle"]
+}
