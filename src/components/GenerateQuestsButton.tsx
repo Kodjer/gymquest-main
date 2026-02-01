@@ -5,7 +5,9 @@ type GenerateQuestsButtonProps = {
   onQuestsGenerated: () => void;
 };
 
-export function GenerateQuestsButton({ onQuestsGenerated }: GenerateQuestsButtonProps) {
+export function GenerateQuestsButton({
+  onQuestsGenerated,
+}: GenerateQuestsButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -27,20 +29,20 @@ export function GenerateQuestsButton({ onQuestsGenerated }: GenerateQuestsButton
 
       if (!response.ok) {
         if (data.needsOnboarding) {
-          setError("⚠️ Сначала заполните анкету в настройках профиля!");
+          setError("Сначала заполните анкету в настройках профиля!");
         } else {
           setError(data.error || "Ошибка при генерации квестов");
         }
         return;
       }
 
-      setSuccess(`✅ Сгенерировано ${data.count} новых квестов!`);
+      setSuccess(`Сгенерировано ${data.count} новых квестов!`);
       onQuestsGenerated();
 
       // Очищаем сообщение об успехе через 3 секунды
       setTimeout(() => setSuccess(null), 3000);
     } catch (err: any) {
-      setError("❌ Ошибка сети: " + err.message);
+      setError("Ошибка сети: " + err.message);
     } finally {
       setIsGenerating(false);
     }
@@ -81,7 +83,7 @@ export function GenerateQuestsButton({ onQuestsGenerated }: GenerateQuestsButton
             Генерация квестов...
           </span>
         ) : (
-          "🎯 Получить новые квесты"
+          "Получить новые квесты"
         )}
       </button>
 
@@ -98,7 +100,7 @@ export function GenerateQuestsButton({ onQuestsGenerated }: GenerateQuestsButton
       )}
 
       <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
-        💡 Квесты генерируются автоматически на основе вашего профиля и уровня
+        Квесты генерируются автоматически на основе вашего профиля и уровня
       </div>
     </div>
   );

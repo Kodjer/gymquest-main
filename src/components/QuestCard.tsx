@@ -1,8 +1,55 @@
 // src/components/QuestCard.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Lottie from "lottie-react";
+import { ExerciseGif } from "./ExerciseGif";
+
+// Компонент для загрузки и отображения Lottie анимации
+function LottieAnimation({ url }: { url: string }) {
+  const [animationData, setAnimationData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
+
+  useEffect(() => {
+    fetch(url)
+      .then((res) => res.json())
+      .then((data) => {
+        setAnimationData(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError(true);
+        setLoading(false);
+      });
+  }, [url]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-gray-500">
+        Не удалось загрузить анимацию
+      </div>
+    );
+  }
+
+  return (
+    <Lottie
+      animationData={animationData}
+      loop={true}
+      autoplay={true}
+      style={{ width: "100%", height: "auto" }}
+    />
+  );
+}
 
 type VisualDemo = {
-  type: "image" | "video" | "gif" | "youtube";
+  type: "image" | "video" | "gif" | "youtube" | "lottie";
   url: string;
   thumbnail?: string;
 };
@@ -18,6 +65,7 @@ type QuestCardProps = {
     status: "pending" | "done";
     difficulty: "easy" | "medium" | "hard";
     category?: string;
+    location?: "home" | "gym";
     visualDemo?: VisualDemo;
     stepByStep?: string[];
   };
@@ -25,13 +73,6 @@ type QuestCardProps = {
   onDelete?: (id: string) => void;
   onEdit?: (quest: any) => void;
   showActions?: boolean;
-};
-
-const categoryEmojis: Record<string, string> = {
-  strength: "💪",
-  cardio: "🏃",
-  flexibility: "🧘",
-  wellness: "🌟",
 };
 
 const categoryNames: Record<string, string> = {
@@ -76,14 +117,6 @@ export function QuestCard({
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-1">
-            {quest.category && (
-              <span
-                className="text-2xl"
-                title={categoryNames[quest.category] || quest.category}
-              >
-                {categoryEmojis[quest.category] || "📝"}
-              </span>
-            )}
             <h3
               className={`font-bold text-lg ${
                 isDone ? "line-through text-gray-500" : ""
@@ -95,6 +128,11 @@ export function QuestCard({
 
           {/* Бейджи */}
           <div className="flex flex-wrap gap-2 mt-2">
+            {quest.category && (
+              <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
+                {categoryNames[quest.category] || quest.category}
+              </span>
+            )}
             <span
               className={`px-2 py-1 rounded text-xs font-semibold border ${
                 difficultyColors[quest.difficulty]
@@ -112,24 +150,23 @@ export function QuestCard({
             )}
           </div>
         </div>
+      </div>
 
-        {/* Кнопка завершения */}
+      {/* Кнопка завершения */}
+      {!isDone && (
         <button
           onClick={() => onToggle(quest.id)}
-          className={`text-3xl transition-transform hover:scale-125 ${
-            isDone ? "cursor-pointer" : ""
-          }`}
-          title={isDone ? "Отменить завершение" : "Завершить квест"}
+          className="w-full mt-3 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
         >
-          {isDone ? "✅" : "⭕"}
+          ✓ Завершить квест
         </button>
-      </div>
+      )}
 
       {/* Инструкции */}
       {quest.instructions && (
         <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg">
           <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-            📋 {quest.instructions}
+            {quest.instructions}
           </p>
         </div>
       )}
@@ -138,7 +175,7 @@ export function QuestCard({
       {quest.description && (
         <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-300 dark:border-green-700 rounded-lg">
           <p className="text-xs font-bold text-green-900 dark:text-green-200 mb-1">
-            💪 Что прокачивает:
+            Что прокачивает:
           </p>
           <p className="text-xs text-gray-700 dark:text-gray-300">
             {quest.description
@@ -149,71 +186,16 @@ export function QuestCard({
         </div>
       )}
 
-      {/* Визуальная демонстрация */}
-      {quest.visualDemo && (
-        <div className="mt-3 p-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-300 dark:border-purple-700 rounded-lg">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-2xl">
-              {quest.visualDemo.thumbnail || "🎬"}
-            </span>
-            <p className="text-sm font-bold text-purple-900 dark:text-purple-200">
-              Как делать
-            </p>
-          </div>
-          {quest.visualDemo.type === "youtube" && (
-            <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
-              <iframe
-                width="100%"
-                height="100%"
-                src={quest.visualDemo.url}
-                title="Демонстрация упражнения"
-                frameBorder="0"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-                className="w-full h-full"
-              ></iframe>
-            </div>
-          )}
-          {quest.visualDemo.type === "gif" && (
-            <img
-              src={quest.visualDemo.url}
-              alt="Демонстрация упражнения"
-              className="w-full rounded-lg"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          )}
-          {quest.visualDemo.type === "image" && (
-            <img
-              src={quest.visualDemo.url}
-              alt="Демонстрация упражнения"
-              className="w-full rounded-lg"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
-          )}
-          {quest.visualDemo.type === "video" && (
-            <video
-              src={quest.visualDemo.url}
-              controls
-              className="w-full rounded-lg"
-              onError={(e) => {
-                (e.target as HTMLVideoElement).style.display = "none";
-              }}
-            >
-              Ваш браузер не поддерживает видео
-            </video>
-          )}
-        </div>
-      )}
+      {/* Гифка с демонстрацией упражнения */}
+      <div className="mt-3">
+        <ExerciseGif title={quest.title} />
+      </div>
 
       {/* Совет */}
       {quest.tip && (
         <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
           <p className="text-xs font-bold text-yellow-900 dark:text-yellow-200 mb-1">
-            💡 Совет:
+            Совет:
           </p>
           <p className="text-xs text-gray-700 dark:text-gray-300">
             {quest.tip}

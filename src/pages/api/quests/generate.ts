@@ -121,50 +121,145 @@ export default async function handler(
 
     // Определяем сложность на основе уровня игрока и опыта
     const experienceLevel = onboardingData.fitnessExperience.toLowerCase();
-    let baseDifficulty: "easy" | "medium" | "hard";
 
-    if (
-      experienceLevel.includes("начинающий") ||
-      experienceLevel.includes("новичок")
-    ) {
-      baseDifficulty = getDifficultyByLevel(player.level);
-    } else if (
-      experienceLevel.includes("средний") ||
-      experienceLevel.includes("продвинутый")
-    ) {
-      baseDifficulty = player.level <= 5 ? "medium" : "hard";
-    } else {
-      baseDifficulty = getDifficultyByLevel(player.level);
+    // Получаем уже выполненные квесты для определения прогресса по категориям
+    const completedQuests = await prisma.quest.findMany({
+      where: {
+        userId: user.id,
+        status: "done",
+      },
+      select: {
+        category: true,
+        difficulty: true,
+      },
+    });
+
+    // Считаем прогресс по каждой категории
+    const categoryProgress: Record<
+      string,
+      { easy: number; medium: number; hard: number }
+    > = {};
+    for (const category of questCategories) {
+      categoryProgress[category] = { easy: 0, medium: 0, hard: 0 };
+    }
+
+    for (const quest of completedQuests) {
+      if (quest.category && categoryProgress[quest.category]) {
+        const diff = quest.difficulty as "easy" | "medium" | "hard";
+        categoryProgress[quest.category][diff]++;
+      }
     }
 
     // Генерируем 3 новых квеста
     const questsToGenerate = Math.min(3, 5 - activeQuestsCount);
     const generatedQuests: any[] = [];
-    const usedTitles = new Set<string>(); // Отслеживаем использованные квесты
+    const usedTitles = new Set<string>();
 
-    // Создаём пул квестов из всех категорий с нужной сложностью
-    const availableQuests: QuestTemplate[] = [];
-    for (const category of questCategories) {
-      const categoryQuests = questBank[category] || [];
-      const suitableQuests = categoryQuests.filter(
-        (q) => q.difficulty === baseDifficulty
-      );
-      availableQuests.push(...suitableQuests);
+    // Получаем уже активные квесты чтобы избежать дубликатов
+    const existingQuests = await prisma.quest.findMany({
+      where: {
+        userId: user.id,
+        status: "pending",
+      },
+      select: {
+        title: true,
+      },
+    });
+
+    for (const q of existingQuests) {
+      usedTitles.add(q.title);
     }
 
-    // Если доступных квестов мало, берём любой сложности
-    if (availableQuests.length < questsToGenerate) {
-      for (const category of questCategories) {
-        const categoryQuests = questBank[category] || [];
-        availableQuests.push(...categoryQuests);
+    // Функция для определения подходящей сложности для категории
+    const getDifficultyForCategory = (
+      category: string
+    ): ("easy" | "medium" | "hard")[] => {
+      const progress = categoryProgress[category];
+      const priorities: ("easy" | "medium" | "hard")[] = [];
+
+      // Новичок - всегда начинаем с легких
+      if (
+        experienceLevel.includes("начинающий") ||
+        experienceLevel.includes("новичок")
+      ) {
+        if (progress.easy < 3) {
+          priorities.push("easy");
+        } else if (progress.easy >= 3 && progress.medium < 3) {
+          priorities.push("easy", "medium");
+        } else {
+          priorities.push("medium", "easy", "hard");
+        }
+      }
+      // Средний уровень
+      else if (experienceLevel.includes("средний")) {
+        if (progress.easy < 2) {
+          priorities.push("easy");
+        } else if (progress.medium < 3) {
+          priorities.push("easy", "medium");
+        } else {
+          priorities.push("medium", "hard", "easy");
+        }
+      }
+      // Продвинутый
+      else {
+        if (progress.medium < 2) {
+          priorities.push("medium", "easy");
+        } else {
+          priorities.push("medium", "hard", "easy");
+        }
+      }
+
+      return priorities;
+    };
+
+    // Создаём пул квестов с приоритетами сложности для каждой категории
+    const availableQuests: QuestTemplate[] = [];
+
+    // Равномерно распределяем квесты по категориям
+    const questsPerCategory = Math.ceil(
+      questsToGenerate / questCategories.length
+    );
+
+    for (const category of questCategories) {
+      const categoryQuests = questBank[category] || [];
+      const priorities = getDifficultyForCategory(category);
+
+      // Сначала добавляем квесты приоритетной сложности
+      for (const difficulty of priorities) {
+        const suitableQuests = categoryQuests.filter(
+          (q) => q.difficulty === difficulty && !usedTitles.has(q.title)
+        );
+        availableQuests.push(...suitableQuests);
       }
     }
 
-    // Перемешиваем квесты для случайности
+    // Перемешиваем квесты для разнообразия
     const shuffled = availableQuests.sort(() => Math.random() - 0.5);
 
     let attempts = 0;
     const maxAttempts = shuffled.length;
+
+    // Определяем nodeId на основе прогресса пользователя
+    const getNodeIdForQuest = async (
+      category: string,
+      difficulty: string
+    ): Promise<string> => {
+      // Считаем сколько квестов уже выполнено в этой категории
+      const completedInCategory = await prisma.quest.count({
+        where: {
+          userId: user.id,
+          category,
+          status: "done",
+        },
+      });
+
+      // Определяем узел на основе количества выполненных квестов
+      // Каждый узел содержит примерно 3-5 квестов
+      const nodeNumber = Math.floor(completedInCategory / 4) + 1;
+      const nodeId = `node-${Math.min(nodeNumber, 7)}`; // Максимум 7 узлов
+
+      return nodeId;
+    };
 
     while (
       generatedQuests.length < questsToGenerate &&
@@ -183,6 +278,12 @@ export default async function handler(
       // Вычисляем XP с учетом уровня
       const xpReward = calculateXP(randomQuest.baseXP, player.level);
 
+      // Определяем nodeId для квеста
+      const nodeId = await getNodeIdForQuest(
+        randomQuest.category,
+        randomQuest.difficulty
+      );
+
       // Создаем квест в базе
       const questData: any = {
         userId: user.id,
@@ -195,6 +296,7 @@ export default async function handler(
         category: randomQuest.category,
         status: "pending",
         isGenerated: true,
+        nodeId, // Добавляем nodeId
         // Сохраняем визуальную демонстрацию и пошаговые инструкции как JSON
         visualDemo: randomQuest.visualDemo
           ? JSON.stringify(randomQuest.visualDemo)
@@ -223,8 +325,8 @@ export default async function handler(
       success: true,
       quests: generatedQuests,
       count: generatedQuests.length,
-      difficulty: baseDifficulty,
       categories: questCategories,
+      progress: categoryProgress,
     });
   } catch (error: any) {
     console.error("Error generating quests:", error);

@@ -1,12 +1,14 @@
 // src/pages/profile.tsx
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
 import { PlayerCard } from "../components/PlayerCard";
 import { ProgressChart, XpEntry } from "../components/ProgressChart";
 import { Achievements } from "../components/Achievements";
+import { Settings } from "../components/Settings";
+import { Layout } from "../components/Layout";
 
 type Quest = {
   id: string;
@@ -14,11 +16,13 @@ type Quest = {
   xpReward: number;
   status: "pending" | "done";
   difficulty: "easy" | "medium" | "hard";
+  nodeId?: string;
 };
 
 export default function Profile() {
   const { data: session } = useSession();
   const [isDark, setIsDark] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
@@ -89,11 +93,13 @@ export default function Profile() {
   // Генерируем xpHistory из завершенных квестов
   const generatedXpHistory: XpEntry[] = completedQuests.map((quest, index) => ({
     xp: quest.xpReward,
-    time: Date.now() - (completedQuests.length - index - 1) * 24 * 60 * 60 * 1000,
+    time:
+      Date.now() - (completedQuests.length - index - 1) * 24 * 60 * 60 * 1000,
   }));
 
   // Используем сгенерированный history если localStorage пуст
-  const displayXpHistory = xpHistory.length > 0 ? xpHistory : generatedXpHistory;
+  const displayXpHistory =
+    xpHistory.length > 0 ? xpHistory : generatedXpHistory;
 
   // Не рендерим контент до монтирования на клиенте
   if (!hasMounted) {
@@ -101,30 +107,16 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-black dark:text-white transition-colors duration-300">
+    <Layout onSettingsClick={() => setSettingsOpen(true)}>
       <div className="max-w-4xl mx-auto p-4">
-        {/* Заголовок с навигацией */}
-        <header className="flex justify-between items-center mb-8">
-          <div>
-            <Link
-              href="/"
-              className="text-blue-600 dark:text-blue-400 hover:underline mb-2 inline-block"
-            >
-              ← Назад к квестам
-            </Link>
-            <Link
-              href="/nutrition"
-              className="text-blue-600 dark:text-blue-400 hover:underline mb-2 inline-block ml-4"
-            >
-              🍎 Питание
-            </Link>
-            <h1 className="text-3xl font-bold">Профиль игрока</h1>
-            {session?.user?.email && (
-              <p className="text-gray-600 dark:text-gray-400">
-                {session.user.email}
-              </p>
-            )}
-          </div>
+        {/* Заголовок страницы */}
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold">Профиль игрока</h1>
+          {session?.user?.email && (
+            <p className="text-gray-600 dark:text-gray-400">
+              {session.user.email}
+            </p>
+          )}
         </header>
 
         <div className="grid gap-8 md:grid-cols-2">
@@ -141,7 +133,7 @@ export default function Profile() {
             {/* Дополнительная статистика */}
             <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">
-                📊 Детальная статистика
+                Детальная статистика
               </h3>
 
               {isLoading ? (
@@ -181,7 +173,9 @@ export default function Profile() {
                     </span>
                     <span className="font-semibold">
                       {quests.length > 0
-                        ? Math.round((totalCompletedQuests / quests.length) * 100)
+                        ? Math.round(
+                            (totalCompletedQuests / quests.length) * 100
+                          )
                         : 0}
                       %
                     </span>
@@ -213,17 +207,16 @@ export default function Profile() {
           <div className="space-y-6">
             <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-6">
               <h3 className="text-xl font-semibold mb-4">
-                📈 График прогресса XP
+                График прогресса по дням
               </h3>
-              {displayXpHistory.length > 0 ? (
-                <ProgressChart xpHistory={displayXpHistory} />
+              {quests.length > 0 ? (
+                <ProgressChart quests={quests} />
               ) : (
                 <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                  <p className="mb-2">📊</p>
                   <p>
-                    Выполните несколько квестов,
+                    Сгенерируйте недельный план,
                     <br />
-                    чтобы увидеть график прогресса
+                    чтобы увидеть прогресс по дням
                   </p>
                 </div>
               )}
@@ -234,6 +227,15 @@ export default function Profile() {
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Settings Modal */}
+      {settingsOpen && (
+        <Settings
+          isDark={isDark}
+          setIsDark={setIsDark}
+          onClose={() => setSettingsOpen(false)}
+        />
+      )}
+    </Layout>
   );
 }

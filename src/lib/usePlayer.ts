@@ -18,11 +18,21 @@ export type OnboardingData = {
 export type Player = {
   xp: number;
   level: number;
+  coins: number;
+  streak: number;
+  lastQuestDate: string | null; // Дата последнего выполненного квеста (YYYY-MM-DD)
   onboardingCompleted?: boolean;
   onboardingData?: OnboardingData;
 };
 
 export function usePlayer() {
-  // по умолчанию 0 XP и уровень 1
-  return useLocalStorage<Player>("player", { xp: 0, level: 1, onboardingCompleted: false });
+  // по умолчанию 0 XP, уровень 1, 0 монет, 0 стрик
+  return useLocalStorage<Player>("player", {
+    xp: 0,
+    level: 1,
+    coins: 0,
+    streak: 0,
+    lastQuestDate: null,
+    onboardingCompleted: false,
+  });
 }

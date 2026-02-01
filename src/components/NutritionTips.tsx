@@ -23,8 +23,9 @@ interface NutritionSection {
 
 const nutritionData: Record<NutritionGoal, NutritionSection> = {
   bulking: {
-    title: "🏋️ Питание для Набора Массы",
-    description: "Для роста мышц необходим профицит калорий и достаточное количество белка",
+    title: "Питание для Набора Массы",
+    description:
+      "Для роста мышц необходим профицит калорий и достаточное количество белка",
     dailyCalories: "+300-500 калорий сверх нормы",
     proteinIntake: "1.6-2.2 г на кг веса тела",
     tips: [
@@ -116,8 +117,9 @@ const nutritionData: Record<NutritionGoal, NutritionSection> = {
     ],
   },
   cutting: {
-    title: "🔥 Питание для Сжигания Жира",
-    description: "Для потери веса нужен дефицит калорий при сохранении мышечной массы",
+    title: "Питание для Сжигания Жира",
+    description:
+      "Для потери веса нужен дефицит калорий при сохранении мышечной массы",
     dailyCalories: "-300-500 калорий ниже нормы",
     proteinIntake: "2.0-2.5 г на кг веса тела (выше для сохранения мышц)",
     tips: [
@@ -217,7 +219,7 @@ export function NutritionTips() {
   return (
     <div className="max-w-4xl mx-auto p-4 md:p-8">
       <h1 className="text-3xl md:text-4xl font-bold text-center mb-8 bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
-        💪 Руководство по Питанию
+        Руководство по Питанию
       </h1>
 
       {/* Переключатель целей */}
@@ -230,7 +232,7 @@ export function NutritionTips() {
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
           }`}
         >
-          🏋️ Набор массы
+          Набор массы
         </button>
         <button
           onClick={() => setSelectedGoal("cutting")}
@@ -240,7 +242,7 @@ export function NutritionTips() {
               : "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600"
           }`}
         >
-          🔥 Сжигание жира
+          Сжигание жира
         </button>
       </div>
 
@@ -255,7 +257,7 @@ export function NutritionTips() {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="bg-purple-50 dark:bg-purple-900/30 p-4 rounded-lg">
             <h3 className="font-semibold text-purple-900 dark:text-purple-200 mb-2">
-              📊 Калории в день
+              Калории в день
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
               {data.dailyCalories}
@@ -263,7 +265,7 @@ export function NutritionTips() {
           </div>
           <div className="bg-indigo-50 dark:bg-indigo-900/30 p-4 rounded-lg">
             <h3 className="font-semibold text-indigo-900 dark:text-indigo-200 mb-2">
-              🥩 Потребление белка
+              Потребление белка
             </h3>
             <p className="text-gray-700 dark:text-gray-300">
               {data.proteinIntake}
@@ -275,7 +277,7 @@ export function NutritionTips() {
       {/* Советы */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
         <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          💡 Ключевые советы
+          Ключевые советы
         </h3>
         <ul className="space-y-2">
           {data.tips.map((tip, index) => (
@@ -283,7 +285,7 @@ export function NutritionTips() {
               key={index}
               className="flex items-start gap-3 text-gray-700 dark:text-gray-300"
             >
-              <span className="text-green-500 text-xl flex-shrink-0">✓</span>
+              <span className="text-green-500 text-lg flex-shrink-0">•</span>
               <span>{tip}</span>
             </li>
           ))}
@@ -293,7 +295,7 @@ export function NutritionTips() {
       {/* Продукты */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
         <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          🍽️ Рекомендуемые продукты
+          Рекомендуемые продукты
         </h3>
         <div className="grid md:grid-cols-2 gap-4">
           {data.foods.map((food, index) => (
@@ -323,7 +325,7 @@ export function NutritionTips() {
       {/* Режим питания */}
       <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
         <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-          ⏰ Примерный режим питания
+          Примерный режим питания
         </h3>
         <div className="space-y-3">
           {data.mealTiming.map((meal, index) => (
@@ -331,7 +333,6 @@ export function NutritionTips() {
               key={index}
               className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
             >
-              <span className="text-2xl">{index === 0 ? "🌅" : index === data.mealTiming.length - 1 ? "🌙" : index === 4 ? "💪" : "🍴"}</span>
               <p className="text-gray-700 dark:text-gray-300">{meal}</p>
             </div>
           ))}
@@ -342,7 +343,7 @@ export function NutritionTips() {
       {data.supplements && (
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
           <h3 className="text-xl font-bold mb-4 text-gray-900 dark:text-white">
-            💊 Рекомендуемые добавки (опционально)
+            Рекомендуемые добавки (опционально)
           </h3>
           <ul className="space-y-2">
             {data.supplements.map((supplement, index) => (
@@ -350,13 +351,13 @@ export function NutritionTips() {
                 key={index}
                 className="flex items-center gap-3 text-gray-700 dark:text-gray-300"
               >
-                <span className="text-blue-500 text-xl">•</span>
+                <span className="text-blue-500 text-lg">•</span>
                 <span>{supplement}</span>
               </li>
             ))}
           </ul>
           <p className="mt-4 text-sm text-gray-500 dark:text-gray-400 italic">
-            ⚠️ Перед приёмом добавок проконсультируйтесь с врачом или
+            Важно: Перед приёмом добавок проконсультируйтесь с врачом или
             диетологом
           </p>
         </div>
@@ -365,12 +366,12 @@ export function NutritionTips() {
       {/* Предупреждение */}
       <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 rounded-xl p-6">
         <h3 className="text-lg font-bold mb-2 text-yellow-900 dark:text-yellow-200 flex items-center gap-2">
-          ⚠️ Важная информация
+          Важная информация
         </h3>
         <p className="text-yellow-800 dark:text-yellow-300 text-sm">
           Это общие рекомендации. Для составления индивидуального плана питания
-          обратитесь к квалифицированному диетологу или нутрициологу.
-          Учитывайте свои особенности здоровья, аллергии и противопоказания.
+          обратитесь к квалифицированному диетологу или нутрициологу. Учитывайте
+          свои особенности здоровья, аллергии и противопоказания.
         </p>
       </div>
     </div>

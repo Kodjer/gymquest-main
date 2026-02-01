@@ -59,7 +59,15 @@ export default async function handler(
   if (req.method === "PUT") {
     // Обновление профиля игрока
     try {
-      const { xp, level, onboardingCompleted } = req.body;
+      const {
+        xp,
+        level,
+        onboardingCompleted,
+        coins,
+        streak,
+        lastQuestDate,
+        currentWeek,
+      } = req.body;
 
       if (!user.player) {
         return res.status(404).json({ error: "Player not found" });
@@ -71,6 +79,10 @@ export default async function handler(
           ...(xp !== undefined && { xp }),
           ...(level !== undefined && { level }),
           ...(onboardingCompleted !== undefined && { onboardingCompleted }),
+          ...(coins !== undefined && { coins }),
+          ...(streak !== undefined && { streak }),
+          ...(lastQuestDate !== undefined && { lastQuestDate }),
+          ...(currentWeek !== undefined && { currentWeek }),
         },
         include: {
           onboardingData: true,

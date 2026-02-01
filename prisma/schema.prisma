@@ -79,6 +79,8 @@ model Player {
   onboardingCompleted Boolean  @default(false)
   completedQuests     Int      @default(0) // Количество завершенных квестов
   lastQuestGenerated  DateTime? // Дата последней генерации квестов
+  currentWeek         Int      @default(1) // Текущая неделя тренировок
+  weekStartDate       DateTime? // Дата начала текущей недели
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   
@@ -103,6 +105,9 @@ model Quest {
   isGenerated Boolean  @default(true) // Автоматически сгенерирован или создан пользователем
   visualDemo  String?  @db.Text // JSON: {type, url, thumbnail}
   stepByStep  String?  @db.Text // JSON массив шагов
+  nodeId      String?  // ID узла на карте прогресса
+  location    String?  // home, gym, both
+  showInAllMode Boolean @default(false) // Показывать ли в режиме "Все"
   assignedAt  DateTime @default(now())
   completedAt DateTime?
   createdAt   DateTime @default(now())
@@ -112,6 +117,7 @@ model Quest {
   
   @@index([userId])
   @@index([userId, status])
+  @@index([userId, nodeId])
   @@map("quests")
 }
 

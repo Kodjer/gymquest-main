@@ -64,11 +64,6 @@ export function AddQuestForm({
     return colors[diff];
   };
 
-  const getDifficultyEmoji = (diff: "easy" | "medium" | "hard") => {
-    const emojis = { easy: "🟢", medium: "🟡", hard: "🔴" };
-    return emojis[diff];
-  };
-
   return (
     <form
       onSubmit={handleSubmit}
@@ -115,7 +110,6 @@ export function AddQuestForm({
                 : "bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
             } ${getDifficultyColor(diff)}`}
           >
-            {getDifficultyEmoji(diff)}{" "}
             {diff === "easy"
               ? "Легко"
               : diff === "medium"

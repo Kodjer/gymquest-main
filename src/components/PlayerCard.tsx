@@ -4,6 +4,9 @@ import { AnimatedStat, FadeIn } from "./AnimatedComponents";
 interface Player {
   xp: number;
   level: number;
+  coins: number;
+  streak: number;
+  lastQuestDate: string | null;
 }
 
 interface PlayerCardProps {
@@ -36,13 +39,38 @@ export function PlayerCard({
   return (
     <div className="profile-card bg-white text-black dark:bg-gray-900 dark:text-white border dark:border-gray-700">
       <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-2xl font-bold">Уровень {player.level}</h2>
-          <p className="text-gray-600 dark:text-gray-400">
-            {player.xp} XP всего
-          </p>
+        {/* Аватар и уровень */}
+        <div className="flex items-center gap-4">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-400 via-pink-500 to-red-500 p-1 shadow-lg">
+            <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-4xl">
+              👤
+            </div>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold">Уровень {player.level}</h2>
+            <p className="text-gray-600 dark:text-gray-400">
+              {player.xp} XP всего
+            </p>
+          </div>
         </div>
-        <div className="text-4xl">🏆</div>
+
+        {/* Монеты и стрик */}
+        <div className="flex flex-col items-end gap-2">
+          {player.streak > 0 && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl shadow-lg">
+              <span className="font-bold text-lg text-white">Серия: </span>
+              <span className="font-bold text-lg text-white">
+                {player.streak}
+              </span>
+            </div>
+          )}
+          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-xl shadow-lg">
+            <div className="w-8 h-8 bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 rounded-full shadow-lg border-2 border-yellow-200"></div>
+            <span className="font-bold text-lg text-white">
+              {player.coins || 0}
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Прогресс-бар */}
@@ -88,11 +116,65 @@ export function PlayerCard({
         </FadeIn>
       )}
 
-      {/* Кнопка сброса */}
+      {/* Кнопка сброса прогресса и генерации квестов */}
       {showResetButton && (
         <button
-          onClick={() => setPlayer({ ...player, xp: 0, level: 1 })}
-          className="btn-reset mt-4 w-full hover:scale-105 active:scale-95 transition-transform"
+          onClick={async () => {
+            const btn = document.getElementById('reset-btn');
+            if (btn) {
+              btn.textContent = '⏳ Сброс и генерация...';
+              btn.setAttribute('disabled', 'true');
+            }
+            
+            // Сбрасываем прогресс игрока
+            setPlayer({
+              ...player,
+              xp: 0,
+              level: 1,
+              coins: 0,
+              streak: 0,
+              lastQuestDate: null,
+            });
+
+            try {
+              // Сбрасываем неделю в базе данных
+              await fetch("/api/player", {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  xp: 0,
+                  level: 1,
+                  currentWeek: 1,
+                }),
+              });
+
+              // Удаляем старые квесты
+              await fetch("/api/quests/clear", { method: "DELETE" });
+              
+              // Генерируем новые квесты
+              const response = await fetch("/api/quests/generate-week", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+              });
+              
+              if (response.ok) {
+                window.location.href = "/";
+              } else {
+                const data = await response.json();
+                alert("Ошибка: " + (data.error || "Не удалось сгенерировать квесты"));
+              }
+            } catch (error) {
+              console.error("Ошибка сброса прогресса:", error);
+              alert("Ошибка при сбросе прогресса");
+            } finally {
+              if (btn) {
+                btn.textContent = 'Сбросить прогресс';
+                btn.removeAttribute('disabled');
+              }
+            }
+          }}
+          id="reset-btn"
+          className="btn-reset mt-4 w-full hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Сбросить прогресс
         </button>

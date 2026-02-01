@@ -3,11 +3,13 @@
 @tailwind utilities;
 
 body {
-  @apply bg-white text-black transition-colors duration-300;
+  @apply bg-gray-50 text-gray-900 transition-colors duration-300;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto",
+    "Helvetica", "Arial", sans-serif;
 }
 
 .dark body {
-  @apply bg-gray-900 text-white;
+  @apply bg-gray-950 text-gray-100;
 }
 
 /* Поле ввода текста */
@@ -235,4 +237,25 @@ body {
   .btn-cancel-modal {
     @apply bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 ml-2 dark:bg-gray-700 dark:text-white dark:hover:bg-gray-600;
   }
+}
+
+/* Плавное движение облаков */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateX(0) translateY(0);
+  }
+  25% {
+    transform: translateX(10px) translateY(-10px);
+  }
+  50% {
+    transform: translateX(20px) translateY(0);
+  }
+  75% {
+    transform: translateX(10px) translateY(10px);
+  }
+}
+
+.animate-float {
+  animation: float 8s ease-in-out infinite;
 }

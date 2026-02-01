@@ -46,7 +46,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "first_quest",
       title: "Первые шаги",
       description: "Выполните первый квест",
-      emoji: "🥉",
+      emoji: "",
       isUnlocked: totalCompleted >= 1,
       progress: Math.min(totalCompleted, 1),
       maxProgress: 1,
@@ -56,7 +56,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "five_quests",
       title: "Опытный искатель",
       description: "Выполните 5 квестов",
-      emoji: "🥈",
+      emoji: "",
       isUnlocked: totalCompleted >= 5,
       progress: Math.min(totalCompleted, 5),
       maxProgress: 5,
@@ -66,7 +66,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "ten_quests",
       title: "Мастер квестов",
       description: "Выполните 10 квестов",
-      emoji: "🥇",
+      emoji: "",
       isUnlocked: totalCompleted >= 10,
       progress: Math.min(totalCompleted, 10),
       maxProgress: 10,
@@ -76,7 +76,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "xp_hunter",
       title: "Охотник за опытом",
       description: "Наберите 100 XP",
-      emoji: "⭐",
+      emoji: "",
       isUnlocked: player.xp >= 100,
       progress: Math.min(player.xp, 100),
       maxProgress: 100,
@@ -86,7 +86,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "xp_master",
       title: "Мастер опыта",
       description: "Наберите 500 XP",
-      emoji: "🌟",
+      emoji: "",
       isUnlocked: player.xp >= 500,
       progress: Math.min(player.xp, 500),
       maxProgress: 500,
@@ -96,7 +96,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "level_five",
       title: "Уровень 5",
       description: "Достигните 5 уровня",
-      emoji: "🎯",
+      emoji: "",
       isUnlocked: player.level >= 5,
       progress: Math.min(player.level, 5),
       maxProgress: 5,
@@ -106,7 +106,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "easy_master",
       title: "Мастер легких квестов",
       description: "Выполните 10 легких квестов",
-      emoji: "🟢",
+      emoji: "",
       isUnlocked: easyCompleted >= 10,
       progress: Math.min(easyCompleted, 10),
       maxProgress: 10,
@@ -116,7 +116,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "hard_challenger",
       title: "Любитель вызовов",
       description: "Выполните 5 сложных квестов",
-      emoji: "🔴",
+      emoji: "",
       isUnlocked: hardCompleted >= 5,
       progress: Math.min(hardCompleted, 5),
       maxProgress: 5,
@@ -126,7 +126,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
       id: "balanced_player",
       title: "Сбалансированный игрок",
       description: "Выполните по 3 квеста каждой сложности",
-      emoji: "⚖️",
+      emoji: "",
       isUnlocked:
         easyCompleted >= 3 && mediumCompleted >= 3 && hardCompleted >= 3,
       progress: Math.min(
@@ -144,7 +144,7 @@ export function Achievements({ player, quests }: AchievementsProps) {
   return (
     <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-6">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-semibold">🏆 Достижения</h3>
+        <h3 className="text-xl font-semibold">Достижения</h3>
         <div className="text-sm text-gray-600 dark:text-gray-400">
           {unlockedCount}/{totalAchievements} получено
         </div>
@@ -161,13 +161,15 @@ export function Achievements({ player, quests }: AchievementsProps) {
             }`}
           >
             <div className="flex items-start gap-3">
-              <span
-                className={`text-2xl ${
-                  achievement.isUnlocked ? "" : "grayscale opacity-50"
+              <div
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
+                  achievement.isUnlocked
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-300 dark:bg-gray-600 text-gray-500"
                 }`}
               >
-                {achievement.isUnlocked ? achievement.emoji : "⚪"}
-              </span>
+                ✓
+              </div>
               <div className="flex-1">
                 <div className="flex justify-between items-start mb-1">
                   <h4

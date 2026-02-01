@@ -1,5 +1,6 @@
 // src/pages/index.tsx
 import { useState, useEffect } from "react";
+import { useRouter } from "next/router";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer, OnboardingData } from "../lib/usePlayer";
 import { useDBSync } from "../lib/useDBSync";
@@ -16,6 +17,8 @@ import { OnboardingQuestionnaire } from "../components/OnboardingQuestionnaire";
 import { LandingPage } from "../components/LandingPage";
 import { GenerateQuestsButton } from "../components/GenerateQuestsButton";
 import { QuestCard } from "../components/QuestCard";
+import { MapProgress } from "../components/MapProgress";
+import { Layout } from "../components/Layout";
 
 type Filter = "all" | "pending" | "done";
 
@@ -35,6 +38,9 @@ type Quest = {
   difficulty: "easy" | "medium" | "hard";
   category?: string;
   isGenerated?: boolean;
+  nodeId?: string;
+  location?: "home" | "gym" | "both";
+  showInAllMode?: boolean; // Показывать ли в режиме "Все"
   visualDemo?: {
     type: "image" | "video" | "gif" | "youtube";
     url: string;
@@ -65,6 +71,8 @@ export default function Home() {
 
 function AuthenticatedApp() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const { nodeId } = router.query; // Получаем nodeId из URL
   const [isDark, setIsDark] = useState(false);
   const [soundEnabled, setSoundEnabledState] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
@@ -74,6 +82,10 @@ function AuthenticatedApp() {
   );
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoadingQuests, setIsLoadingQuests] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [locationFilter, setLocationFilter] = useState<"home" | "gym">(
+    "home"
+  );
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -114,6 +126,21 @@ function AuthenticatedApp() {
     }
   }, [session, player.onboardingCompleted]);
 
+  // Автоматическая генерация квестов
+  const generateQuests = async () => {
+    try {
+      const response = await fetch("/api/quests/generate-week", {
+        method: "POST",
+      });
+      if (response.ok) {
+        console.log("✅ Квесты сгенерированы автоматически");
+        await loadQuests();
+      }
+    } catch (error) {
+      console.error("Error generating quests:", error);
+    }
+  };
+
   // Загрузка квестов из API
   const loadQuests = async () => {
     setIsLoadingQuests(true);
@@ -125,15 +152,21 @@ function AuthenticatedApp() {
         if (data.length > 0) {
           console.log("📝 Первый квест:", {
             title: data[0].title,
+            nodeId: data[0].nodeId,
+            category: data[0].category,
             hasInstructions: !!data[0].instructions,
             hasTip: !!data[0].tip,
             hasVisualDemo: !!data[0].visualDemo,
             hasStepByStep: !!data[0].stepByStep,
-            visualDemo: data[0].visualDemo,
-            stepByStep: data[0].stepByStep,
           });
         }
         setQuests(data);
+
+        // Если квестов нет и пройден onboarding - генерируем автоматически
+        if (data.length === 0 && player.onboardingCompleted) {
+          console.log("🤖 Нет квестов, запускаем автогенерацию...");
+          await generateQuests();
+        }
       }
     } catch (error) {
       console.error("Error loading quests:", error);
@@ -148,10 +181,83 @@ function AuthenticatedApp() {
     }
   }, [session]);
 
+  // Проверка завершения недели (все 7 дней должны быть завершены в ЛЮБОЙ локации)
+  useEffect(() => {
+    const checkWeekCompletion = async () => {
+      if (quests.length === 0) return;
+
+      // Проверяем каждую ноду (день) - она завершена если ВСЕ квесты в ЛЮБОЙ локации выполнены
+      const nodeIds = ["node-1", "node-2", "node-3", "node-4", "node-5", "node-6", "node-7"];
+      
+      const allNodesCompleted = nodeIds.every((nodeId) => {
+        const nodeQuests = quests.filter((q) => q.nodeId === nodeId);
+        if (nodeQuests.length === 0) return false;
+        
+        // Группируем по локации
+        const homeQuests = nodeQuests.filter((q) => q.location === "home");
+        const gymQuests = nodeQuests.filter((q) => q.location === "gym");
+        
+        // Нода завершена если ВСЕ квесты в ЛЮБОЙ локации выполнены
+        const homeComplete = homeQuests.length > 0 && homeQuests.every((q) => q.status === "done");
+        const gymComplete = gymQuests.length > 0 && gymQuests.every((q) => q.status === "done");
+        
+        return homeComplete || gymComplete;
+      });
+
+      if (allNodesCompleted) {
+        console.log(
+          "🎉 Все 7 дней недели завершены! Переход на следующую неделю..."
+        );
+
+        // Переходим на следующую неделю
+        try {
+          const response = await fetch("/api/player/next-week", {
+            method: "POST",
+          });
+
+          if (response.ok) {
+            const data = await response.json();
+            console.log("📅 Теперь неделя:", data.weekNumber);
+
+            // Генерируем новые квесты
+            await generateQuests();
+          }
+        } catch (error) {
+          console.error("Error advancing week:", error);
+        }
+      }
+    };
+
+    checkWeekCompletion();
+  }, [quests]);
+
   const [filter, setFilter] = useState<Filter>("all");
-  const filteredQuests = quests.filter((q) =>
-    filter === "all" ? true : q.status === filter
-  );
+
+  // Если открыт узел, фильтруем только его квесты
+  const filteredQuests = quests.filter((q) => {
+    // Фильтр по узлу (если выбран)
+    if (nodeId && typeof nodeId === "string") {
+      if (q.nodeId !== nodeId) return false;
+    }
+
+    // Фильтр по локации (дом/зал)
+    if (locationFilter === "home") {
+      // Показываем домашние квесты без инвентаря (location === "home")
+      if (q.location !== "home") return false;
+    }
+    if (locationFilter === "gym") {
+      // Показываем зальные квесты с инвентарем (location === "gym")
+      if (q.location !== "gym") return false;
+    }
+
+    // Фильтр по статусу
+    const statusMatch = filter === "all" ? true : q.status === filter;
+    // Фильтр по категории (если выбрана)
+    const categoryMatch = selectedCategory
+      ? q.category === selectedCategory
+      : true;
+    return statusMatch && categoryMatch;
+  });
 
   const [isMobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -187,15 +293,67 @@ function AuthenticatedApp() {
           prev.map((q) => (q.id === id ? { ...q, status: newStatus } : q))
         );
 
-        // Если квест завершен, обновляем XP
+        // Если квест завершен, начисляем XP и монеты
         if (newStatus === "done") {
-          const newXp = player.xp + quest.xpReward;
-          const newLevel = Math.floor(newXp / 100) + 1;
+          const today = new Date().toISOString().split("T")[0];
+          let newStreak = player.streak;
 
-          setPlayer({ ...player, xp: newXp, level: newLevel });
+          // Обновляем стрик
+          if (player.lastQuestDate === today) {
+            // Уже выполняли квест сегодня
+            newStreak = player.streak;
+          } else if (player.lastQuestDate) {
+            const lastDate = new Date(player.lastQuestDate);
+            const todayDate = new Date(today);
+            const diffDays = Math.floor(
+              (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+            );
+
+            if (diffDays === 1) {
+              // Продолжаем стрик
+              newStreak = player.streak + 1;
+            } else {
+              // Стрик прервался
+              newStreak = 1;
+            }
+          } else {
+            // Первый квест
+            newStreak = 1;
+          }
+
+          // Награды за квест
+          const baseCoins =
+            quest.difficulty === "easy"
+              ? 10
+              : quest.difficulty === "medium"
+              ? 20
+              : 30;
+          const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
+          const totalCoins = baseCoins + streakBonus;
+
+          const newXp = player.xp + quest.xpReward;
+          const newLevel = Math.floor(newXp / 500) + 1;
+          const newCoins = player.coins + totalCoins;
+
+          setPlayer({
+            ...player,
+            xp: newXp,
+            level: newLevel,
+            coins: newCoins,
+            streak: newStreak,
+            lastQuestDate: today,
+          });
           setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
 
           celebrateQuestComplete(quest.difficulty);
+        }
+        // Если квест отменен, отнимаем XP
+        else if (newStatus === "pending") {
+          const newXp = Math.max(0, player.xp - quest.xpReward);
+          const newLevel = Math.floor(newXp / 500) + 1;
+
+          setPlayer({ ...player, xp: newXp, level: newLevel });
+          setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
         }
       }
     } catch (error) {
@@ -204,6 +362,10 @@ function AuthenticatedApp() {
   }
 
   // Удаление квеста
+  function deleteQuest(id: string) {
+    setDeleteId(id);
+  }
+
   async function confirmDelete() {
     if (!deleteId) return;
 
@@ -276,235 +438,104 @@ function AuthenticatedApp() {
   }
 
   return (
-    <div className="p-4 md:p-8 max-w-4xl mx-auto">
-      {/* Хедер */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          {session ? (
-            <>
-              <span className="font-semibold">
-                Привет, {session.user?.name || session.user?.email}
-              </span>
-              <Link
-                href="/nutrition"
-                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
+    <Layout onSettingsClick={() => setSettingsOpen(true)}>
+      <div className="p-4 md:p-8 max-w-4xl mx-auto">
+        <div className="space-y-6">
+          {/* Профиль игрока */}
+          <PlayerCard
+            player={player}
+            setPlayer={setPlayer}
+            showDetailedStats={false}
+            quests={quests}
+            showResetButton={true}
+          />
+
+          {/* Если открыт узел - показываем кнопку возврата и список квестов */}
+          {nodeId ? (
+            <div className="space-y-6">
+              {/* Кнопка возврата к карте */}
+              <button
+                onClick={() => router.push("/")}
+                className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
               >
-                🍎 Питание
-              </Link>
-              <Link
-                href="/profile"
-                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-              >
-                📊 Профиль
-              </Link>
-              <button onClick={() => signOut()} className="text-sm underline">
-                Выйти
+                <span className="text-xl">←</span>
+                Вернуться к карте
               </button>
-            </>
+
+              {/* Заголовок узла */}
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
+                <h2 className="text-2xl font-bold mb-2">
+                  {nodeId === "node-1"
+                    ? "День 1"
+                    : nodeId === "node-2"
+                    ? "День 2"
+                    : nodeId === "node-3"
+                    ? "День 3"
+                    : nodeId === "node-4"
+                    ? "День 4"
+                    : nodeId === "node-5"
+                    ? "День 5"
+                    : nodeId === "node-6"
+                    ? "День 6"
+                    : nodeId === "node-7"
+                    ? "День 7"
+                    : "Тренировка"}
+                </h2>
+                <p className="opacity-90">
+                  Выполните все квесты, чтобы открыть следующий узел
+                </p>
+              </div>
+
+              {/* Список квестов узла */}
+              {isLoadingQuests ? (
+                <div className="text-center py-12">
+                  <div className="text-gray-500 dark:text-gray-400">
+                    Загрузка квестов...
+                  </div>
+                </div>
+              ) : filteredQuests.length > 0 ? (
+                <div className="space-y-4">
+                  {filteredQuests.map((quest) => (
+                    <QuestCard
+                      key={quest.id}
+                      quest={quest}
+                      onToggle={toggleQuest}
+                      onDelete={deleteQuest}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-12 bg-gray-50 dark:bg-gray-800/30 rounded-xl">
+                  <div className="text-4xl mb-3">📭</div>
+                  <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">
+                    В этом узле пока нет квестов
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">
+                    Вернитесь к карте и сгенерируйте новые квесты
+                  </p>
+                </div>
+              )}
+            </div>
           ) : (
-            <>
-              <Link
-                href="/nutrition"
-                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-              >
-                Питание
-              </Link>
-              <Link
-                href="/profile"
-                className="text-blue-600 dark:text-blue-400 hover:underline text-sm"
-              >
-                Профиль
-              </Link>
-              <button onClick={() => signIn()} className="text-sm underline">
-                Войти
-              </button>
-            </>
+            /* Карта прогресса - главный элемент */
+            <MapProgress
+              quests={quests}
+              onLocationFilterChange={setLocationFilter}
+              trainingMode={
+                player.onboardingData?.workoutPreference?.[0] ===
+                "Силовые тренировки"
+                  ? "strength"
+                  : player.onboardingData?.workoutPreference?.[0] ===
+                    "Кардио-тренировки"
+                  ? "cardio"
+                  : player.onboardingData?.workoutPreference?.[0] ===
+                    "Йога и растяжка"
+                  ? "flexibility"
+                  : "mixed"
+              }
+            />
           )}
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => setSettingsOpen(true)}
-            className="text-sm underline"
-            title="Настройки"
-          >
-            Настройки
-          </button>
-          <button
-            className="text-2xl md:hidden"
-            onClick={() => setMobileFilterOpen((open) => !open)}
-            aria-label="Toggle filter menu"
-          >
-            {isMobileFilterOpen ? "✖️" : "☰"}
-          </button>
-        </div>
-      </div>
-
-      <div className="space-y-6">
-        {/* Профиль игрока */}
-        <PlayerCard
-          player={player}
-          setPlayer={setPlayer}
-          showDetailedStats={false}
-          quests={quests}
-          showResetButton={true}
-        />
-
-        {/* Кнопка генерации квестов */}
-        <GenerateQuestsButton onQuestsGenerated={loadQuests} />
-
-        {/* Десктоп-фильтр */}
-        <div className="hidden md:flex gap-2 mb-4">
-          <button
-            onClick={() => setFilter("all")}
-            className={filter === "all" ? "btn-filter-active" : "btn-filter"}
-          >
-            Все ({quests.length})
-          </button>
-          <button
-            onClick={() => setFilter("pending")}
-            className={
-              filter === "pending" ? "btn-filter-active" : "btn-filter"
-            }
-          >
-            Активные ({quests.filter((q) => q.status === "pending").length})
-          </button>
-          <button
-            onClick={() => setFilter("done")}
-            className={filter === "done" ? "btn-filter-active" : "btn-filter"}
-          >
-            Завершённые ({quests.filter((q) => q.status === "done").length})
-          </button>
-        </div>
-
-        {/* Мобильный фильтр */}
-        {isMobileFilterOpen && (
-          <div className="flex flex-col gap-2 mb-4 md:hidden">
-            <button
-              onClick={() => {
-                setFilter("all");
-                setMobileFilterOpen(false);
-              }}
-              className={filter === "all" ? "btn-filter-active" : "btn-filter"}
-            >
-              Все ({quests.length})
-            </button>
-            <button
-              onClick={() => {
-                setFilter("pending");
-                setMobileFilterOpen(false);
-              }}
-              className={
-                filter === "pending" ? "btn-filter-active" : "btn-filter"
-              }
-            >
-              Активные ({quests.filter((q) => q.status === "pending").length})
-            </button>
-            <button
-              onClick={() => {
-                setFilter("done");
-                setMobileFilterOpen(false);
-              }}
-              className={filter === "done" ? "btn-filter-active" : "btn-filter"}
-            >
-              Завершённые ({quests.filter((q) => q.status === "done").length})
-            </button>
-          </div>
-        )}
-
-        {/* Список квестов */}
-        {isLoadingQuests ? (
-          <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-            <p className="mt-4 text-gray-600 dark:text-gray-400">
-              Загрузка квестов...
-            </p>
-          </div>
-        ) : filteredQuests.length === 0 ? (
-          <div className="text-center py-8 bg-gray-100 dark:bg-gray-800 rounded-lg">
-            <p className="text-xl mb-2">🎯</p>
-            <p className="text-gray-600 dark:text-gray-400">
-              {filter === "all"
-                ? "Нет квестов. Нажмите кнопку выше, чтобы получить новые!"
-                : filter === "pending"
-                ? "Нет активных квестов"
-                : "Нет завершенных квестов"}
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {filteredQuests.map((quest) => (
-              <QuestCard
-                key={quest.id}
-                quest={quest}
-                onToggle={toggleQuest}
-                onDelete={(id) => setDeleteId(id)}
-                showActions={false}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Кнопка замены всех квестов */}
-        {quests.length > 0 && (
-          <div className="mt-6 flex justify-center">
-            <button
-              onClick={() => setShowClearConfirm(true)}
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
-            >
-              Заменить квесты
-            </button>
-          </div>
-        )}
-
-        {/* Модалка подтверждения удаления */}
-        {deleteId && (
-          <div className="modal-overlay">
-            <div className="modal-box bg-white text-black dark:bg-gray-800 dark:text-white border dark:border-gray-700">
-              <p className="mb-4">Вы точно хотите удалить этот квест?</p>
-              <div className="flex justify-end gap-2">
-                <button onClick={cancelDelete} className="btn-cancel-modal">
-                  Отмена
-                </button>
-                <button
-                  onClick={confirmDelete}
-                  className="btn-confirm bg-red-500 text-white dark:bg-red-600"
-                >
-                  Удалить
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Модалка подтверждения замены квестов */}
-        {showClearConfirm && (
-          <div className="modal-overlay">
-            <div className="modal-box bg-white text-black dark:bg-gray-800 dark:text-white border dark:border-gray-700">
-              <h3 className="text-xl font-bold mb-4">Заменить квесты</h3>
-              <p className="mb-4">
-                Вы действительно хотите заменить текущие квесты на новые?
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Все текущие квесты будут удалены, и вы сможете получить новые
-                квесты с обновленными описаниями.
-              </p>
-              <div className="flex justify-end gap-2">
-                <button
-                  onClick={() => setShowClearConfirm(false)}
-                  className="btn-cancel-modal"
-                >
-                  Отмена
-                </button>
-                <button
-                  onClick={clearAllQuests}
-                  className="btn-confirm bg-purple-600 text-white dark:bg-purple-700 hover:bg-purple-700 dark:hover:bg-purple-800"
-                >
-                  Заменить
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Модалка настроек */}
@@ -527,6 +558,6 @@ function AuthenticatedApp() {
           mode={onboardingMode}
         />
       )}
-    </div>
+    </Layout>
   );
 }

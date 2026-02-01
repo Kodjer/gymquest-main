@@ -19,7 +19,7 @@ export const authOptions: NextAuthOptions = {
             subject: "Войдите в GymQuest",
             html: `
               <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-                <h2 style="color: #333;">Добро пожаловать в GymQuest! 💪</h2>
+                <h2 style="color: #333;">Добро пожаловать в GymQuest!</h2>
                 <p style="color: #666; font-size: 16px;">Нажмите на кнопку ниже, чтобы войти в приложение:</p>
                 <a href="${url}" style="display: inline-block; background-color: #8b5cf6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; margin: 20px 0;">
                   Войти в GymQuest

@@ -26,8 +26,13 @@ export default async function handler(
   if (req.method === "GET") {
     // Получение всех квестов пользователя
     try {
+      const { nodeId } = req.query;
+
       const quests = await prisma.quest.findMany({
-        where: { userId: user.id },
+        where: {
+          userId: user.id,
+          ...(nodeId && typeof nodeId === "string" ? { nodeId } : {}),
+        },
         orderBy: { createdAt: "desc" },
       });
 

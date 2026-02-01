@@ -19,7 +19,6 @@ export default function AuthError() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg text-center">
         <div>
-          <div className="text-6xl mb-4">❌</div>
           <h2 className="text-3xl font-bold mb-2 text-red-600 dark:text-red-400">
             Ошибка входа
           </h2>

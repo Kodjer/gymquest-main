@@ -37,7 +37,7 @@ export default function SignIn() {
     <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-4">
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
         <div>
-          <h2 className="text-center text-3xl font-bold">🏋️ GymQuest</h2>
+          <h2 className="text-center text-3xl font-bold">GymQuest</h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Войдите через email
           </p>
