@@ -8,6 +8,7 @@ import { PlayerCard } from "../components/PlayerCard";
 import { ProgressChart, XpEntry } from "../components/ProgressChart";
 import { Achievements } from "../components/Achievements";
 import { Settings } from "../components/Settings";
+import { Shop } from "../components/Shop";
 import { Layout } from "../components/Layout";
 
 type Quest = {
@@ -23,6 +24,7 @@ export default function Profile() {
   const { data: session } = useSession();
   const [isDark, setIsDark] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMounted, setHasMounted] = useState(false);
@@ -107,7 +109,7 @@ export default function Profile() {
   }
 
   return (
-    <Layout onSettingsClick={() => setSettingsOpen(true)}>
+    <Layout onSettingsClick={() => setSettingsOpen(true)} onShopClick={() => setShopOpen(true)}>
       <div className="max-w-4xl mx-auto p-4">
         {/* Заголовок страницы */}
         <header className="mb-8">
@@ -231,11 +233,22 @@ export default function Profile() {
       {/* Settings Modal */}
       {settingsOpen && (
         <Settings
+          isOpen={settingsOpen}
           isDark={isDark}
-          setIsDark={setIsDark}
+          onThemeToggle={() => setIsDark(!isDark)}
+          onChangeClass={() => {}}
           onClose={() => setSettingsOpen(false)}
         />
       )}
+
+      {/* Shop Modal */}
+      <Shop
+        isOpen={shopOpen}
+        onClose={() => setShopOpen(false)}
+        playerCoins={player.coins || 0}
+        playerLevel={player.level || 1}
+        onPurchase={() => {}}
+      />
     </Layout>
   );
 }

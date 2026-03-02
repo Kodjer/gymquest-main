@@ -284,7 +284,6 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
         <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <span className="text-3xl">🛒</span>
               <h2 className="text-2xl font-bold text-white">Магазин</h2>
             </div>
             <div className="flex items-center gap-4">
@@ -346,7 +345,6 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
                   disabled={loading}
                   className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl transition-colors"
                 >
-                  <span>🔄</span>
                   <span className="text-sm font-medium">Сбросить на дефолт</span>
                 </button>
               </div>
@@ -413,10 +411,10 @@ function ShopItemCard({ item, index, owned, equipped, canAfford, levelLocked, on
             <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
           )}
           {equipped && (
-            <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs">⭐</span>
+            <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">E</span>
           )}
           {levelLocked && (
-            <span className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs">🔒</span>
+            <span className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">!</span>
           )}
         </div>
 
@@ -504,15 +502,15 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
             {item.effect && (
               <div className="mt-3 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
                 <span className="text-blue-600 dark:text-blue-400">
-                  {item.effect.type === 'xp_multiplier' && `⚡ XP x${item.effect.value}`}
-                  {item.effect.type === 'coin_multiplier' && `💰 Монеты x${item.effect.value}`}
-                  {item.effect.type === 'xp_bonus' && `⚡ +${Math.round(item.effect.value * 100)}% XP`}
-                  {item.effect.type === 'coin_bonus' && `💰 +${Math.round(item.effect.value * 100)}% монет`}
-                  {item.effect.type === 'streak_bonus' && `🔥 +${Math.round(item.effect.value * 100)}% бонус серии`}
-                  {item.effect.type === 'streak_shield' && `🛡️ Защита серии`}
-                  {item.effect.type === 'flexibility_xp_bonus' && `🧘 +${Math.round(item.effect.value * 100)}% XP за гибкость`}
-                  {item.effect.type === 'auto_streak_shield' && `🔥 Авто-защита серии раз в неделю`}
-                  {item.effect.type === 'mega_boost' && `🎁 XP x2 + Монеты x2`}
+                  {item.effect.type === 'xp_multiplier' && `XP x${item.effect.value}`}
+                  {item.effect.type === 'coin_multiplier' && `Монеты x${item.effect.value}`}
+                  {item.effect.type === 'xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP`}
+                  {item.effect.type === 'coin_bonus' && `+${Math.round(item.effect.value * 100)}% монет`}
+                  {item.effect.type === 'streak_bonus' && `+${Math.round(item.effect.value * 100)}% бонус серии`}
+                  {item.effect.type === 'streak_shield' && `Защита серии`}
+                  {item.effect.type === 'flexibility_xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP за гибкость`}
+                  {item.effect.type === 'auto_streak_shield' && `Авто-защита серии раз в неделю`}
+                  {item.effect.type === 'mega_boost' && `XP x2 + Монеты x2`}
                 </span>
                 {item.duration && (
                   <span className="ml-2 text-gray-500">({item.duration}ч)</span>
@@ -524,7 +522,7 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
             {item.requiredLevel && (
               <div className={`mt-3 p-2 rounded-lg ${levelLocked ? 'bg-red-100 dark:bg-red-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
                 <span className={levelLocked ? 'text-red-600' : 'text-green-600'}>
-                  🔒 Требуется уровень {item.requiredLevel}
+                  Требуется уровень {item.requiredLevel}
                   {levelLocked && ` (ваш: ${playerLevel})`}
                 </span>
               </div>
@@ -550,10 +548,10 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
                       : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105'
                   }`}
                 >
-                  {loading ? '⏳ Покупка...' : 
-                   levelLocked ? '🔒 Уровень недостаточен' :
-                   !canAfford ? '💸 Недостаточно монет' : 
-                   '🛒 Купить'}
+                  {loading ? 'Покупка...' : 
+                   levelLocked ? 'Уровень недостаточен' :
+                   !canAfford ? 'Недостаточно монет' : 
+                   'Купить'}
                 </button>
               ) : (
                 <>

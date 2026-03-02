@@ -137,11 +137,10 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
             {onShopClick && (
               <button
                 onClick={onShopClick}
-                className={`${getNavLinkClasses()} flex items-center gap-1`}
+                className={getNavLinkClasses()}
                 title="Магазин"
               >
-                <span>🛒</span>
-                <span className="hidden sm:inline">Магазин</span>
+                Магазин
               </button>
             )}
             {onSettingsClick && (
