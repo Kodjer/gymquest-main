@@ -170,13 +170,13 @@ export default async function handler(
 
     let baseDifficulties: ("easy" | "medium" | "hard")[] = [];
 
-    // УРОВЕНЬ 1-3: Только легкие квесты (новички)
-    if (playerLevel <= 3) {
+    // УРОВЕНЬ 1-5: Только легкие квесты
+    if (playerLevel <= 5) {
       baseDifficulties = ["easy", "easy", "easy"];
       console.log(`📊 Уровень ${playerLevel}: Новичок - только легкие квесты`);
     }
-    // УРОВЕНЬ 4-6: Переход к средним
-    else if (playerLevel <= 6) {
+    // УРОВЕНЬ 6-8: Переход к средним
+    else if (playerLevel <= 8) {
       if (isBeginnerExperience) {
         baseDifficulties = ["easy", "easy", "medium"]; // Начинающие: больше легких
       } else {
@@ -184,8 +184,8 @@ export default async function handler(
       }
       console.log(`📊 Уровень ${playerLevel}: Начинающий - легкие + средние`);
     }
-    // УРОВЕНЬ 7-10: Средняя сложность
-    else if (playerLevel <= 10) {
+    // УРОВЕНЬ 9-13: Средняя сложность
+    else if (playerLevel <= 13) {
       if (isBeginnerExperience) {
         baseDifficulties = ["easy", "medium", "medium"];
       } else {
@@ -193,8 +193,8 @@ export default async function handler(
       }
       console.log(`📊 Уровень ${playerLevel}: Продолжающий - средние квесты`);
     }
-    // УРОВЕНЬ 11-15: Сложные квесты
-    else if (playerLevel <= 15) {
+    // УРОВЕНЬ 14-19: Сложные квесты
+    else if (playerLevel <= 19) {
       if (isBeginnerExperience) {
         baseDifficulties = ["medium", "medium", "hard"];
       } else {
@@ -202,7 +202,7 @@ export default async function handler(
       }
       console.log(`📊 Уровень ${playerLevel}: Продвинутый - средние + сложные`);
     }
-    // УРОВЕНЬ 16+: В основном сложные
+    // УРОВЕНЬ 20+: В основном сложные
     else {
       if (isBeginnerExperience) {
         baseDifficulties = ["medium", "hard", "hard"];
@@ -295,32 +295,20 @@ export default async function handler(
       let dayHomeCount = 0; // Счетчик домашних квестов
       let dayGymCount = 0; // Счетчик залных квестов
 
-      // Плавная прогрессия сложности внутри недели
-      // День 1-2: больше легких, день 3-5: микс, день 6-7: больше сложных
+      // Плавная прогрессия сложности внутри недели.
+      // Для низких уровней (≤ 8) — нет повышения в конце недели.
       const getDayDifficulties = (): ("easy" | "medium" | "hard")[] => {
-        // Плавный переход в зависимости от дня недели
         if (day <= 2) {
-          // Начало недели - делаем легче базовых сложностей
-          if (baseDifficulties.includes("hard")) {
-            // Заменяем hard на medium в начале недели
-            return baseDifficulties.map(d => d === "hard" ? "medium" : d) as ("easy" | "medium" | "hard")[];
-          }
-          return baseDifficulties;
-        } else if (day <= 4) {
-          // Середина недели - используем базовые сложности
-          return baseDifficulties;
+          // Начало недели — hard заменяем на medium
+          return baseDifficulties.map(d => d === "hard" ? "medium" : d) as ("easy" | "medium" | "hard")[];
         } else if (day <= 5) {
-          // День 5 - начинаем усиливать
-          if (baseDifficulties.includes("easy") && baseDifficulties.filter(d => d === "easy").length > 1) {
-            // Заменяем один easy на medium
-            const result = [...baseDifficulties];
-            const easyIndex = result.indexOf("easy");
-            if (easyIndex !== -1) result[easyIndex] = "medium";
-            return result as ("easy" | "medium" | "hard")[];
-          }
+          // Середина недели — базовые сложности
           return baseDifficulties;
         } else {
-          // День 6-7 - усиливаем сложность
+          // Дни 6-7 — повышение только для высоких уровней (9+)
+          if (playerLevel <= 8) {
+            return baseDifficulties; // Новички: никакого усиления в конце недели
+          }
           return baseDifficulties.map(d => {
             if (d === "easy") return "medium";
             if (d === "medium" && baseDifficulties.filter(x => x === "medium").length > 1) return "hard";

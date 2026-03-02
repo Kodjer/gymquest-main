@@ -2294,9 +2294,9 @@ export function getQuestsByCategory(
 export function getDifficultyByLevel(
   level: number
 ): "easy" | "medium" | "hard" {
-  if (level <= 3) return "easy";
-  if (level <= 6) return "medium";
-  return "hard";
+  if (level <= 5) return "easy";    // Ур. 1-5:  легкие
+  if (level <= 11) return "medium"; // Ур. 6-11: средние
+  return "hard";                    // Ур. 12+:  сложные
 }
 
 /**
