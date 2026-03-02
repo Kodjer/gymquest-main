@@ -11,6 +11,8 @@ interface ThemeColors {
   accent: string;
   background: string;
   card: string;
+  cardBg: string;
+  insetBg: string;
   text: string;
 }
 
@@ -21,6 +23,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-blue-500 to-cyan-500',
     background: 'bg-gray-100 dark:bg-gray-900',
     card: 'bg-white dark:bg-gray-800',
+    cardBg: 'bg-gray-200/60 dark:bg-gray-800',
+    insetBg: 'bg-gray-100/80 dark:bg-gray-700/50',
     text: 'text-gray-900 dark:text-white',
   },
   forest: {
@@ -29,6 +33,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-teal-500 to-green-500',
     background: 'bg-green-50 dark:bg-gray-900',
     card: 'bg-white dark:bg-gray-800',
+    cardBg: 'bg-green-100/70 dark:bg-gray-800',
+    insetBg: 'bg-green-50/80 dark:bg-gray-700/50',
     text: 'text-gray-900 dark:text-white',
   },
   ocean: {
@@ -37,6 +43,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-cyan-500 to-teal-500',
     background: 'bg-blue-50 dark:bg-gray-900',
     card: 'bg-white dark:bg-gray-800',
+    cardBg: 'bg-blue-100/70 dark:bg-gray-800',
+    insetBg: 'bg-blue-50/80 dark:bg-gray-700/50',
     text: 'text-gray-900 dark:text-white',
   },
   sunset: {
@@ -45,6 +53,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-yellow-500 to-amber-500',
     background: 'bg-orange-50 dark:bg-gray-900',
     card: 'bg-white dark:bg-gray-800',
+    cardBg: 'bg-orange-100/70 dark:bg-gray-800',
+    insetBg: 'bg-orange-50/80 dark:bg-gray-700/50',
     text: 'text-gray-900 dark:text-white',
   },
   cyberpunk: {
@@ -53,6 +63,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-cyan-400 to-blue-500',
     background: 'bg-gray-900 dark:bg-black',
     card: 'bg-gray-800 dark:bg-gray-900',
+    cardBg: 'bg-gray-800',
+    insetBg: 'bg-gray-700/60',
     text: 'text-white',
   },
   galaxy: {
@@ -61,6 +73,8 @@ const themeColors: Record<AppTheme, ThemeColors> = {
     accent: 'from-pink-500 to-purple-500',
     background: 'bg-indigo-950 dark:bg-black',
     card: 'bg-indigo-900/50 dark:bg-gray-900',
+    cardBg: 'bg-indigo-900/70',
+    insetBg: 'bg-indigo-800/40',
     text: 'text-white',
   },
 };

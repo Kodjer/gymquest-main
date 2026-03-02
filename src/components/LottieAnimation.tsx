@@ -236,13 +236,16 @@ const SIZE_MAP = {
 };
 
 // ─── Компонент ───────────────────────────────────────────────────────────────
+import { useAppTheme } from "../lib/ThemeContext";
+
 export function LottieAnimation({ title, url, size = "md" }: LottieAnimationProps) {
   const src = url ?? getLottieUrl(title);
   const maxH = SIZE_MAP[size];
+  const { colors } = useAppTheme();
 
   return (
     <div
-      className="rounded-xl overflow-hidden bg-gray-900 flex items-center justify-center"
+      className={`rounded-xl overflow-hidden ${colors.cardBg} flex items-center justify-center`}
       style={{ height: maxH, width: "100%" }}
       aria-label={`Анимация упражнения: ${title}`}
     >

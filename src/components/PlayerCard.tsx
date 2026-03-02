@@ -1,4 +1,4 @@
-// src/components/PlayerCard.tsx
+﻿// src/components/PlayerCard.tsx
 import { AnimatedStat, FadeIn } from "./AnimatedComponents";
 import { useEquipment } from "@/lib/useEquipment";
 import { useAppTheme } from "@/lib/ThemeContext";
@@ -27,12 +27,18 @@ interface PlayerCardProps {
   }>;
 }
 
-// Информация о классах для отображения
-const classDisplayInfo: Record<PlayerClass, { icon: string; name: string; evolvedIcon: string; evolvedName: string; color: string }> = {
-  warrior: { icon: "💪", name: "Воин", evolvedIcon: "⚔️", evolvedName: "Титан", color: "from-red-500 to-orange-600" },
-  scout: { icon: "🏃", name: "Скаут", evolvedIcon: "🦅", evolvedName: "Следопыт", color: "from-blue-500 to-cyan-600" },
-  monk: { icon: "🧘", name: "Монах", evolvedIcon: "🌟", evolvedName: "Мудрец", color: "from-purple-500 to-pink-600" },
-  berserker: { icon: "🔥", name: "Берсерк", evolvedIcon: "👹", evolvedName: "Демон", color: "from-orange-500 to-red-700" },
+const classDisplayInfo: Record<PlayerClass, { icon: string; name: string; evolvedIcon: string; evolvedName: string; bar: string }> = {
+  warrior:   { icon: "рџ’Є", name: "Р’РѕРёРЅ",   evolvedIcon: "вљ”пёЏ", evolvedName: "РўРёС‚Р°РЅ",     bar: "bg-orange-500" },
+  scout:     { icon: "рџЏѓ", name: "РЎРєР°СѓС‚",  evolvedIcon: "рџ¦…", evolvedName: "РЎР»РµРґРѕРїС‹С‚",  bar: "bg-blue-500" },
+  monk:      { icon: "рџ§", name: "РњРѕРЅР°С…",  evolvedIcon: "рџЊџ", evolvedName: "РњСѓРґСЂРµС†",    bar: "bg-violet-500" },
+  berserker: { icon: "рџ”Ґ", name: "Р‘РµСЂСЃРµСЂРє",evolvedIcon: "рџ‘№", evolvedName: "Р”РµРјРѕРЅ",     bar: "bg-red-500" },
+};
+
+const classFrameGradient: Record<PlayerClass, string> = {
+  warrior:   "from-red-500 to-orange-600",
+  scout:     "from-blue-500 to-cyan-600",
+  monk:      "from-purple-500 to-pink-600",
+  berserker: "from-orange-500 to-red-700",
 };
 
 export function PlayerCard({
@@ -43,289 +49,166 @@ export function PlayerCard({
   quests = [],
 }: PlayerCardProps) {
   const { equipmentItems, activeBoosts, getXpMultiplier, getCoinMultiplier } = useEquipment();
-  const { theme } = useAppTheme();
-  
+  const { colors, theme } = useAppTheme();
+
   const xpInLevel = player.xp % 100;
   const progressPercent = Math.round((xpInLevel / 100) * 100);
 
-  // Статистика для профиля
   const completedQuests = quests.filter((q) => q.status === "done").length;
-  const pendingQuests = quests.filter((q) => q.status === "pending").length;
-  const averageXp =
-    completedQuests > 0 ? Math.round(player.xp / completedQuests) : 0;
+  const pendingQuests   = quests.filter((q) => q.status === "pending").length;
+  const averageXp = completedQuests > 0 ? Math.round(player.xp / completedQuests) : 0;
 
-  // Информация о классе
   const classInfo = player.playerClass ? classDisplayInfo[player.playerClass] : null;
-  
-  // Приоритет: купленный аватар > класс > дефолт
-  const displayIcon = equipmentItems.avatar?.icon || (classInfo ? (player.isEvolved ? classInfo.evolvedIcon : classInfo.icon) : "👤");
+  const displayIcon = equipmentItems.avatar?.icon || (classInfo ? (player.isEvolved ? classInfo.evolvedIcon : classInfo.icon) : "рџ‘¤");
   const displayName = classInfo ? (player.isEvolved ? classInfo.evolvedName : classInfo.name) : null;
-  
-  // Рамка: купленная рамка > класс > дефолт
-  const frameGradient = equipmentItems.frame?.preview || (classInfo ? classInfo.color : "from-purple-400 via-pink-500 to-red-500");
 
-  // Тематические стили для карточки
-  const getCardClasses = () => {
-    switch (theme) {
-      case 'forest':
-        return 'profile-card bg-green-50 dark:bg-green-900/50 text-green-900 dark:text-green-100 border border-green-300 dark:border-green-700';
-      case 'ocean':
-        return 'profile-card bg-cyan-50 dark:bg-cyan-900/50 text-cyan-900 dark:text-cyan-100 border border-cyan-300 dark:border-cyan-700';
-      case 'sunset':
-        return 'profile-card bg-orange-50 dark:bg-orange-900/50 text-orange-900 dark:text-orange-100 border border-orange-300 dark:border-orange-700';
-      case 'cyberpunk':
-        return 'profile-card bg-gray-900 text-pink-100 border-2 border-fuchsia-500 shadow-lg shadow-fuchsia-500/20';
-      case 'galaxy':
-        return 'profile-card bg-indigo-900/70 text-purple-100 border-2 border-purple-500 shadow-lg shadow-purple-500/20';
-      default:
-        return 'profile-card bg-white text-black dark:bg-gray-900 dark:text-white border dark:border-gray-700';
-    }
-  };
+  const frameGradient = equipmentItems.frame?.preview
+    || (player.playerClass ? classFrameGradient[player.playerClass] : "from-purple-400 via-pink-500 to-red-500");
 
-  const getSecondaryTextClasses = () => {
-    switch (theme) {
-      case 'forest':
-        return 'text-green-600 dark:text-green-400';
-      case 'ocean':
-        return 'text-cyan-600 dark:text-cyan-400';
-      case 'sunset':
-        return 'text-orange-600 dark:text-orange-400';
-      case 'cyberpunk':
-        return 'text-fuchsia-400';
-      case 'galaxy':
-        return 'text-purple-300';
-      default:
-        return 'text-gray-600 dark:text-gray-400';
-    }
-  };
+  const accentBar = classInfo?.bar || "bg-purple-500";
 
-  const getProgressBarBg = () => {
-    switch (theme) {
-      case 'forest':
-        return 'bg-green-200 dark:bg-green-800';
-      case 'ocean':
-        return 'bg-cyan-200 dark:bg-cyan-800';
-      case 'sunset':
-        return 'bg-orange-200 dark:bg-orange-800';
-      case 'cyberpunk':
-        return 'bg-gray-800';
-      case 'galaxy':
-        return 'bg-indigo-800';
-      default:
-        return 'bg-gray-200 dark:bg-gray-700';
-    }
-  };
-
-  const getProgressBarFill = () => {
-    switch (theme) {
-      case 'forest':
-        return 'from-green-400 to-emerald-500';
-      case 'ocean':
-        return 'from-cyan-400 to-blue-500';
-      case 'sunset':
-        return 'from-orange-400 to-red-500';
-      case 'cyberpunk':
-        return 'from-fuchsia-500 to-cyan-400';
-      case 'galaxy':
-        return 'from-purple-500 to-pink-500';
-      default:
-        return 'from-green-400 to-emerald-500';
-    }
-  };
+  const isAlwaysDark = theme === "cyberpunk" || theme === "galaxy";
 
   return (
-    <div className={getCardClasses()}>
-      <div className="flex items-center justify-between mb-4">
-        {/* Аватар и уровень */}
-        <div className="flex items-center gap-4">
-          <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${frameGradient} p-1 shadow-lg`}>
-            <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-4xl">
-              {displayIcon}
+    <div className={`relative ${colors.cardBg} ${colors.text} rounded-2xl overflow-hidden shadow-sm`}>
+      {/* Р¦РІРµС‚РЅР°СЏ РїРѕР»РѕСЃРєР° СЃР»РµРІР° */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
+
+      <div className="pl-5 pr-4 pt-4 pb-4">
+        {/* Р’РµСЂС…: Р°РІР°С‚Р°СЂ + РёРЅС„Рѕ + РїСЂР°РІР°СЏ РїР°РЅРµР»СЊ */}
+        <div className="flex items-start justify-between gap-3 mb-4">
+
+          {/* РђРІР°С‚Р°СЂ */}
+          <div className="flex items-center gap-3">
+            <div className={`w-14 h-14 rounded-full bg-gradient-to-br ${frameGradient} p-0.5 shadow flex-shrink-0`}>
+              <div className={`w-full h-full rounded-full ${colors.cardBg} flex items-center justify-center text-2xl`}>
+                {displayIcon}
+              </div>
+            </div>
+
+            {/* РРјСЏ / РєР»Р°СЃСЃ */}
+            <div>
+              {equipmentItems.title && (
+                <p className="text-[11px] font-semibold text-amber-500 mb-0.5">
+                  {equipmentItems.title.icon} {equipmentItems.title.name}
+                </p>
+              )}
+              <h2 className="text-xl font-bold leading-tight">РЈСЂРѕРІРµРЅСЊ {player.level}</h2>
+              {displayName && (
+                <p className="text-sm opacity-50 font-medium">
+                  {displayName}{player.classLevel && player.classLevel > 1 ? ` В· РљР». ${player.classLevel}` : ""}
+                </p>
+              )}
+              <p className="text-xs opacity-40 mt-0.5">{player.xp} XP РІСЃРµРіРѕ</p>
             </div>
           </div>
-          <div>
-            {/* Титул */}
-            {equipmentItems.title && (
-              <p className="text-xs font-medium text-amber-500 flex items-center gap-1">
-                {equipmentItems.title.icon} {equipmentItems.title.name}
-              </p>
-            )}
-            <h2 className="text-2xl font-bold">Уровень {player.level}</h2>
-            {displayName && (
-              <p className={`text-sm font-semibold ${getSecondaryTextClasses()}`}>
-                {displayName} {player.classLevel && player.classLevel > 1 ? `(Кл. ${player.classLevel})` : ""}
-              </p>
-            )}
-            <p className={getSecondaryTextClasses()}>
-              {player.xp} XP всего
-            </p>
-          </div>
-        </div>
 
-        {/* Правая панель - монеты, стрик, питомец, бусты */}
-        <div className="flex flex-col items-end gap-2">
-          {/* Активные бусты */}
-          {activeBoosts.length > 0 && (
-            <div className="flex gap-1">
-              {activeBoosts.map(boost => (
-                <div 
-                  key={boost.id} 
-                  className="w-8 h-8 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center text-sm shadow-lg animate-pulse"
-                  title={`${boost.boostType} x${boost.multiplier}`}
-                >
-                  {boost.boostType.includes('xp') ? '⚡' : boost.boostType.includes('coin') ? '💰' : '🛡️'}
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* XP/Coin множители */}
-          {(getXpMultiplier() > 1 || getCoinMultiplier() > 1) && (
-            <div className="flex gap-2 text-xs">
-              {getXpMultiplier() > 1 && (
-                <span className="px-2 py-1 bg-purple-500 text-white rounded-full">
-                  XP x{getXpMultiplier().toFixed(1)}
-                </span>
-              )}
-              {getCoinMultiplier() > 1 && (
-                <span className="px-2 py-1 bg-amber-500 text-white rounded-full">
-                  💰 x{getCoinMultiplier().toFixed(1)}
-                </span>
-              )}
-            </div>
-          )}
+          {/* РџСЂР°РІР°СЏ РїР°РЅРµР»СЊ */}
+          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+            {/* Р‘СѓСЃС‚С‹ */}
+            {(getXpMultiplier() > 1 || getCoinMultiplier() > 1) && (
+              <div className="flex gap-1.5">
+                {getXpMultiplier() > 1 && (
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300"}`}>
+                    XP x{getXpMultiplier().toFixed(1)}
+                  </span>
+                )}
+                {getCoinMultiplier() > 1 && (
+                  <span className={`text-xs font-bold px-2 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"}`}>
+                    РњРѕРЅРµС‚С‹ x{getCoinMultiplier().toFixed(1)}
+                  </span>
+                )}
+              </div>
+            )}
 
-          {/* Питомец */}
-          {equipmentItems.pet && (
-            <div className="flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-500 rounded-xl shadow-lg">
-              <span className="text-xl">{equipmentItems.pet.icon}</span>
-              <span className="text-xs font-medium text-white">{equipmentItems.pet.name}</span>
-            </div>
-          )}
-          
-          {player.streak > 0 && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-orange-400 to-red-500 rounded-xl shadow-lg">
-              <span className="font-bold text-lg text-white">Серия: </span>
-              <span className="font-bold text-lg text-white">
-                {player.streak}
-              </span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-xl shadow-lg">
-            <div className="w-8 h-8 bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 rounded-full shadow-lg border-2 border-yellow-200"></div>
-            <span className="font-bold text-lg text-white">
+            {/* РџРёС‚РѕРјРµС† */}
+            {equipmentItems.pet && (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300"}`}>
+                <span className="text-base">{equipmentItems.pet.icon}</span>
+                <span>{equipmentItems.pet.name}</span>
+              </div>
+            )}
+
+            {/* РЎРµСЂРёСЏ */}
+            {player.streak > 0 && (
+              <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300"}`}>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
+                РЎРµСЂРёСЏ: {player.streak}
+              </div>
+            )}
+
+            {/* РњРѕРЅРµС‚С‹ */}
+            <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"}`}>
+              <div className="w-3 h-3 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
               {player.coins || 0}
-            </span>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Прогресс-бар */}
-      <div className={`progress-bg ${getProgressBarBg()}`}>
-        <div
-          className={`progress-fill bg-gradient-to-r ${getProgressBarFill()} transition-all duration-500`}
-          style={{ width: `${progressPercent}%` }}
-        />
-      </div>
-      <p className={`text-sm ${getSecondaryTextClasses()} mt-2`}>
-        {xpInLevel} / 100 XP ({progressPercent}%)
-      </p>
+        {/* РџСЂРѕРіСЂРµСЃСЃ-Р±Р°СЂ */}
+        <div className={`rounded-full h-1.5 overflow-hidden ${isAlwaysDark ? "bg-white/10" : "bg-black/10 dark:bg-white/10"}`}>
+          <div
+            className={`h-full rounded-full ${accentBar} transition-all duration-500`}
+            style={{ width: `${progressPercent}%` }}
+          />
+        </div>
+        <p className="text-xs opacity-40 mt-1.5">
+          {xpInLevel} / 100 XP ({progressPercent}%)
+        </p>
 
-      {/* Детальная статистика для профиля */}
-      {showDetailedStats && (
-        <FadeIn delay={200} direction="up">
-          <div className="grid grid-cols-2 gap-4 mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <AnimatedStat
-              value={completedQuests}
-              label="Выполнено"
-              color="green"
-              delay={300}
-            />
-            <AnimatedStat
-              value={pendingQuests}
-              label="В процессе"
-              color="blue"
-              delay={400}
-            />
-            <AnimatedStat
-              value={averageXp}
-              label="Средний XP"
-              color="purple"
-              delay={500}
-            />
-            <AnimatedStat
-              value={completedQuests > 0 ? Math.ceil(completedQuests / 7) : 0}
-              label="Недель активности"
-              color="orange"
-              delay={600}
-            />
-          </div>
-        </FadeIn>
-      )}
+        {/* Р”РµС‚Р°Р»СЊРЅР°СЏ СЃС‚Р°С‚РёСЃС‚РёРєР° */}
+        {showDetailedStats && (
+          <FadeIn delay={200} direction="up">
+            <div className={`grid grid-cols-2 gap-3 mt-4 p-4 rounded-xl ${colors.insetBg}`}>
+              <AnimatedStat value={completedQuests} label="Р’С‹РїРѕР»РЅРµРЅРѕ"         color="green"  delay={300} />
+              <AnimatedStat value={pendingQuests}   label="Р’ РїСЂРѕС†РµСЃСЃРµ"        color="blue"   delay={400} />
+              <AnimatedStat value={averageXp}       label="РЎСЂРµРґРЅРёР№ XP"        color="purple" delay={500} />
+              <AnimatedStat value={completedQuests > 0 ? Math.ceil(completedQuests / 7) : 0} label="РќРµРґРµР»СЊ Р°РєС‚РёРІРЅРѕСЃС‚Рё" color="orange" delay={600} />
+            </div>
+          </FadeIn>
+        )}
 
-      {/* Кнопка сброса прогресса и генерации квестов */}
-      {showResetButton && (
-        <button
-          onClick={async () => {
-            const btn = document.getElementById('reset-btn');
-            if (btn) {
-              btn.textContent = '⏳ Сброс и генерация...';
-              btn.setAttribute('disabled', 'true');
-            }
-            
-            // Сбрасываем прогресс игрока
-            setPlayer({
-              ...player,
-              xp: 0,
-              level: 1,
-              coins: 0,
-              streak: 0,
-              lastQuestDate: null,
-            });
+        {/* РљРЅРѕРїРєР° СЃР±СЂРѕСЃР° */}
+        {showResetButton && (
+          <button
+            id="reset-btn"
+            onClick={async () => {
+              const btn = document.getElementById("reset-btn");
+              if (btn) { btn.textContent = "РЎР±СЂРѕСЃ..."; btn.setAttribute("disabled", "true"); }
 
-            try {
-              // Сбрасываем неделю в базе данных
-              await fetch("/api/player", {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  xp: 0,
-                  level: 1,
-                  currentWeek: 1,
-                }),
-              });
+              setPlayer({ ...player, xp: 0, level: 1, coins: 0, streak: 0, lastQuestDate: null });
 
-              // Удаляем старые квесты
-              await fetch("/api/quests/clear", { method: "DELETE" });
-              
-              // Генерируем новые квесты
-              const response = await fetch("/api/quests/generate-week", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-              });
-              
-              if (response.ok) {
-                window.location.href = "/";
-              } else {
-                const data = await response.json();
-                alert("Ошибка: " + (data.error || "Не удалось сгенерировать квесты"));
+              try {
+                await fetch("/api/player", {
+                  method: "PUT",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ xp: 0, level: 1, currentWeek: 1 }),
+                });
+                await fetch("/api/quests/clear", { method: "DELETE" });
+                const response = await fetch("/api/quests/generate-week", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                });
+                if (response.ok) {
+                  window.location.href = "/";
+                } else {
+                  const data = await response.json();
+                  alert("РћС€РёР±РєР°: " + (data.error || "РќРµ СѓРґР°Р»РѕСЃСЊ СЃРіРµРЅРµСЂРёСЂРѕРІР°С‚СЊ РєРІРµСЃС‚С‹"));
+                }
+              } catch (error) {
+                console.error("РћС€РёР±РєР° СЃР±СЂРѕСЃР° РїСЂРѕРіСЂРµСЃСЃР°:", error);
+                alert("РћС€РёР±РєР° РїСЂРё СЃР±СЂРѕСЃРµ РїСЂРѕРіСЂРµСЃСЃР°");
+              } finally {
+                if (btn) { btn.textContent = "РЎР±СЂРѕСЃРёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ"; btn.removeAttribute("disabled"); }
               }
-            } catch (error) {
-              console.error("Ошибка сброса прогресса:", error);
-              alert("Ошибка при сбросе прогресса");
-            } finally {
-              if (btn) {
-                btn.textContent = 'Сбросить прогресс';
-                btn.removeAttribute('disabled');
-              }
-            }
-          }}
-          id="reset-btn"
-          className="btn-reset mt-4 w-full hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          Сбросить прогресс
-        </button>
-      )}
+            }}
+            className="mt-4 w-full text-xs opacity-40 hover:opacity-70 transition-opacity pt-3 border-t border-black/10 dark:border-white/10 text-center disabled:cursor-not-allowed"
+          >
+            РЎР±СЂРѕСЃРёС‚СЊ РїСЂРѕРіСЂРµСЃСЃ
+          </button>
+        )}
+      </div>
     </div>
   );
 }
+

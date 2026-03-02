@@ -1,6 +1,7 @@
 // src/components/QuestCard.tsx
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { LottieAnimation } from "./LottieAnimation";
+import { useAppTheme } from "../lib/ThemeContext";
 
 type VisualDemo = {
   type: "image" | "video" | "gif" | "youtube" | "lottie";
@@ -32,59 +33,47 @@ type QuestCardProps = {
   playerClass?: PlayerClass;
 };
 
-// Расчёт бонуса класса для отображения
 function getClassBonusInfo(
   category: string | undefined,
   difficulty: string,
   playerClass: PlayerClass | undefined
 ): { hasBonus: boolean; bonusPercent: number; bonusText: string } {
   if (!playerClass) return { hasBonus: false, bonusPercent: 0, bonusText: "" };
-
   switch (playerClass) {
     case "warrior":
-      if (category === "strength") {
-        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
-      }
+      if (category === "strength") return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
       break;
     case "scout":
-      if (category === "cardio") {
-        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
-      }
+      if (category === "cardio") return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
       break;
     case "monk":
-      if (category === "flexibility") {
-        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
-      }
+      if (category === "flexibility") return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
       break;
     case "berserker":
-      if (difficulty === "hard") {
-        return { hasBonus: true, bonusPercent: 40, bonusText: "+40%" };
-      } else if (difficulty === "easy") {
-        return { hasBonus: true, bonusPercent: -15, bonusText: "-15%" };
-      }
+      if (difficulty === "hard") return { hasBonus: true, bonusPercent: 40, bonusText: "+40%" };
+      if (difficulty === "easy") return { hasBonus: true, bonusPercent: -15, bonusText: "-15%" };
       break;
   }
   return { hasBonus: false, bonusPercent: 0, bonusText: "" };
 }
 
-const categoryNames: Record<string, string> = {
-  strength: "Силовые",
-  cardio: "Кардио",
-  flexibility: "Гибкость",
-  wellness: "Здоровье",
+const categoryMeta: Record<string, { name: string; bar: string; btn: string; pillText: string; pillBg: string }> = {
+  strength:    { name: "Силовые",  bar: "bg-orange-500", btn: "bg-orange-500 hover:bg-orange-600", pillText: "text-orange-600 dark:text-orange-400", pillBg: "bg-orange-50 dark:bg-orange-900/30" },
+  cardio:      { name: "Кардио",   bar: "bg-blue-500",   btn: "bg-blue-500 hover:bg-blue-600",     pillText: "text-blue-600 dark:text-blue-400",   pillBg: "bg-blue-50 dark:bg-blue-900/30" },
+  flexibility: { name: "Гибкость", bar: "bg-violet-500", btn: "bg-violet-500 hover:bg-violet-600", pillText: "text-violet-600 dark:text-violet-400", pillBg: "bg-violet-50 dark:bg-violet-900/30" },
+  wellness:    { name: "Здоровье", bar: "bg-emerald-500",btn: "bg-emerald-500 hover:bg-emerald-600",pillText: "text-emerald-600 dark:text-emerald-400", pillBg: "bg-emerald-50 dark:bg-emerald-900/30" },
 };
 
-const difficultyColors: Record<string, string> = {
-  easy: "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-300",
-  medium:
-    "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 border-yellow-300",
-  hard: "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-300",
+const difficultyMeta: Record<string, { label: string; dot: string; text: string }> = {
+  easy:   { label: "Легко",  dot: "bg-emerald-400", text: "text-emerald-600 dark:text-emerald-400" },
+  medium: { label: "Средне", dot: "bg-amber-400",   text: "text-amber-600 dark:text-amber-400" },
+  hard:   { label: "Сложно", dot: "bg-rose-500",    text: "text-rose-600 dark:text-rose-400" },
 };
 
-const difficultyNames: Record<string, string> = {
-  easy: "Легко",
-  medium: "Средне",
-  hard: "Сложно",
+const isLifestyleWellness = (quest: { category?: string; title: string }) => {
+  if (quest.category !== "wellness") return false;
+  const t = quest.title.toLowerCase();
+  return ["сахар", "детокс", "питан", "отдых", "здоровь", "день"].some(w => t.includes(w));
 };
 
 export function QuestCard({
@@ -95,143 +84,143 @@ export function QuestCard({
   showActions = true,
   playerClass,
 }: QuestCardProps) {
-  const [showDetails, setShowDetails] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const isDone = quest.status === "done";
-  
-  // Получаем бонус класса
+  const { colors, theme } = useAppTheme();
+  const isAlwaysDark = theme === "cyberpunk" || theme === "galaxy";
   const classBonus = getClassBonusInfo(quest.category, quest.difficulty, playerClass);
+  const catMeta = categoryMeta[quest.category || ""] || {
+    name: quest.category || "", bar: "bg-gray-400", btn: "bg-gray-500 hover:bg-gray-600",
+    pillText: "text-gray-600 dark:text-gray-400", pillBg: "bg-gray-100 dark:bg-gray-700",
+  };
+  // На тёмных темах (cyberpunk/galaxy) пилюли используют белый цвет
+  const pillText = isAlwaysDark ? "text-white/80" : catMeta.pillText;
+  const pillBg   = isAlwaysDark ? "bg-white/10"  : catMeta.pillBg;
+  const xpText   = isAlwaysDark ? "text-white/90" : catMeta.pillText;
+  const diffMeta = difficultyMeta[quest.difficulty];
+  const hasAnimation = !isLifestyleWellness(quest);
+  const hasDetails = !!(quest.instructions || quest.description || quest.tip);
 
   return (
     <div
-      className={`p-4 rounded-lg shadow-md border-2 transition-all duration-300 ${
+      className={`relative ${colors.cardBg} ${colors.text} rounded-2xl overflow-hidden transition-all duration-200 ${
         isDone
-          ? "bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 opacity-75"
-          : "bg-white dark:bg-gray-800 border-purple-300 dark:border-purple-700"
+          ? "opacity-50 shadow-sm"
+          : "shadow-sm hover:shadow-md"
       }`}
     >
-      {/* Заголовок и статус */}
-      <div className="flex items-start justify-between gap-3 mb-2">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <h3
-              className={`font-bold text-lg ${
-                isDone ? "line-through text-gray-500" : ""
-              }`}
-            >
-              {quest.title}
-            </h3>
-          </div>
+      {/* Цветная полоска слева */}
+      <div className={`absolute left-0 top-0 bottom-0 w-1 ${isDone ? "opacity-20" : ""} ${catMeta.bar}`} />
 
-          {/* Бейджи */}
-          <div className="flex flex-wrap gap-2 mt-2">
-            {quest.category && (
-              <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-600">
-                {categoryNames[quest.category] || quest.category}
+      {/* Контент */}
+      <div className="pl-5 pr-4 pt-4 pb-4">
+
+        {/* Верхняя строка: заголовок + XP */}
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <h3 className={`font-semibold text-[15px] leading-snug flex-1 ${isDone ? "line-through opacity-40" : ""}`}>
+            {quest.title}
+          </h3>
+          <div className="flex-shrink-0 text-right">
+            <span className={`text-sm font-bold ${xpText}`}>
+              {quest.xpReward} XP
+            </span>
+            {classBonus.hasBonus && (
+              <span className={`ml-1 text-xs font-semibold ${classBonus.bonusPercent > 0 ? "text-emerald-500" : "text-rose-500"}`}>
+                {classBonus.bonusText}
               </span>
             )}
-            <span
-              className={`px-2 py-1 rounded text-xs font-semibold border ${
-                difficultyColors[quest.difficulty]
-              }`}
-            >
-              {difficultyNames[quest.difficulty]}
-            </span>
-            <span className={`px-2 py-1 rounded text-xs font-semibold border ${
-              classBonus.hasBonus && classBonus.bonusPercent > 0
-                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-400"
-                : classBonus.hasBonus && classBonus.bonusPercent < 0
-                ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-400"
-                : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300"
-            }`}>
-              +{quest.xpReward} XP
-              {classBonus.hasBonus && (
-                <span className={`ml-1 font-bold ${classBonus.bonusPercent > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
-                  ({classBonus.bonusText})
-                </span>
-              )}
-            </span>
           </div>
         </div>
+
+        {/* Пилюли: категория + сложность */}
+        <div className="flex items-center gap-2 flex-wrap mb-4">
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pillText} ${pillBg}`}>
+            {catMeta.name}
+          </span>
+          <span className={`inline-flex items-center gap-1.5 text-xs font-medium ${isAlwaysDark ? "text-white/70" : diffMeta.text}`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${diffMeta.dot}`} />
+            {diffMeta.label}
+          </span>
+        </div>
+
+        {/* Анимация */}
+        {hasAnimation && !isDone && (
+          <div className="mb-4">
+            <LottieAnimation title={quest.title} />
+          </div>
+        )}
+
+        {/* Детали — выпадающий блок */}
+        {hasDetails && (
+          <div className="mb-4">
+            <button
+              onClick={() => setExpanded(v => !v)}
+              className="flex items-center gap-2 text-xs font-medium opacity-40 hover:opacity-70 transition-opacity"
+            >
+              <svg
+                className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? "rotate-90" : ""}`}
+                fill="none" stroke="currentColor" viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+              {expanded ? "Скрыть детали" : "Детали квеста"}
+            </button>
+
+            {expanded && (
+              <div className={`mt-2 space-y-px rounded-xl overflow-hidden border border-black/5 dark:border-white/5`}>
+                {quest.instructions && (
+                  <div className={`px-4 py-3 ${colors.insetBg}`}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider opacity-50 mb-1">Инструкция</p>
+                    <p className="text-[13px] opacity-90 leading-relaxed">{quest.instructions}</p>
+                  </div>
+                )}
+                {quest.description && (
+                  <div className={`px-4 py-3 ${colors.insetBg}`}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider opacity-50 mb-1">Что прокачивает</p>
+                    <p className="text-[13px] opacity-90 leading-relaxed">
+                      {quest.description.split("\n\n")[0].replace("Группы мышц:\n", "").replace("Что развивает:\n", "")}
+                    </p>
+                  </div>
+                )}
+                {quest.tip && (
+                  <div className={`px-4 py-3 ${colors.insetBg}`}>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider opacity-50 mb-1">Совет</p>
+                    <p className="text-[13px] opacity-90 leading-relaxed">{quest.tip}</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Кнопка завершения */}
+        {!isDone ? (
+          <button
+            onClick={() => onToggle(quest.id)}
+            className={`w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] ${catMeta.btn}`}
+          >
+            Завершить
+          </button>
+        ) : (
+          <p className="text-xs font-medium opacity-40 text-center py-1">Выполнено</p>
+        )}
+
+        {/* Действия */}
+        {showActions && !isDone && (onEdit || onDelete) && (
+          <div className="flex gap-4 mt-3 pt-3 border-t border-black/10 dark:border-white/10">
+            {onEdit && (
+              <button onClick={() => onEdit(quest)} className="text-xs opacity-40 hover:opacity-80 transition-opacity">
+                Редактировать
+              </button>
+            )}
+            {onDelete && (
+              <button onClick={() => onDelete(quest.id)} className="text-xs opacity-40 hover:text-rose-500 hover:opacity-100 transition-all">
+                Удалить
+              </button>
+            )}
+          </div>
+        )}
       </div>
-
-      {/* Кнопка завершения */}
-      {!isDone && (
-        <button
-          onClick={() => onToggle(quest.id)}
-          className="w-full mt-3 px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200 hover:shadow-lg active:scale-95"
-        >
-          ✓ Завершить квест
-        </button>
-      )}
-
-      {/* Инструкции */}
-      {quest.instructions && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700 rounded-lg">
-          <p className="text-sm font-medium text-gray-800 dark:text-gray-200">
-            {quest.instructions}
-          </p>
-        </div>
-      )}
-
-      {/* Что прокачивает */}
-      {quest.description && (
-        <div className="mt-3 p-3 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-300 dark:border-green-700 rounded-lg">
-          <p className="text-xs font-bold text-green-900 dark:text-green-200 mb-1">
-            Что прокачивает:
-          </p>
-          <p className="text-xs text-gray-700 dark:text-gray-300">
-            {quest.description
-              .split("\n\n")[0]
-              .replace("Группы мышц:\n", "")
-              .replace("Что развивает:\n", "")}
-          </p>
-        </div>
-      )}
-
-      {/* Визуальная демонстрация упражнения (нет для lifestyle wellness-квестов) */}
-      {!(quest.category === "wellness" && (() => {
-        const t = quest.title.toLowerCase();
-        return t.includes("сахар") || t.includes("детокс") || t.includes("питан") ||
-               t.includes("отдых") || t.includes("здоровь") || t.includes("день");
-      })()) && (
-        <div className="mt-3">
-          <LottieAnimation title={quest.title} />
-        </div>
-      )}
-
-      {/* Совет */}
-      {quest.tip && (
-        <div className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-300 dark:border-yellow-700 rounded-lg">
-          <p className="text-xs font-bold text-yellow-900 dark:text-yellow-200 mb-1">
-            Совет:
-          </p>
-          <p className="text-xs text-gray-700 dark:text-gray-300">
-            {quest.tip}
-          </p>
-        </div>
-      )}
-
-      {/* Действия (редактировать/удалить) */}
-      {showActions && !isDone && (
-        <div className="flex gap-2 mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
-          {onEdit && (
-            <button
-              onClick={() => onEdit(quest)}
-              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-            >
-              Редактировать
-            </button>
-          )}
-          {onDelete && (
-            <button
-              onClick={() => onDelete(quest.id)}
-              className="text-sm text-red-600 dark:text-red-400 hover:underline"
-            >
-              Удалить
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }
