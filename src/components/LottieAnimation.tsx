@@ -116,7 +116,7 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "run":          A.run,
   "cardio":       A.run,
   "treadmill":    A.run,
-  "hiit":         A.run,
+  "hiit":         A.burpee,
   "sprint":       A.run,
   "бег":          A.run,
   "кардио":       A.run,
