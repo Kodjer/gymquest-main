@@ -2,6 +2,7 @@
 import { useState, FormEvent } from "react";
 import { v4 as uuid } from "uuid";
 import { ThemedInput } from "./ThemedInput";
+import { useAppTheme } from "@/lib/ThemeContext";
 
 type Quest = {
   id: string;
@@ -11,6 +12,12 @@ type Quest = {
   difficulty: "easy" | "medium" | "hard";
 };
 
+const difficultyMeta = {
+  easy:   { label: "Легко",  xp: 5,  active: "bg-green-500 text-white",  inactive: "bg-green-500/10 text-green-600 dark:text-green-400" },
+  medium: { label: "Средне", xp: 10, active: "bg-yellow-500 text-white", inactive: "bg-yellow-500/10 text-yellow-600 dark:text-yellow-400" },
+  hard:   { label: "Сложно", xp: 20, active: "bg-red-500 text-white",    inactive: "bg-red-500/10 text-red-600 dark:text-red-400" },
+} as const;
+
 export function AddQuestForm({
   quests,
   setQuests,
@@ -18,24 +25,9 @@ export function AddQuestForm({
   quests: Quest[];
   setQuests: (q: Quest[]) => void;
 }) {
+  const { colors } = useAppTheme();
   const [title, setTitle] = useState("");
-  const [xp, setXp] = useState(10);
-  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">(
-    "medium"
-  );
-
-  // Автоматическое изменение XP в зависимости от сложности
-  const handleDifficultyChange = (
-    newDifficulty: "easy" | "medium" | "hard"
-  ) => {
-    setDifficulty(newDifficulty);
-    const xpByDifficulty = {
-      easy: 5,
-      medium: 10,
-      hard: 20,
-    };
-    setXp(xpByDifficulty[newDifficulty]);
-  };
+  const [difficulty, setDifficulty] = useState<"easy" | "medium" | "hard">("medium");
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -45,31 +37,21 @@ export function AddQuestForm({
       {
         id: uuid(),
         title: title.trim(),
-        xpReward: xp,
+        xpReward: difficultyMeta[difficulty].xp,
         status: "pending",
         difficulty,
       },
     ]);
     setTitle("");
     setDifficulty("medium");
-    setXp(10);
   }
-
-  const getDifficultyColor = (diff: "easy" | "medium" | "hard") => {
-    const colors = {
-      easy: "text-green-600 dark:text-green-400",
-      medium: "text-yellow-600 dark:text-yellow-400",
-      hard: "text-red-600 dark:text-red-400",
-    };
-    return colors[diff];
-  };
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-3 mb-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+      className={`${colors.cardBg} ${colors.text} rounded-2xl px-4 pt-4 pb-3 shadow-sm mb-4`}
     >
-      <div className="flex gap-2">
+      <div className="flex gap-2 mb-3">
         <ThemedInput
           placeholder="Название квеста"
           value={title}
@@ -77,49 +59,31 @@ export function AddQuestForm({
           fullWidth
           required
         />
-        <ThemedInput
-          type="number"
-          min={1}
-          max={100}
-          value={xp}
-          onChange={(e) => setXp(+e.target.value)}
-          className="w-20"
-          variant="default"
-        />
         <button
-          className="bg-blue-600 text-white px-4 rounded hover:bg-blue-700"
           type="submit"
+          className="px-4 py-2 rounded-xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 text-white transition-colors flex-shrink-0"
         >
           Добавить
         </button>
       </div>
 
-      {/* Селектор сложности */}
-      <div className="flex gap-2 items-center">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-          Сложность:
-        </span>
+      <div className="flex items-center gap-2">
+        <span className="text-xs opacity-40 font-semibold uppercase tracking-wide mr-1">Сложность:</span>
         {(["easy", "medium", "hard"] as const).map((diff) => (
           <button
             key={diff}
             type="button"
-            onClick={() => handleDifficultyChange(diff)}
-            className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+            onClick={() => setDifficulty(diff)}
+            className={`px-3 py-1 rounded-full text-xs font-semibold transition-colors ${
               difficulty === diff
-                ? "bg-blue-100 dark:bg-blue-900 border-2 border-blue-500"
-                : "bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600"
-            } ${getDifficultyColor(diff)}`}
+                ? difficultyMeta[diff].active
+                : difficultyMeta[diff].inactive
+            }`}
           >
-            {diff === "easy"
-              ? "Легко"
-              : diff === "medium"
-              ? "Средне"
-              : "Сложно"}
+            {difficultyMeta[diff].label}
           </button>
         ))}
-        <span className="text-xs text-gray-500 dark:text-gray-400 ml-2">
-          {xp} XP
-        </span>
+        <span className="text-xs opacity-40 ml-auto">{difficultyMeta[difficulty].xp} XP</span>
       </div>
     </form>
   );

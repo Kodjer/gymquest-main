@@ -16,155 +16,81 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
   const router = useRouter();
   const { theme, colors } = useAppTheme();
 
-  // Получаем классы фона в зависимости от темы
   const getBackgroundClasses = () => {
-    console.log('Current theme:', theme); // Для отладки
     switch (theme) {
-      case 'cyberpunk':
-        return 'min-h-screen bg-gray-950 text-pink-100';
-      case 'galaxy':
-        return 'min-h-screen bg-indigo-950 text-purple-100';
-      case 'forest':
-        return 'min-h-screen bg-green-100 dark:bg-green-950 text-green-900 dark:text-green-100';
-      case 'ocean':
-        return 'min-h-screen bg-cyan-100 dark:bg-cyan-950 text-cyan-900 dark:text-cyan-100';
-      case 'sunset':
-        return 'min-h-screen bg-orange-100 dark:bg-orange-950 text-orange-900 dark:text-orange-100';
-      default:
-        return 'min-h-screen bg-white dark:bg-gray-900';
+      case "cyberpunk": return "min-h-screen bg-gray-950 text-pink-100";
+      case "galaxy":    return "min-h-screen bg-indigo-950 text-purple-100";
+      case "forest":    return "min-h-screen bg-green-100 dark:bg-green-950 text-green-900 dark:text-green-100";
+      case "ocean":     return "min-h-screen bg-cyan-100 dark:bg-cyan-950 text-cyan-900 dark:text-cyan-100";
+      case "sunset":    return "min-h-screen bg-orange-100 dark:bg-orange-950 text-orange-900 dark:text-orange-100";
+      default:          return "min-h-screen bg-white dark:bg-gray-900";
     }
   };
 
-  const getHeaderClasses = () => {
+  // Единый flat-хедер, адаптированный под тему
+  const headerBg = () => {
     switch (theme) {
-      case 'cyberpunk':
-        return 'sticky top-0 z-50 bg-gray-900 border-b-2 border-fuchsia-500 shadow-lg shadow-fuchsia-500/30';
-      case 'galaxy':
-        return 'sticky top-0 z-50 bg-indigo-900 border-b-2 border-purple-500 shadow-lg shadow-purple-500/30';
-      case 'forest':
-        return 'sticky top-0 z-50 bg-green-600 dark:bg-green-800 shadow-lg text-white';
-      case 'ocean':
-        return 'sticky top-0 z-50 bg-cyan-600 dark:bg-cyan-800 shadow-lg text-white';
-      case 'sunset':
-        return 'sticky top-0 z-50 bg-gradient-to-r from-orange-500 to-red-500 shadow-lg text-white';
-      default:
-        return 'sticky top-0 z-50 bg-white dark:bg-gray-800 shadow-md';
+      case "cyberpunk": return "bg-gray-900/95 border-b border-fuchsia-500/30 backdrop-blur-sm";
+      case "galaxy":    return "bg-indigo-900/95 border-b border-purple-500/30 backdrop-blur-sm";
+      case "forest":    return "bg-green-600/95 dark:bg-green-800/95 border-b border-white/10 backdrop-blur-sm text-white";
+      case "ocean":     return "bg-cyan-600/95 dark:bg-cyan-800/95 border-b border-white/10 backdrop-blur-sm text-white";
+      case "sunset":    return "bg-orange-500/95 dark:bg-orange-700/95 border-b border-white/10 backdrop-blur-sm text-white";
+      default:          return "bg-white/90 dark:bg-gray-900/90 border-b border-black/8 dark:border-white/8 backdrop-blur-sm";
     }
   };
 
-  const getTitleGradient = () => {
-    // Для тёмных тем используем яркие контрастные цвета
+  const titleClass = () => {
     switch (theme) {
-      case 'cyberpunk':
-        return 'bg-gradient-to-r from-fuchsia-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent';
-      case 'galaxy':
-        return 'bg-gradient-to-r from-purple-300 via-pink-400 to-blue-400 bg-clip-text text-transparent';
-      case 'forest':
-      case 'ocean':
-      case 'sunset':
-        return 'text-white font-bold drop-shadow-lg';
-      default:
-        return `bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent`;
+      case "cyberpunk": return "bg-gradient-to-r from-fuchsia-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent";
+      case "galaxy":    return "bg-gradient-to-r from-purple-300 via-pink-400 to-blue-400 bg-clip-text text-transparent";
+      case "forest":
+      case "ocean":
+      case "sunset":    return "text-white font-bold";
+      default:          return `bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent`;
     }
   };
 
-  // Классы для навигационных ссылок
-  const getNavLinkClasses = () => {
+  const navCls = () => {
     switch (theme) {
-      case 'cyberpunk':
-        return 'text-sm text-pink-300 hover:text-cyan-400 transition-colors';
-      case 'galaxy':
-        return 'text-sm text-purple-300 hover:text-pink-400 transition-colors';
-      case 'forest':
-      case 'ocean':
-      case 'sunset':
-        return 'text-sm text-white/90 hover:text-white transition-colors';
-      default:
-        return 'text-sm text-gray-600 dark:text-gray-300 hover:text-purple-600 dark:hover:text-purple-400 transition-colors';
-    }
-  };
-
-  // Классы для имени пользователя
-  const getUsernameClasses = () => {
-    switch (theme) {
-      case 'cyberpunk':
-        return 'hidden md:inline text-sm font-semibold text-fuchsia-300';
-      case 'galaxy':
-        return 'hidden md:inline text-sm font-semibold text-purple-300';
-      case 'forest':
-      case 'ocean':
-      case 'sunset':
-        return 'hidden md:inline text-sm font-semibold text-white/80';
-      default:
-        return 'hidden md:inline text-sm font-semibold text-gray-700 dark:text-gray-300';
+      case "cyberpunk": return "text-sm text-pink-300 hover:text-cyan-400 transition-colors";
+      case "galaxy":    return "text-sm text-purple-300 hover:text-pink-400 transition-colors";
+      case "forest":
+      case "ocean":
+      case "sunset":    return "text-sm text-white/80 hover:text-white transition-colors";
+      default:          return "text-sm opacity-50 hover:opacity-80 transition-opacity";
     }
   };
 
   return (
     <div className={getBackgroundClasses()}>
       {/* Хедер */}
-      <div className={getHeaderClasses()}>
-        <div className="max-w-4xl mx-auto p-4 flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h1 className={`text-2xl font-bold ${getTitleGradient()}`}>
-              GymQuest
-            </h1>
+      <div className={`sticky top-0 z-50 ${headerBg()}`}>
+        <div className="max-w-4xl mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <h1 className={`text-xl font-bold ${titleClass()}`}>GymQuest</h1>
             {session && (
-              <span className={getUsernameClasses()}>
+              <span className="hidden md:inline text-sm opacity-40 font-medium">
                 {session.user?.name || session.user?.email}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push("/")}
-              className={getNavLinkClasses()}
-            >
-              Карта
-            </button>
-            <Link
-              href="/profile"
-              className={getNavLinkClasses()}
-            >
-              Профиль
-            </Link>
-            <Link
-              href="/nutrition"
-              className={getNavLinkClasses()}
-            >
-              Питание
-            </Link>
+          <nav className="flex items-center gap-4">
+            <button onClick={() => router.push("/")} className={navCls()}>Карта</button>
+            <Link href="/profile"    className={navCls()}>Профиль</Link>
+            <Link href="/nutrition"  className={navCls()}>Питание</Link>
             {onShopClick && (
-              <button
-                onClick={onShopClick}
-                className={getNavLinkClasses()}
-                title="Магазин"
-              >
-                Магазин
-              </button>
+              <button onClick={onShopClick} className={navCls()}>Магазин</button>
             )}
             {onSettingsClick && (
-              <button
-                onClick={onSettingsClick}
-                className={getNavLinkClasses()}
-                title="Настройки"
-              >
-                Настройки
-              </button>
+              <button onClick={onSettingsClick} className={navCls()}>Настройки</button>
             )}
             {session && (
-              <button
-                onClick={() => signOut()}
-                className={getNavLinkClasses()}
-              >
-                Выйти
-              </button>
+              <button onClick={() => signOut()} className={navCls()}>Выйти</button>
             )}
-          </div>
+          </nav>
         </div>
       </div>
 
-      {/* Контент */}
       {children}
     </div>
   );
