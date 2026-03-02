@@ -1,53 +1,7 @@
 // src/components/QuestCard.tsx
 import { useState, useEffect } from "react";
-import Lottie from "lottie-react";
 import { ExerciseGif, hasGif } from "./ExerciseGif";
-import { HumanSilhouetteAnimation, getSilhouetteType } from "./HumanSilhouetteAnimation";
-
-// Компонент для загрузки и отображения Lottie анимации
-function LottieAnimation({ url }: { url: string }) {
-  const [animationData, setAnimationData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    fetch(url)
-      .then((res) => res.json())
-      .then((data) => {
-        setAnimationData(data);
-        setLoading(false);
-      })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
-  }, [url]);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center py-8 text-gray-500">
-        Не удалось загрузить анимацию
-      </div>
-    );
-  }
-
-  return (
-    <Lottie
-      animationData={animationData}
-      loop={true}
-      autoplay={true}
-      style={{ width: "100%", height: "auto" }}
-    />
-  );
-}
+import { LottieAnimation } from "./LottieAnimation";
 
 type VisualDemo = {
   type: "image" | "video" | "gif" | "youtube" | "lottie";
@@ -239,7 +193,7 @@ export function QuestCard({
       <div className="mt-3">
         {hasGif(quest.title)
           ? <ExerciseGif title={quest.title} />
-          : <HumanSilhouetteAnimation exerciseType={getSilhouetteType(quest.title)} title={quest.title} />}
+          : <LottieAnimation title={quest.title} />}
       </div>
 
       {/* Совет */}
