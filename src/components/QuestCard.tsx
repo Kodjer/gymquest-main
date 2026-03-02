@@ -189,8 +189,12 @@ export function QuestCard({
         </div>
       )}
 
-      {/* Визуальная демонстрация упражнения (нет для wellness-квестов) */}
-      {quest.category !== "wellness" && (
+      {/* Визуальная демонстрация упражнения (нет для lifestyle wellness-квестов) */}
+      {!(quest.category === "wellness" && (() => {
+        const t = quest.title.toLowerCase();
+        return t.includes("сахар") || t.includes("детокс") || t.includes("питан") ||
+               t.includes("отдых") || t.includes("здоровь") || t.includes("день");
+      })()) && (
         <div className="mt-3">
           {hasGif(quest.title)
             ? <ExerciseGif title={quest.title} />
