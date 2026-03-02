@@ -1,7 +1,8 @@
 // src/components/QuestCard.tsx
 import { useState, useEffect } from "react";
 import Lottie from "lottie-react";
-import { ExerciseGif } from "./ExerciseGif";
+import { ExerciseGif, hasGif } from "./ExerciseGif";
+import { HumanSilhouetteAnimation, getSilhouetteType } from "./HumanSilhouetteAnimation";
 
 // Компонент для загрузки и отображения Lottie анимации
 function LottieAnimation({ url }: { url: string }) {
@@ -236,7 +237,9 @@ export function QuestCard({
 
       {/* Гифка с демонстрацией упражнения */}
       <div className="mt-3">
-        <ExerciseGif title={quest.title} />
+        {hasGif(quest.title)
+          ? <ExerciseGif title={quest.title} />
+          : <HumanSilhouetteAnimation exerciseType={getSilhouetteType(quest.title)} title={quest.title} />}
       </div>
 
       {/* Совет */}
