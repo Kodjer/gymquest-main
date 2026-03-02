@@ -30,12 +30,12 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
   // Единый flat-хедер, адаптированный под тему
   const headerBg = () => {
     switch (theme) {
-      case "cyberpunk": return "bg-gray-900/95 border-b border-fuchsia-500/30 backdrop-blur-sm";
-      case "galaxy":    return "bg-indigo-900/95 border-b border-purple-500/30 backdrop-blur-sm";
-      case "forest":    return "bg-green-600/95 dark:bg-green-800/95 border-b border-white/10 backdrop-blur-sm text-white";
-      case "ocean":     return "bg-cyan-600/95 dark:bg-cyan-800/95 border-b border-white/10 backdrop-blur-sm text-white";
-      case "sunset":    return "bg-orange-500/95 dark:bg-orange-700/95 border-b border-white/10 backdrop-blur-sm text-white";
-      default:          return "bg-white/90 dark:bg-gray-900/90 border-b border-black/8 dark:border-white/8 backdrop-blur-sm";
+      case "cyberpunk": return "bg-gray-900/95 backdrop-blur-sm";
+      case "galaxy":    return "bg-indigo-900/95 backdrop-blur-sm";
+      case "forest":    return "bg-green-600/95 dark:bg-green-800/95 backdrop-blur-sm text-white";
+      case "ocean":     return "bg-cyan-600/95 dark:bg-cyan-800/95 backdrop-blur-sm text-white";
+      case "sunset":    return "bg-orange-500/95 dark:bg-orange-700/95 backdrop-blur-sm text-white";
+      default:          return "bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm";
     }
   };
 

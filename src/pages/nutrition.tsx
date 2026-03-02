@@ -46,7 +46,7 @@ export default function NutritionPage() {
         onClose={() => setSettingsOpen(false)}
         isDark={isDark}
         onThemeToggle={() => setIsDark((prev) => !prev)}
-        onChangeProgram={() => {}}
+        onChangeClass={() => {}}
       />
     </Layout>
   );

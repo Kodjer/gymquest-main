@@ -269,37 +269,29 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
     }
   };
 
-  const filteredItems = activeCategory === 'all' 
-    ? allShopItems 
-    : getShopItemsByType(activeCategory as ShopItemType);
-
-  console.log('Shop isOpen:', isOpen, 'filteredItems:', filteredItems.length);
+  const hiddenCategories = ['avatar', 'pet'];
+  const visibleCategories = shopCategories.filter(c => !hiddenCategories.includes(c.id));
+  const filteredItems = (activeCategory === 'all'
+    ? allShopItems
+    : getShopItemsByType(activeCategory as ShopItemType)
+  ).filter(item => !hiddenCategories.includes(item.type));
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-2xl overflow-hidden flex flex-col">
+      <div className="relative w-full max-w-5xl max-h-[90vh] bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden flex flex-col">
         {/* Заголовок */}
-        <div className="bg-gradient-to-r from-purple-600 via-pink-600 to-orange-500 p-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <h2 className="text-2xl font-bold text-white">Магазин</h2>
+        <div className="flex items-center justify-between px-5 py-4 border-b border-black/8 dark:border-white/8">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Магазин</h2>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300 text-sm font-semibold">
+              <div className="w-3.5 h-3.5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
+              {playerCoins}
             </div>
-            <div className="flex items-center gap-4">
-              {/* Баланс */}
-              <div className="flex items-center gap-2 px-4 py-2 bg-white/20 rounded-xl">
-                <div className="w-6 h-6 bg-gradient-to-br from-yellow-300 via-amber-400 to-yellow-600 rounded-full shadow border border-yellow-200"></div>
-                <span className="font-bold text-white text-lg">{playerCoins}</span>
-              </div>
-              {/* Закрыть */}
-              <button
-                onClick={onClose}
-                className="w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors"
-              >
-                <span className="text-white text-xl">✕</span>
-              </button>
-            </div>
+            <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full opacity-40 hover:opacity-70 transition-opacity text-gray-900 dark:text-white">
+              ✕
+            </button>
           </div>
         </div>
 
@@ -313,19 +305,19 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
         {/* Основной контент - категории слева, товары справа */}
         <div className="flex flex-1 overflow-hidden">
           {/* Категории - левая панель */}
-          <div className="w-48 bg-gray-100 dark:bg-gray-800 p-3 overflow-y-auto border-r border-gray-200 dark:border-gray-700">
-            <div className="space-y-2">
-              {shopCategories.map(category => (
+          <div className="w-44 bg-gray-50 dark:bg-gray-800/60 p-2 overflow-y-auto border-r border-black/8 dark:border-white/8">
+            <div className="space-y-1">
+              {visibleCategories.map(category => (
                 <button
                   key={category.id}
                   onClick={() => setActiveCategory(category.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-3 rounded-xl transition-all text-left ${
+                  className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all text-left ${
                     activeCategory === category.id
-                      ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+                      ? 'bg-blue-500 text-white'
+                      : 'text-gray-600 dark:text-gray-300 hover:bg-black/5 dark:hover:bg-white/5'
                   }`}
                 >
-                  <span className="text-xl">{category.icon}</span>
+                  <span className="text-base">{category.icon}</span>
                   <span className="font-medium text-sm">{category.name}</span>
                 </button>
               ))}
@@ -343,9 +335,9 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
                 <button
                   onClick={() => handleResetCategory(activeCategory as ShopItemType)}
                   disabled={loading}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 rounded-xl transition-colors"
+                  className="text-xs opacity-40 hover:opacity-70 transition-opacity font-medium"
                 >
-                  <span className="text-sm font-medium">Сбросить на дефолт</span>
+                  Сбросить на дефолт
                 </button>
               </div>
             )}
@@ -398,47 +390,29 @@ interface ShopItemCardProps {
 }
 
 function ShopItemCard({ item, index, owned, equipped, canAfford, levelLocked, onSelect }: ShopItemCardProps) {
-  const colors = rarityColors[item.rarity];
-
   return (
     <button
       onClick={onSelect}
-      className={`relative w-full p-4 rounded-xl border-2 transition-all hover:scale-105 hover:shadow-lg ${colors.border} ${colors.bg}`}
+      className={`relative w-full p-4 rounded-xl text-left transition-all hover:scale-[1.02] ${
+        equipped
+          ? 'bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-400'
+          : 'bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+      }`}
     >
-        {/* Значки статуса */}
-        <div className="absolute top-2 right-2 flex gap-1">
-          {owned && (
-            <span className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">✓</span>
-          )}
-          {equipped && (
-            <span className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center text-white text-xs font-bold">E</span>
-          )}
-          {levelLocked && (
-            <span className="w-6 h-6 bg-red-500 rounded-full flex items-center justify-center text-white text-xs font-bold">!</span>
-          )}
-        </div>
+      {/* Значки */}
+      <div className="absolute top-2 right-2 flex gap-1">
+        {equipped && <span className="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">✓</span>}
+        {!equipped && owned && <span className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center text-white text-[10px]">✓</span>}
+        {levelLocked && <span className="w-5 h-5 bg-red-400 rounded-full flex items-center justify-center text-white text-[10px]">!</span>}
+      </div>
 
-        {/* Иконка */}
-        <div className="text-4xl mb-2">{item.icon}</div>
-
-        {/* Название */}
-        <h3 className={`font-bold text-sm mb-1 ${colors.text}`}>{item.name}</h3>
-
-        {/* Редкость */}
-        <span className={`text-xs ${colors.text} opacity-70`}>
-          {rarityNames[item.rarity]}
-        </span>
-
-        {/* Цена */}
-        <div className={`flex items-center justify-center gap-1 mt-2 ${!canAfford && !owned ? 'text-red-500' : ''}`}>
-          <div className="w-4 h-4 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full"></div>
-          <span className="font-bold">{item.price}</span>
-        </div>
-
-        {/* Превью рамки */}
-        {item.type === 'frame' && item.preview && (
-          <div className={`absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-gradient-to-br ${item.preview} opacity-50`}></div>
-        )}
+      <div className="text-3xl mb-2">{item.icon}</div>
+      <h3 className="font-semibold text-sm text-gray-900 dark:text-white mb-0.5">{item.name}</h3>
+      <p className="text-xs opacity-40 mb-2">{rarityNames[item.rarity]}</p>
+      <div className={`flex items-center gap-1 text-xs font-semibold ${!canAfford && !owned ? 'text-red-500' : 'text-amber-600 dark:text-amber-400'}`}>
+        <div className="w-3 h-3 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
+        {item.price}
+      </div>
     </button>
   );
 }
@@ -462,120 +436,93 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
 
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
-      <div 
-        className={`relative w-full max-w-md p-6 rounded-2xl border-2 ${colors.border} ${colors.bg} dark:bg-gray-800`}
+      <div
+        className="relative w-full max-w-sm bg-white dark:bg-gray-900 rounded-2xl shadow-xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
-          {/* Закрыть */}
-          <button
-            onClick={onClose}
-            className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600"
-          >
-            ✕
-          </button>
-
-          {/* Контент */}
-          <div className="text-center">
-            {/* Иконка с превью */}
-            <div className="relative inline-block mb-4">
-              {item.type === 'frame' && item.preview ? (
-                <div className={`w-24 h-24 rounded-full bg-gradient-to-br ${item.preview} p-1`}>
-                  <div className="w-full h-full rounded-full bg-gray-800 flex items-center justify-center text-5xl">
-                    {item.icon}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-6xl">{item.icon}</div>
-              )}
-            </div>
-
-            {/* Название и редкость */}
-            <h3 className={`text-2xl font-bold mb-1 ${colors.text}`}>{item.name}</h3>
-            <span className={`inline-block px-3 py-1 rounded-full text-sm ${colors.bg} ${colors.text} border ${colors.border}`}>
-              {rarityNames[item.rarity]}
-            </span>
-
-            {/* Описание */}
-            <p className="mt-4 text-gray-600 dark:text-gray-300">{item.description}</p>
-
-            {/* Эффект для бустов и питомцев */}
-            {item.effect && (
-              <div className="mt-3 p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
-                <span className="text-blue-600 dark:text-blue-400">
-                  {item.effect.type === 'xp_multiplier' && `XP x${item.effect.value}`}
-                  {item.effect.type === 'coin_multiplier' && `Монеты x${item.effect.value}`}
-                  {item.effect.type === 'xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP`}
-                  {item.effect.type === 'coin_bonus' && `+${Math.round(item.effect.value * 100)}% монет`}
-                  {item.effect.type === 'streak_bonus' && `+${Math.round(item.effect.value * 100)}% бонус серии`}
-                  {item.effect.type === 'streak_shield' && `Защита серии`}
-                  {item.effect.type === 'flexibility_xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP за гибкость`}
-                  {item.effect.type === 'auto_streak_shield' && `Авто-защита серии раз в неделю`}
-                  {item.effect.type === 'mega_boost' && `XP x2 + Монеты x2`}
-                </span>
-                {item.duration && (
-                  <span className="ml-2 text-gray-500">({item.duration}ч)</span>
-                )}
+        {/* Заголовок */}
+        <div className="flex items-center justify-between px-5 pt-5 pb-3">
+          <div className="flex items-center gap-3">
+            {item.type === 'frame' && item.preview ? (
+              <div className={`w-12 h-12 rounded-full bg-gradient-to-br ${item.preview} p-0.5 flex-shrink-0`}>
+                <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xl">{item.icon}</div>
               </div>
+            ) : (
+              <span className="text-4xl">{item.icon}</span>
             )}
-
-            {/* Требуемый уровень */}
-            {item.requiredLevel && (
-              <div className={`mt-3 p-2 rounded-lg ${levelLocked ? 'bg-red-100 dark:bg-red-900/30' : 'bg-green-100 dark:bg-green-900/30'}`}>
-                <span className={levelLocked ? 'text-red-600' : 'text-green-600'}>
-                  Требуется уровень {item.requiredLevel}
-                  {levelLocked && ` (ваш: ${playerLevel})`}
-                </span>
-              </div>
-            )}
-
-            {/* Цена */}
-            <div className="flex items-center justify-center gap-2 mt-4">
-              <div className="w-6 h-6 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full shadow"></div>
-              <span className={`text-2xl font-bold ${!canAfford && !owned ? 'text-red-500' : ''}`}>
-                {item.price}
-              </span>
-            </div>
-
-            {/* Кнопки */}
-            <div className="mt-6 space-y-3">
-              {!owned ? (
-                <button
-                  onClick={onPurchase}
-                  disabled={loading || !canAfford || levelLocked}
-                  className={`w-full py-3 px-6 rounded-xl font-bold text-white transition-all ${
-                    loading || !canAfford || levelLocked
-                      ? 'bg-gray-400 cursor-not-allowed'
-                      : 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 hover:scale-105'
-                  }`}
-                >
-                  {loading ? 'Покупка...' : 
-                   levelLocked ? 'Уровень недостаточен' :
-                   !canAfford ? 'Недостаточно монет' : 
-                   'Купить'}
-                </button>
-              ) : (
-                <>
-                  {['frame', 'title', 'avatar', 'theme', 'pet'].includes(item.type) && (
-                    <button
-                      onClick={() => onEquip(equipped ? 'unequip' : 'equip')}
-                      disabled={loading}
-                      className={`w-full py-3 px-6 rounded-xl font-bold text-white transition-all ${
-                        loading
-                          ? 'bg-gray-400 cursor-not-allowed'
-                          : equipped
-                            ? 'bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600'
-                            : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600'
-                      }`}
-                    >
-                      {loading ? '⏳...' : equipped ? '❌ Снять' : '✅ Надеть'}
-                    </button>
-                  )}
-                  <div className="text-green-500 font-medium">✓ Куплено</div>
-                </>
-              )}
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white">{item.name}</h3>
+              <p className="text-xs opacity-40">{rarityNames[item.rarity]}</p>
             </div>
           </div>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full opacity-40 hover:opacity-70 transition-opacity text-gray-900 dark:text-white">✕</button>
         </div>
+
+        <div className="px-5 pb-5 space-y-3">
+          <p className="text-sm text-gray-600 dark:text-gray-300">{item.description}</p>
+
+          {/* Эффект */}
+          {item.effect && (
+            <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-sm text-blue-600 dark:text-blue-400 font-medium">
+              {item.effect.type === 'xp_multiplier' && `XP x${item.effect.value}`}
+              {item.effect.type === 'coin_multiplier' && `Монеты x${item.effect.value}`}
+              {item.effect.type === 'xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP`}
+              {item.effect.type === 'coin_bonus' && `+${Math.round(item.effect.value * 100)}% монет`}
+              {item.effect.type === 'streak_bonus' && `+${Math.round(item.effect.value * 100)}% бонус серии`}
+              {item.effect.type === 'streak_shield' && `Защита серии`}
+              {item.effect.type === 'flexibility_xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP за гибкость`}
+              {item.effect.type === 'auto_streak_shield' && `Авто-защита серии раз в неделю`}
+              {item.effect.type === 'mega_boost' && `XP x2 + Монеты x2`}
+              {item.duration && <span className="ml-1 opacity-60">({item.duration}ч)</span>}
+            </div>
+          )}
+
+          {/* Уровень */}
+          {item.requiredLevel && (
+            <div className={`p-2.5 rounded-xl text-xs font-medium ${levelLocked ? 'bg-red-50 dark:bg-red-900/20 text-red-500' : 'bg-green-50 dark:bg-green-900/20 text-green-600'}`}>
+              Требуется уровень {item.requiredLevel}{levelLocked ? ` (ваш: ${playerLevel})` : ''}
+            </div>
+          )}
+
+          {/* Цена */}
+          <div className={`flex items-center gap-1.5 text-base font-bold ${!canAfford && !owned ? 'text-red-500' : 'text-amber-600 dark:text-amber-400'}`}>
+            <div className="w-4 h-4 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500" />
+            {item.price}
+          </div>
+
+          {/* Кнопки */}
+          {!owned ? (
+            <button
+              onClick={onPurchase}
+              disabled={loading || !canAfford || levelLocked}
+              className={`w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${
+                loading || !canAfford || levelLocked
+                  ? 'bg-gray-300 dark:bg-gray-700 cursor-not-allowed opacity-50'
+                  : 'bg-blue-500 hover:bg-blue-600'
+              }`}
+            >
+              {loading ? 'Покупка...' : levelLocked ? 'Уровень недостаточен' : !canAfford ? 'Недостаточно монет' : 'Купить'}
+            </button>
+          ) : (
+            <div className="space-y-2">
+              {['frame', 'title', 'theme'].includes(item.type) && (
+                <button
+                  onClick={() => onEquip(equipped ? 'unequip' : 'equip')}
+                  disabled={loading}
+                  className={`w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-colors ${
+                    loading ? 'bg-gray-300 cursor-not-allowed opacity-50'
+                      : equipped ? 'bg-orange-500 hover:bg-orange-600'
+                      : 'bg-green-500 hover:bg-green-600'
+                  }`}
+                >
+                  {loading ? '...' : equipped ? 'Снять' : 'Выбрать'}
+                </button>
+              )}
+              <p className="text-center text-xs text-green-600 dark:text-green-400 font-medium">✓ Куплено</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
