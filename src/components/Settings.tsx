@@ -1,15 +1,25 @@
 ﻿// src/components/Settings.tsx
 import { getAudioSettings, setSoundEnabled } from "../lib/gameEffects";
 
+type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
+
 interface SettingsProps {
   isOpen: boolean;
   onClose: () => void;
   isDark: boolean;
   onThemeToggle: () => void;
-  onChangeProgram: () => void;
+  onChangeClass: () => void;
+  currentClass?: PlayerClass;
 }
 
-export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeProgram }: SettingsProps) {
+const classInfo: Record<PlayerClass, { icon: string; name: string }> = {
+  warrior: { icon: "💪", name: "Воин" },
+  scout: { icon: "🏃", name: "Скаут" },
+  monk: { icon: "🧘", name: "Монах" },
+  berserker: { icon: "🔥", name: "Берсерк" },
+};
+
+export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass, currentClass }: SettingsProps) {
   const { soundEnabled } = getAudioSettings();
 
   const handleSoundToggle = () => {
@@ -98,22 +108,36 @@ export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeProgr
           </ul>
         </div>
 
-        {/* Программа тренировок */}
+        {/* Класс персонажа */}
         <div className="border-t dark:border-gray-700 pt-4 mb-4">
           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
-            Программа тренировок
+            Класс персонажа
           </h3>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
-            Измени свои цели, доступное время и предпочтения в тренировках
-          </p>
+          {currentClass && classInfo[currentClass] ? (
+            <div className="flex items-center gap-3 mb-3 p-3 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-lg">
+              <span className="text-3xl">{classInfo[currentClass].icon}</span>
+              <div>
+                <p className="font-bold text-gray-900 dark:text-white">
+                  {classInfo[currentClass].name}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Текущий класс
+                </p>
+              </div>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">
+              Класс не выбран
+            </p>
+          )}
           <button
             onClick={() => {
-              onChangeProgram();
+              onChangeClass();
               onClose();
             }}
-            className="w-full px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
+            className="w-full px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-lg font-medium transition-colors"
           >
-            Изменить программу
+            {currentClass ? "Сменить класс (500 монет)" : "Выбрать класс"}
           </button>
         </div>
 

@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "../lib/useLocalStorage";
-import { usePlayer, OnboardingData } from "../lib/usePlayer";
+import { usePlayer } from "../lib/usePlayer";
 import { useDBSync } from "../lib/useDBSync";
 import Link from "next/link";
 import { PlayerCard } from "../components/PlayerCard";
@@ -13,12 +13,13 @@ import {
   setSoundEnabled,
 } from "../lib/gameEffects";
 import { Settings } from "../components/Settings";
-import { OnboardingQuestionnaire } from "../components/OnboardingQuestionnaire";
 import { LandingPage } from "../components/LandingPage";
 import { GenerateQuestsButton } from "../components/GenerateQuestsButton";
 import { QuestCard } from "../components/QuestCard";
 import { MapProgress } from "../components/MapProgress";
 import { Layout } from "../components/Layout";
+import { ClassSelection, PlayerClass, ClassInfo } from "../components/ClassSelection";
+import { Shop } from "../components/Shop";
 
 type Filter = "all" | "pending" | "done";
 
@@ -76,16 +77,19 @@ function AuthenticatedApp() {
   const [isDark, setIsDark] = useState(false);
   const [soundEnabled, setSoundEnabledState] = useState(true);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
-  const [onboardingMode, setOnboardingMode] = useState<"full" | "edit-program">(
-    "full"
-  );
+  const [showClassSelection, setShowClassSelection] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [equipmentVersion, setEquipmentVersion] = useState(0); // Для обновления PlayerCard
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoadingQuests, setIsLoadingQuests] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [locationFilter, setLocationFilter] = useState<"home" | "gym">(
     "home"
   );
+
+  // Хук для экипировки и бустов
+  const { useEquipment } = require("@/lib/useEquipment");
+  const equipmentData = useEquipment();
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -118,11 +122,11 @@ function AuthenticatedApp() {
   const [player, setPlayer] = usePlayer();
   const db = useDBSync();
 
-  // Проверяем, нужно ли показать опросник
+  // Проверяем, нужно ли показать выбор класса или опросник
   useEffect(() => {
     if (session && !player.onboardingCompleted) {
-      setOnboardingMode("full");
-      setShowOnboarding(true);
+      // Показываем выбор класса для новых пользователей
+      setShowClassSelection(true);
     }
   }, [session, player.onboardingCompleted]);
 
@@ -271,6 +275,64 @@ function AuthenticatedApp() {
   const xpInLevel = player.xp % 100;
   const progressPercent = Math.round((xpInLevel / 100) * 100);
 
+  // Расчёт бонусов класса
+  function calculateClassBonus(
+    baseXp: number,
+    baseCoins: number,
+    questCategory: string | undefined,
+    questDifficulty: string,
+    playerClass: PlayerClass | undefined,
+    streak: number
+  ): { xp: number; coins: number; bonusText: string } {
+    let xpMultiplier = 1;
+    let coinMultiplier = 1;
+    let bonusText = "";
+
+    if (playerClass) {
+      switch (playerClass) {
+        case "warrior":
+          // +25% XP за силовые
+          if (questCategory === "strength") {
+            xpMultiplier = 1.25;
+            bonusText = "+25% XP (Воин)";
+          }
+          break;
+        case "scout":
+          // +25% XP за кардио, +10% бонус стрика
+          if (questCategory === "cardio") {
+            xpMultiplier = 1.25;
+            bonusText = "+25% XP (Скаут)";
+          }
+          // Бонус к стрику обрабатывается отдельно
+          break;
+        case "monk":
+          // +25% XP за гибкость, +15% монет
+          if (questCategory === "flexibility") {
+            xpMultiplier = 1.25;
+            bonusText = "+25% XP (Монах)";
+          }
+          coinMultiplier = 1.15;
+          break;
+        case "berserker":
+          // +40% XP за сложные, -15% за лёгкие
+          if (questDifficulty === "hard") {
+            xpMultiplier = 1.4;
+            bonusText = "+40% XP (Берсерк)";
+          } else if (questDifficulty === "easy") {
+            xpMultiplier = 0.85;
+            bonusText = "-15% XP (Берсерк)";
+          }
+          break;
+      }
+    }
+
+    return {
+      xp: Math.round(baseXp * xpMultiplier),
+      coins: Math.round(baseCoins * coinMultiplier),
+      bonusText,
+    };
+  }
+
   // Переключить статус квеста
   async function toggleQuest(id: string) {
     const quest = quests.find((q) => q.id === id);
@@ -321,19 +383,60 @@ function AuthenticatedApp() {
             newStreak = 1;
           }
 
-          // Награды за квест
+          // Базовые награды за квест
           const baseCoins =
             quest.difficulty === "easy"
               ? 10
               : quest.difficulty === "medium"
               ? 20
               : 30;
-          const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
-          const totalCoins = baseCoins + streakBonus;
+          
+          // Применяем бонусы класса
+          const classBonus = calculateClassBonus(
+            quest.xpReward,
+            baseCoins,
+            quest.category,
+            quest.difficulty,
+            player.playerClass,
+            newStreak
+          );
 
-          const newXp = player.xp + quest.xpReward;
+          // Бонус стрика для Скаута (+10%)
+          let streakMultiplier = 1;
+          if (player.playerClass === "scout" && newStreak >= 3) {
+            streakMultiplier = 1.1;
+          }
+
+          // Добавляем бонус стрика от питомца
+          const petStreakBonus = equipmentData.getStreakBonus();
+          streakMultiplier += petStreakBonus;
+
+          const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
+          
+          // Применяем множители от бустов и питомцев
+          const xpMultiplier = equipmentData.getXpMultiplier();
+          const coinMultiplier = equipmentData.getCoinMultiplier();
+          const categoryBonus = equipmentData.getCategoryXpBonus(quest.category || '');
+          
+          let totalXp = Math.round(classBonus.xp * streakMultiplier * xpMultiplier);
+          // Добавляем категорийный бонус (например, от кота-йога за гибкость)
+          if (categoryBonus > 0) {
+            totalXp = Math.round(totalXp * (1 + categoryBonus));
+          }
+          
+          const totalCoins = Math.round(classBonus.coins * streakMultiplier * coinMultiplier) + streakBonus;
+
+          const newXp = player.xp + totalXp;
           const newLevel = Math.floor(newXp / 500) + 1;
           const newCoins = player.coins + totalCoins;
+
+          // Логируем бонус если есть
+          if (classBonus.bonusText) {
+            console.log(`🎮 Бонус класса: ${classBonus.bonusText}`);
+          }
+          if (xpMultiplier > 1 || coinMultiplier > 1) {
+            console.log(`✨ Множители: XP x${xpMultiplier.toFixed(1)}, Монеты x${coinMultiplier.toFixed(1)}`);
+          }
 
           setPlayer({
             ...player,
@@ -404,45 +507,65 @@ function AuthenticatedApp() {
     }
   }
 
-  // Обработчик завершения опросника
-  async function handleOnboardingComplete(data: OnboardingData) {
-    setPlayer({
-      ...player,
-      onboardingCompleted: true,
-      onboardingData: data,
-    });
+  // Обработчик выбора класса
+  async function handleClassSelect(classId: PlayerClass, classInfo: ClassInfo) {
+    try {
+      // Если игрок уже имеет класс, проверяем монеты
+      if (player.playerClass && player.coins < 500) {
+        alert("Недостаточно монет для смены класса! Нужно 500 монет.");
+        return;
+      }
 
-    if (session) {
-      await db.saveOnboarding(data);
+      const response = await fetch("/api/player/select-class", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ playerClass: classId }),
+      });
+
+      if (response.ok) {
+        // Если это смена класса, снимаем монеты
+        const newCoins = player.playerClass ? player.coins - 500 : player.coins;
+        
+        setPlayer({
+          ...player,
+          onboardingCompleted: true,
+          playerClass: classId,
+          coins: newCoins,
+        });
+        setShowClassSelection(false);
+
+        // Автоматически генерируем первые квесты только для новых игроков
+        if (!player.playerClass) {
+          setTimeout(() => {
+            loadQuests();
+          }, 500);
+        }
+      } else {
+        console.error("Failed to save class");
+      }
+    } catch (error) {
+      console.error("Error selecting class:", error);
     }
-
-    setShowOnboarding(false);
-
-    // Автоматически генерируем первые квесты
-    setTimeout(() => {
-      loadQuests();
-    }, 500);
   }
 
-  async function handleOnboardingSkip() {
+  // Обработчик покупки в магазине
+  const handleShopPurchase = (item: { price: number }, newBalance: number) => {
     setPlayer({
       ...player,
-      onboardingCompleted: true,
+      coins: newBalance,
     });
-
-    if (session) {
-      await db.updatePlayer({ onboardingCompleted: true });
-    }
-
-    setShowOnboarding(false);
-  }
+  };
 
   return (
-    <Layout onSettingsClick={() => setSettingsOpen(true)}>
+    <Layout 
+      onSettingsClick={() => setSettingsOpen(true)}
+      onShopClick={() => setShopOpen(true)}
+    >
       <div className="p-4 md:p-8 max-w-4xl mx-auto">
         <div className="space-y-6">
           {/* Профиль игрока */}
           <PlayerCard
+            key={`player-card-${equipmentVersion}`}
             player={player}
             setPlayer={setPlayer}
             showDetailedStats={false}
@@ -501,6 +624,7 @@ function AuthenticatedApp() {
                       quest={quest}
                       onToggle={toggleQuest}
                       onDelete={deleteQuest}
+                      playerClass={player.playerClass}
                     />
                   ))}
                 </div>
@@ -544,20 +668,33 @@ function AuthenticatedApp() {
         onClose={() => setSettingsOpen(false)}
         isDark={isDark}
         onThemeToggle={() => setIsDark((prev) => !prev)}
-        onChangeProgram={() => {
-          setOnboardingMode("edit-program");
-          setShowOnboarding(true);
+        onChangeClass={() => {
+          setShowClassSelection(true);
         }}
+        currentClass={player.playerClass}
       />
 
-      {/* Опросник для новых пользователей */}
-      {showOnboarding && (
-        <OnboardingQuestionnaire
-          onComplete={handleOnboardingComplete}
-          onSkip={handleOnboardingSkip}
-          mode={onboardingMode}
+      {/* Выбор класса */}
+      {showClassSelection && (
+        <ClassSelection 
+          onSelectClass={handleClassSelect} 
+          onClose={player.playerClass ? () => setShowClassSelection(false) : undefined}
         />
       )}
+
+      {/* Магазин */}
+      <Shop
+        isOpen={shopOpen}
+        onClose={() => {
+          setShopOpen(false);
+          // Обновляем экипировку после закрытия магазина
+          equipmentData.refetch?.();
+          setEquipmentVersion(v => v + 1); // Перезагружаем PlayerCard
+        }}
+        playerCoins={player.coins || 0}
+        playerLevel={player.level || 1}
+        onPurchase={handleShopPurchase}
+      />
     </Layout>
   );
 }

@@ -54,6 +54,8 @@ type VisualDemo = {
   thumbnail?: string;
 };
 
+type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
+
 type QuestCardProps = {
   quest: {
     id: string;
@@ -65,7 +67,7 @@ type QuestCardProps = {
     status: "pending" | "done";
     difficulty: "easy" | "medium" | "hard";
     category?: string;
-    location?: "home" | "gym";
+    location?: "home" | "gym" | "both";
     visualDemo?: VisualDemo;
     stepByStep?: string[];
   };
@@ -73,7 +75,43 @@ type QuestCardProps = {
   onDelete?: (id: string) => void;
   onEdit?: (quest: any) => void;
   showActions?: boolean;
+  playerClass?: PlayerClass;
 };
+
+// Расчёт бонуса класса для отображения
+function getClassBonusInfo(
+  category: string | undefined,
+  difficulty: string,
+  playerClass: PlayerClass | undefined
+): { hasBonus: boolean; bonusPercent: number; bonusText: string } {
+  if (!playerClass) return { hasBonus: false, bonusPercent: 0, bonusText: "" };
+
+  switch (playerClass) {
+    case "warrior":
+      if (category === "strength") {
+        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
+      }
+      break;
+    case "scout":
+      if (category === "cardio") {
+        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
+      }
+      break;
+    case "monk":
+      if (category === "flexibility") {
+        return { hasBonus: true, bonusPercent: 25, bonusText: "+25%" };
+      }
+      break;
+    case "berserker":
+      if (difficulty === "hard") {
+        return { hasBonus: true, bonusPercent: 40, bonusText: "+40%" };
+      } else if (difficulty === "easy") {
+        return { hasBonus: true, bonusPercent: -15, bonusText: "-15%" };
+      }
+      break;
+  }
+  return { hasBonus: false, bonusPercent: 0, bonusText: "" };
+}
 
 const categoryNames: Record<string, string> = {
   strength: "Силовые",
@@ -101,9 +139,13 @@ export function QuestCard({
   onDelete,
   onEdit,
   showActions = true,
+  playerClass,
 }: QuestCardProps) {
   const [showDetails, setShowDetails] = useState(false);
   const isDone = quest.status === "done";
+  
+  // Получаем бонус класса
+  const classBonus = getClassBonusInfo(quest.category, quest.difficulty, playerClass);
 
   return (
     <div
@@ -140,14 +182,20 @@ export function QuestCard({
             >
               {difficultyNames[quest.difficulty]}
             </span>
-            <span className="px-2 py-1 rounded text-xs font-semibold bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border border-blue-300">
+            <span className={`px-2 py-1 rounded text-xs font-semibold border ${
+              classBonus.hasBonus && classBonus.bonusPercent > 0
+                ? "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-400"
+                : classBonus.hasBonus && classBonus.bonusPercent < 0
+                ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-400"
+                : "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-300"
+            }`}>
               +{quest.xpReward} XP
+              {classBonus.hasBonus && (
+                <span className={`ml-1 font-bold ${classBonus.bonusPercent > 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                  ({classBonus.bonusText})
+                </span>
+              )}
             </span>
-            {quest.category && (
-              <span className="px-2 py-1 rounded text-xs font-semibold bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 border border-purple-300">
-                {categoryNames[quest.category] || quest.category}
-              </span>
-            )}
           </div>
         </div>
       </div>

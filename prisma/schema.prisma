@@ -81,6 +81,16 @@ model Player {
   lastQuestGenerated  DateTime? // Дата последней генерации квестов
   currentWeek         Int      @default(1) // Текущая неделя тренировок
   weekStartDate       DateTime? // Дата начала текущей недели
+  
+  // Система классов
+  playerClass         String?  // warrior, scout, monk, berserker
+  classLevel          Int      @default(1) // Уровень класса (отдельно от общего)
+  classXp             Int      @default(0) // XP класса
+  isEvolved           Boolean  @default(false) // Эволюционировал ли класс
+  
+  // Активные способности
+  lastActiveUsed      DateTime? // Когда последний раз использовал активку
+  
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   
@@ -153,4 +163,46 @@ model XpHistory {
   
   @@index([userId])
   @@map("xp_history")
+}
+
+// Покупки игрока в магазине
+model PlayerPurchase {
+  id          String   @id @default(cuid())
+  userId      String
+  itemId      String   // ID товара из каталога
+  itemType    String   // avatar, frame, title, theme, boost, pet
+  purchasedAt DateTime @default(now())
+  expiresAt   DateTime? // Для временных бустов
+  isActive    Boolean  @default(false) // Активирован ли (для косметики)
+  
+  @@unique([userId, itemId])
+  @@index([userId])
+  @@map("player_purchases")
+}
+
+// Активные бусты игрока
+model ActiveBoost {
+  id          String   @id @default(cuid())
+  userId      String
+  boostType   String   // xp_boost, coin_boost, streak_shield
+  multiplier  Float    @default(1.0)
+  activatedAt DateTime @default(now())
+  expiresAt   DateTime
+  
+  @@index([userId])
+  @@map("active_boosts")
+}
+
+// Экипировка игрока (активная косметика)
+model PlayerEquipment {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  activeFrame   String?  // ID активной рамки
+  activeTitle   String?  // ID активного титула
+  activeAvatar  String?  // ID активного аватара
+  activeTheme   String?  // ID активной темы
+  activePet     String?  // ID активного питомца
+  updatedAt     DateTime @updatedAt
+  
+  @@map("player_equipment")
 }

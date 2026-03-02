@@ -1,6 +1,7 @@
 // src/components/MapProgress.tsx
 import { useRouter } from "next/router";
 import { useState, useMemo, useEffect } from "react";
+import { useAppTheme } from "../lib/ThemeContext";
 
 type MapNode = {
   id: string;
@@ -334,8 +335,64 @@ export function MapProgress({
   onLocationFilterChange,
 }: MapProgressProps) {
   const router = useRouter();
+  const { theme } = useAppTheme();
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+
+  // Декоративные элементы для каждой темы
+  const getThemeDecorations = () => {
+    switch (theme) {
+      case 'forest':
+        return [
+          { emoji: '�', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '🍀', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '🍃', position: '-bottom-16 left-20', size: 'text-7xl', delay: '4s' },
+          { emoji: '🌱', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+          { emoji: '🦋', position: 'top-40 left-10', size: 'text-3xl', delay: '1s' },
+        ];
+      case 'ocean':
+        return [
+          { emoji: '🌊', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '🐚', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '🐟', position: '-bottom-16 left-20', size: 'text-6xl', delay: '4s' },
+          { emoji: '🦐', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+          { emoji: '💧', position: 'top-60 left-5', size: 'text-3xl', delay: '1.5s' },
+        ];
+      case 'sunset':
+        return [
+          { emoji: '☀️', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '🌴', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '🦩', position: '-bottom-16 left-20', size: 'text-6xl', delay: '4s' },
+          { emoji: '🌺', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+          { emoji: '🍂', position: 'top-10 right-20', size: 'text-5xl', delay: '1s' },
+        ];
+      case 'cyberpunk':
+        return [
+          { emoji: '💎', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '⚡', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '🔮', position: '-bottom-16 left-20', size: 'text-6xl', delay: '4s' },
+          { emoji: '💜', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+          { emoji: '✦', position: 'top-40 left-10', size: 'text-3xl', delay: '1s' },
+        ];
+      case 'galaxy':
+        return [
+          { emoji: '⭐', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '🌙', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '✨', position: '-bottom-16 left-20', size: 'text-7xl', delay: '4s' },
+          { emoji: '💫', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+          { emoji: '🪐', position: 'top-60 left-5', size: 'text-3xl', delay: '1.5s' },
+          { emoji: '✧', position: 'bottom-20 left-40', size: 'text-5xl', delay: '2.5s' },
+        ];
+      default:
+        // Дефолтная тема с облаками
+        return [
+          { emoji: '☁️', position: '-top-20 -left-10', size: 'text-6xl', delay: '0s' },
+          { emoji: '☁️', position: 'top-20 -right-16', size: 'text-5xl', delay: '2s' },
+          { emoji: '☁️', position: '-bottom-16 left-20', size: 'text-7xl', delay: '4s' },
+          { emoji: '☁️', position: 'bottom-40 -right-12', size: 'text-4xl', delay: '3s' },
+        ];
+    }
+  };
 
   // Инициализация locationFilter из localStorage
   const [locationFilter, setLocationFilter] = useState<"home" | "gym">(
@@ -370,6 +427,13 @@ export function MapProgress({
   }, [trainingMode]);
 
   const getNodeProgress = (nodeId: string) => {
+    // Сначала проверяем ГЛОБАЛЬНЫЙ прогресс - если день выполнен в любой локации, то он выполнен везде
+    const globalProgress = getGlobalNodeProgress(nodeId);
+    if (globalProgress.percent === 100) {
+      return { completed: 1, total: 1, percent: 100 };
+    }
+
+    // Если не выполнен полностью - показываем прогресс текущей локации
     let nodeQuests = quests.filter((q) => q.nodeId === nodeId);
 
     // Применяем фильтр по локации
@@ -470,16 +534,90 @@ export function MapProgress({
     return filtered;
   };
 
+  // Получаем тематические цвета для карты
+  const getThemeColors = () => {
+    switch (theme) {
+      case 'forest':
+        return {
+          gradientId: 'forestGradient',
+          stops: ['#22c55e', '#16a34a', '#15803d', '#14532d'],
+          cardBg: 'bg-green-50 dark:bg-green-900/50',
+          cardBorder: 'border-green-300 dark:border-green-700',
+          titleText: 'text-green-800 dark:text-green-200',
+          labelText: 'text-green-700 dark:text-green-300',
+          buttonActive: 'from-green-500 to-emerald-600',
+          buttonInactive: 'bg-green-100 dark:bg-green-800 text-green-700 dark:text-green-300',
+        };
+      case 'ocean':
+        return {
+          gradientId: 'oceanGradient',
+          stops: ['#06b6d4', '#0891b2', '#0e7490', '#155e75'],
+          cardBg: 'bg-cyan-50 dark:bg-cyan-900/50',
+          cardBorder: 'border-cyan-300 dark:border-cyan-700',
+          titleText: 'text-cyan-800 dark:text-cyan-200',
+          labelText: 'text-cyan-700 dark:text-cyan-300',
+          buttonActive: 'from-cyan-500 to-blue-600',
+          buttonInactive: 'bg-cyan-100 dark:bg-cyan-800 text-cyan-700 dark:text-cyan-300',
+        };
+      case 'sunset':
+        return {
+          gradientId: 'sunsetGradient',
+          stops: ['#f97316', '#ea580c', '#dc2626', '#b91c1c'],
+          cardBg: 'bg-orange-50 dark:bg-orange-900/50',
+          cardBorder: 'border-orange-300 dark:border-orange-700',
+          titleText: 'text-orange-800 dark:text-orange-200',
+          labelText: 'text-orange-700 dark:text-orange-300',
+          buttonActive: 'from-orange-500 to-red-600',
+          buttonInactive: 'bg-orange-100 dark:bg-orange-800 text-orange-700 dark:text-orange-300',
+        };
+      case 'cyberpunk':
+        return {
+          gradientId: 'cyberpunkGradient',
+          stops: ['#e879f9', '#c026d3', '#7c3aed', '#06b6d4'],
+          cardBg: 'bg-gray-900/80',
+          cardBorder: 'border-fuchsia-500',
+          titleText: 'text-fuchsia-300',
+          labelText: 'text-pink-300',
+          buttonActive: 'from-fuchsia-500 to-cyan-500',
+          buttonInactive: 'bg-gray-800 text-fuchsia-300',
+        };
+      case 'galaxy':
+        return {
+          gradientId: 'galaxyGradient',
+          stops: ['#a855f7', '#7c3aed', '#4f46e5', '#ec4899'],
+          cardBg: 'bg-indigo-900/50',
+          cardBorder: 'border-purple-500',
+          titleText: 'text-purple-200',
+          labelText: 'text-purple-300',
+          buttonActive: 'from-purple-500 to-pink-500',
+          buttonInactive: 'bg-indigo-800 text-purple-300',
+        };
+      default:
+        return {
+          gradientId: 'lineGradient',
+          stops: ['#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#f59e0b'],
+          cardBg: 'bg-white dark:bg-gray-800',
+          cardBorder: 'border-gray-200 dark:border-gray-700',
+          titleText: 'text-gray-800 dark:text-white',
+          labelText: 'text-gray-700 dark:text-gray-300',
+          buttonActive: 'from-purple-500 to-pink-500',
+          buttonInactive: 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400',
+        };
+    }
+  };
+
+  const themeColors = getThemeColors();
+
   return (
     <div className="w-full py-8">
-      <h2 className="text-3xl font-bold text-center mb-8 text-gray-800 dark:text-white">
+      <h2 className={`text-3xl font-bold text-center mb-8 ${themeColors.titleText}`}>
         Карта прогресса
       </h2>
 
       {/* Слайдер для выбора локации */}
       <div className="max-w-md mx-auto mb-8">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6">
-          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3 text-center">
+        <div className={`${themeColors.cardBg} border ${themeColors.cardBorder} rounded-2xl shadow-lg p-6`}>
+          <label className={`block text-sm font-semibold ${themeColors.labelText} mb-3 text-center`}>
             Где тренируемся?
           </label>
           <div className="flex items-center gap-3">
@@ -490,8 +628,8 @@ export function MapProgress({
               }}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
                 locationFilter === "home"
-                  ? "bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg scale-105"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? `bg-gradient-to-r ${themeColors.buttonActive} text-white shadow-lg scale-105`
+                  : `${themeColors.buttonInactive} hover:opacity-80`
               }`}
             >
               Дома
@@ -503,14 +641,14 @@ export function MapProgress({
               }}
               className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
                 locationFilter === "gym"
-                  ? "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-lg scale-105"
-                  : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600"
+                  ? `bg-gradient-to-r ${themeColors.buttonActive} text-white shadow-lg scale-105`
+                  : `${themeColors.buttonInactive} hover:opacity-80`
               }`}
             >
               В зале
             </button>
           </div>
-          <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-3">
+          <p className={`text-xs ${themeColors.labelText} opacity-70 text-center mt-3`}>
             {locationFilter === "home" &&
               "Упражнения без спортивного инвентаря"}
             {locationFilter === "gym" &&
@@ -520,31 +658,16 @@ export function MapProgress({
       </div>
 
       <div className="relative h-[800px] px-16 py-12 overflow-visible">
-        {/* Декоративные облака с плавным движением */}
-        <div
-          className="absolute -top-20 -left-10 text-6xl opacity-10 animate-float"
-          style={{ animationDelay: "0s" }}
-        >
-          ☁️
-        </div>
-        <div
-          className="absolute top-20 -right-16 text-5xl opacity-10 animate-float"
-          style={{ animationDelay: "2s" }}
-        >
-          ☁️
-        </div>
-        <div
-          className="absolute -bottom-16 left-20 text-7xl opacity-10 animate-float"
-          style={{ animationDelay: "4s" }}
-        >
-          ☁️
-        </div>
-        <div
-          className="absolute bottom-40 -right-12 text-4xl opacity-10 animate-float"
-          style={{ animationDelay: "3s" }}
-        >
-          ☁️
-        </div>
+        {/* Декоративные элементы темы */}
+        {getThemeDecorations().map((deco, index) => (
+          <div
+            key={`deco-${index}`}
+            className={`absolute ${deco.position} ${deco.size} opacity-15 animate-float pointer-events-none`}
+            style={{ animationDelay: deco.delay }}
+          >
+            {deco.emoji}
+          </div>
+        ))}
 
         {/* Плавные соединительные линии */}
         <svg
@@ -554,12 +677,10 @@ export function MapProgress({
           style={{ zIndex: 0 }}
         >
           <defs>
-            <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#10b981" />
-              <stop offset="25%" stopColor="#3b82f6" />
-              <stop offset="50%" stopColor="#8b5cf6" />
-              <stop offset="75%" stopColor="#ec4899" />
-              <stop offset="100%" stopColor="#f59e0b" />
+            <linearGradient id={themeColors.gradientId} x1="0%" y1="0%" x2="0%" y2="100%">
+              {themeColors.stops.map((color, i) => (
+                <stop key={i} offset={`${(i / (themeColors.stops.length - 1)) * 100}%`} stopColor={color} />
+              ))}
             </linearGradient>
           </defs>
           {mapNodes.slice(0, -1).map((node, i) => {
@@ -641,7 +762,7 @@ export function MapProgress({
               <g key={`path-${node.id}`}>
                 <path
                   d={pathData}
-                  stroke={isUnlocked ? "url(#lineGradient)" : "#4b5563"}
+                  stroke={isUnlocked ? `url(#${themeColors.gradientId})` : "#4b5563"}
                   strokeWidth="0.5"
                   strokeLinecap="round"
                   opacity={isUnlocked ? "0.6" : "0.3"}

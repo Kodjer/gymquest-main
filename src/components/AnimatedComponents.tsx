@@ -110,6 +110,35 @@ export function FadeIn({ children, delay = 0, direction = "up" }: FadeInProps) {
   );
 }
 
+// SlideIn компонент для плавного появления элементов
+interface SlideInProps {
+  children: ReactNode;
+  delay?: number;
+  direction?: "up" | "down" | "left" | "right";
+}
+
+export function SlideIn({ children, delay = 0, direction = "up" }: SlideInProps) {
+  const directionClasses = {
+    up: "translate-y-4",
+    down: "-translate-y-4",
+    left: "translate-x-4",
+    right: "-translate-x-4",
+  };
+
+  return (
+    <div
+      className="transition-all duration-300 ease-out"
+      style={{
+        animationDelay: `${delay}ms`,
+        opacity: 1,
+        transform: 'translateY(0)',
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
 // РљРѕРјРїРѕРЅРµРЅС‚ РґР»СЏ Р°РЅРёРјР°С†РёРё СЃС‡РµС‚С‡РёРєР°
 interface CountUpProps {
   end: number;

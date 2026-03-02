@@ -15,6 +15,8 @@ export type OnboardingData = {
   completedAt: number; // Timestamp завершения опроса
 };
 
+export type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
+
 export type Player = {
   xp: number;
   level: number;
@@ -23,6 +25,11 @@ export type Player = {
   lastQuestDate: string | null; // Дата последнего выполненного квеста (YYYY-MM-DD)
   onboardingCompleted?: boolean;
   onboardingData?: OnboardingData;
+  // Система классов
+  playerClass?: PlayerClass;
+  classLevel?: number;
+  classXp?: number;
+  isEvolved?: boolean;
 };
 
 export function usePlayer() {
@@ -34,5 +41,9 @@ export function usePlayer() {
     streak: 0,
     lastQuestDate: null,
     onboardingCompleted: false,
+    playerClass: undefined,
+    classLevel: 1,
+    classXp: 0,
+    isEvolved: false,
   });
 }

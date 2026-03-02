@@ -7,13 +7,16 @@ type ExerciseGifProps = {
   title: string;
 };
 
-// Единый стиль GIF для всех упражнений
+// Единый стиль GIF для всех упражнений (только реально работающие файлы)
 const exerciseGifs: Record<string, string> = {
+  // Силовые базовые
   "отжимания": "/gifs/pushup.gif",
   "приседания": "/gifs/squat.gif",
   "планка": "/gifs/plank.gif",
   "выпады": "/gifs/lunge.gif",
   "скалолаз": "/gifs/mountain_climber.gif",
+  
+  // Силовые с весом
   "жим": "/gifs/bench_press.gif",
   "становая": "/gifs/deadlift.gif",
   "плечи": "/gifs/shoulder_press.gif",
@@ -30,16 +33,16 @@ const exerciseGifs: Record<string, string> = {
 function findGif(title: string): string | null {
   const t = title.toLowerCase();
   
-  // Базовые упражнения
+  // Базовые силовые упражнения
   if (t.includes("присед")) return exerciseGifs["приседания"];
   if (t.includes("отжиман")) return exerciseGifs["отжимания"];
-  if (t.includes("планк") && !t.includes("боков")) return exerciseGifs["планка"];
+  if (t.includes("планк")) return exerciseGifs["планка"];
   if (t.includes("выпад")) return exerciseGifs["выпады"];
-  if (t.includes("скалолаз") || t.includes("mountain")) return exerciseGifs["скалолаз"];
+  if (t.includes("скалолаз") || t.includes("альпинист")) return exerciseGifs["скалолаз"];
   
-  // Силовые
+  // Силовые с весом
   if (t.includes("жим") && (t.includes("лёжа") || t.includes("лежа"))) return exerciseGifs["жим"];
-  if (t.includes("жим") && (t.includes("стоя") || t.includes("сидя") || t.includes("над головой") || t.includes("армейский"))) return exerciseGifs["плечи"];
+  if (t.includes("жим") && (t.includes("стоя") || t.includes("сидя") || t.includes("над головой") || t.includes("армейский") || t.includes("плеч"))) return exerciseGifs["плечи"];
   if (t.includes("становая") || t.includes("румынская")) return exerciseGifs["становая"];
   if (t.includes("сгибан") && t.includes("рук")) return exerciseGifs["бицепс"];
   if (t.includes("молотков")) return exerciseGifs["бицепс"];
@@ -52,19 +55,18 @@ function findGif(title: string): string | null {
   if (t.includes("разведен") && (t.includes("лёжа") || t.includes("лежа"))) return exerciseGifs["жим"];
   if (t.includes("шраг")) return exerciseGifs["становая"];
   if (t.includes("подтягиван")) return exerciseGifs["подтягивания"];
-  if (t.includes("брусья") || t.includes("брусь")) return exerciseGifs["брусья"];
+  if (t.includes("брусья") || t.includes("брусь") || t.includes("dips")) return exerciseGifs["брусья"];
+  if (t.includes("гиперэкстенз") || t.includes("экстенз")) return exerciseGifs["становая"];
   
   // Тренажёры
   if (t.includes("тяга") && (t.includes("верхн") || t.includes("блок"))) return exerciseGifs["тяга_верхняя"];
   if (t.includes("тяга") && t.includes("наклон")) return exerciseGifs["тяга_нижняя"];
   if (t.includes("сведен") && t.includes("рук")) return exerciseGifs["жим"];
   if (t.includes("разгибан") && t.includes("ног")) return exerciseGifs["разгибания_ног"];
-  
-  // Фоллбэки
   if (t.includes("тяга")) return exerciseGifs["тяга_нижняя"];
   if (t.includes("жим")) return exerciseGifs["жим"];
-  if (t.includes("гиперэкстенз") || t.includes("экстенз")) return exerciseGifs["становая"];
   
+  // Для остальных упражнений (кардио, йога, растяжка) - нет GIF
   return null;
 }
 

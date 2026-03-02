@@ -295,12 +295,49 @@ export default async function handler(
       let dayHomeCount = 0; // Счетчик домашних квестов
       let dayGymCount = 0; // Счетчик залных квестов
 
+      // Плавная прогрессия сложности внутри недели
+      // День 1-2: больше легких, день 3-5: микс, день 6-7: больше сложных
+      const getDayDifficulties = (): ("easy" | "medium" | "hard")[] => {
+        // Плавный переход в зависимости от дня недели
+        if (day <= 2) {
+          // Начало недели - делаем легче базовых сложностей
+          if (baseDifficulties.includes("hard")) {
+            // Заменяем hard на medium в начале недели
+            return baseDifficulties.map(d => d === "hard" ? "medium" : d) as ("easy" | "medium" | "hard")[];
+          }
+          return baseDifficulties;
+        } else if (day <= 4) {
+          // Середина недели - используем базовые сложности
+          return baseDifficulties;
+        } else if (day <= 5) {
+          // День 5 - начинаем усиливать
+          if (baseDifficulties.includes("easy") && baseDifficulties.filter(d => d === "easy").length > 1) {
+            // Заменяем один easy на medium
+            const result = [...baseDifficulties];
+            const easyIndex = result.indexOf("easy");
+            if (easyIndex !== -1) result[easyIndex] = "medium";
+            return result as ("easy" | "medium" | "hard")[];
+          }
+          return baseDifficulties;
+        } else {
+          // День 6-7 - усиливаем сложность
+          return baseDifficulties.map(d => {
+            if (d === "easy") return "medium";
+            if (d === "medium" && baseDifficulties.filter(x => x === "medium").length > 1) return "hard";
+            return d;
+          }) as ("easy" | "medium" | "hard")[];
+        }
+      };
+
+      const dayDifficulties = getDayDifficulties();
+      console.log(`📅 День ${day}: сложности [${dayDifficulties.join(", ")}]`);
+
       // Функция для создания квеста определенного типа (home или gym)
       const createQuestOfType = async (
         locationType: "home" | "gym",
         questIndex: number
       ): Promise<boolean> => {
-        const difficulty = baseDifficulties[questIndex % baseDifficulties.length];
+        const difficulty = dayDifficulties[questIndex % dayDifficulties.length];
 
         // Для домашних квестов ищем во ВСЕХ категориях, т.к. их меньше
         const categoriesToSearch = locationType === "home" 
