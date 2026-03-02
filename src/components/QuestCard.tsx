@@ -189,12 +189,14 @@ export function QuestCard({
         </div>
       )}
 
-      {/* Гифка с демонстрацией упражнения */}
-      <div className="mt-3">
-        {hasGif(quest.title)
-          ? <ExerciseGif title={quest.title} />
-          : <LottieAnimation title={quest.title} />}
-      </div>
+      {/* Визуальная демонстрация упражнения (нет для wellness-квестов) */}
+      {quest.category !== "wellness" && (
+        <div className="mt-3">
+          {hasGif(quest.title)
+            ? <ExerciseGif title={quest.title} />
+            : <LottieAnimation title={quest.title} />}
+        </div>
+      )}
 
       {/* Совет */}
       {quest.tip && (

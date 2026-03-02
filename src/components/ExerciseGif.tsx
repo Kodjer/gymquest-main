@@ -29,6 +29,11 @@ const exerciseGifs: Record<string, string> = {
   "разгибания_ног": "/gifs/leg_extension.gif",
 };
 
+// Есть ли гифка для данного упражнения
+export function hasGif(title: string): boolean {
+  return findGif(title) !== null;
+}
+
 // Поиск гифки по названию
 function findGif(title: string): string | null {
   const t = title.toLowerCase();
@@ -52,15 +57,15 @@ function findGif(title: string): string | null {
   if (t.includes("трицепс")) return exerciseGifs["трицепс"];
   if (t.includes("подъём") && t.includes("сторон")) return exerciseGifs["плечи"];
   if (t.includes("подъем") && t.includes("сторон")) return exerciseGifs["плечи"];
-  if (t.includes("разведен") && (t.includes("лёжа") || t.includes("лежа"))) return exerciseGifs["жим"];
+  if (t.includes("разводк") || (t.includes("разведен") && (t.includes("лёжа") || t.includes("лежа")))) return exerciseGifs["жим"];
   if (t.includes("шраг")) return exerciseGifs["становая"];
   if (t.includes("подтягиван")) return exerciseGifs["подтягивания"];
   if (t.includes("брусья") || t.includes("брусь") || t.includes("dips")) return exerciseGifs["брусья"];
   if (t.includes("гиперэкстенз") || t.includes("экстенз")) return exerciseGifs["становая"];
   
-  // Тренажёры
-  if (t.includes("тяга") && (t.includes("верхн") || t.includes("блок"))) return exerciseGifs["тяга_верхняя"];
-  if (t.includes("тяга") && t.includes("наклон")) return exerciseGifs["тяга_нижняя"];
+  // Тренажёры (важно: нижн/наклон проверяем раньше чем блок)
+  if (t.includes("тяга") && (t.includes("верхн") || t.includes("широк"))) return exerciseGifs["тяга_верхняя"];
+  if (t.includes("тяга") && (t.includes("наклон") || t.includes("нижн") || t.includes("блок") || t.includes("поясу") || t.includes("горизонт"))) return exerciseGifs["тяга_нижняя"];
   if (t.includes("сведен") && t.includes("рук")) return exerciseGifs["жим"];
   if (t.includes("разгибан") && t.includes("ног")) return exerciseGifs["разгибания_ног"];
   if (t.includes("тяга")) return exerciseGifs["тяга_нижняя"];
