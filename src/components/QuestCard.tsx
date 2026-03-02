@@ -1,6 +1,5 @@
 // src/components/QuestCard.tsx
 import { useState, useEffect } from "react";
-import { ExerciseGif, hasGif } from "./ExerciseGif";
 import { LottieAnimation } from "./LottieAnimation";
 
 type VisualDemo = {
@@ -196,9 +195,7 @@ export function QuestCard({
                t.includes("отдых") || t.includes("здоровь") || t.includes("день");
       })()) && (
         <div className="mt-3">
-          {hasGif(quest.title)
-            ? <ExerciseGif title={quest.title} />
-            : <LottieAnimation title={quest.title} />}
+          <LottieAnimation title={quest.title} />
         </div>
       )}
 
