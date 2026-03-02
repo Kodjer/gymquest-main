@@ -103,8 +103,9 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "cobra":        A.cobra,
   "кобра":        A.cobra,
   "yoga":         A.cobra,
-  "йога":         A.cobra,
-
+  "йога":         A.cobra,  "пилатес":      A.cobra,
+  "шпагат":       A.cobra,
+  "гибкост":      A.cobra,
   // ── Медитация ──────────────────────────────────────────────────────────────
   "meditat":      A.meditate,
   "медитац":      A.meditate,
@@ -115,9 +116,16 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "run":          A.run,
   "cardio":       A.run,
   "treadmill":    A.run,
+  "hiit":         A.run,
+  "sprint":       A.run,
   "бег":          A.run,
   "кардио":       A.run,
   "дорожк":       A.run,
+  "пробежк":      A.run,
+  "пробег":       A.run,
+  "спринт":       A.run,
+  "ходьб":        A.run,
+  "ходить":       A.run,
 
   // ── Скакалка ───────────────────────────────────────────────────────────────
   "jump rope":    A.rope,
@@ -142,22 +150,22 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   // ── Бицепс ─────────────────────────────────────────────────────────────────
   "bicep":        A.bicep,
   "curl":         A.bicep,
-  "бицепс":       A.bicep,
-
+  "бицепс":       A.bicep,  "сгибани":      A.bicep,
+  "молотков":     A.bicep,
+  "гантел":       A.bicep,
   // ── Трицепс ────────────────────────────────────────────────────────────────
   "tricep":       A.tricep,
-  "трицепс":      A.tricep,
-
+  "трицепс":      A.tricep,  "разгибани рук": A.tricep,
+  "french":       A.tricep,
   // ── Становая тяга ──────────────────────────────────────────────────────────
   "deadlift":     A.deadlift,
-  "становая":     A.deadlift,
-
+  "становая":     A.deadlift,  "румынск":      A.deadlift,
   // ── Жим от груди / Bench press ─────────────────────────────────────────────
   "bench":        A.benchpress,
   "жим лёж":      A.benchpress,
   "жим лежа":     A.benchpress,
-  "chest press":  A.benchpress,
-
+  "chest press":  A.benchpress,  "разводк":      A.benchpress,
+  "флай":         A.benchpress,
   // ── Брусья / Dips ──────────────────────────────────────────────────────────
   "dip":          A.dips,
   "брусь":        A.dips,
@@ -187,8 +195,8 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   // ── Тяга нижняя / Cable row ────────────────────────────────────────────────
   "cable row":    A.cablerow,
   "тяга нижн":    A.cablerow,
-  "нижняя тяг":   A.cablerow,
-  "inchworm":     A.cablerow,
+  "нижняя тяг":   A.cablerow,  "тяга к поясу": A.cablerow,
+  "горизонт":     A.cablerow,  "inchworm":     A.cablerow,
 
   // ── Пресс / Кранчи ─────────────────────────────────────────────────────────
   "crunch":       A.crunch,
@@ -196,7 +204,8 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "пресс":        A.crunch,
   "кранч":        A.crunch,
   "reverse":      A.crunch,
-
+  // ── Общая тяга (любая неопознанная) ─────────────────────────────────────
+  "тяга":         A.deadlift,
   // ── Дефолт ─────────────────────────────────────────────────────────────────
   "default":      A.burpee,
 };
