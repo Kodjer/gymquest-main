@@ -31,7 +31,8 @@ export default function SignIn() {
         setNativeSession(nativeData.user);
       }
       setLoading(false);
-      router.push(callbackUrl);
+      // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
+      window.location.href = callbackUrl || "/";
       return;
     }
     // Фоллбек на стандартный NextAuth (для браузера)
@@ -94,7 +95,8 @@ export default function SignIn() {
       setNativeSession(loginData.user);
     }
     setLoading(false);
-    router.push(callbackUrl);
+    // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
+    window.location.href = callbackUrl || "/";
   };
 
   const handleGoogle = () => {
