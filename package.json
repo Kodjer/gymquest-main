@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && node --max-old-space-size=1024 node_modules/next/dist/bin/next build",
+    "build:apk": "prisma generate && cross-env CAPACITOR_BUILD=true node --max-old-space-size=1024 node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "next lint",
     "cap:sync": "npx cap sync android",
@@ -58,6 +59,7 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^24.10.13",
+    "cross-env": "^10.1.0",
     "nodemon": "^3.1.11",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"

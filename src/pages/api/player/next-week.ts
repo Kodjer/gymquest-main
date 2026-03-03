@@ -1,7 +1,6 @@
 // src/pages/api/player/next-week.ts
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "../auth/[...nextauth]";
+import { getAuthSession } from "../../../lib/getAuthSession";
 import { prisma } from "../../../lib/prisma";
 
 export default async function handler(
@@ -13,7 +12,7 @@ export default async function handler(
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
+    const session = await getAuthSession(req, res);
 
     if (!session || !session.user?.email) {
       return res.status(401).json({ error: "Unauthorized" });

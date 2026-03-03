@@ -3,19 +3,10 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const config: CapacitorConfig = {
   appId: "com.gymquest.app",
   appName: "GymQuest",
-  // webDir используется только когда нет server.url (локальная сборка)
+  // webDir — папка со статическим экспортом Next.js (npm run build:apk → out/)
   webDir: "out",
-  server: {
-    // ── Переключение режима ──────────────────────────────────────────────────
-    // Для разработки на эмуляторе:  "http://10.0.2.2:3000"
-    // Для разработки на телефоне:   "http://192.168.x.x:3000"
-    // Для продакшена (Vercel):       "https://gymquest-main.vercel.app"
-    //
-    // После деплоя на Vercel — замени URL ниже и пересобери APK.
-    // ────────────────────────────────────────────────────────────────────────
-    url: "https://gymquest-pied.vercel.app",
-    cleartext: true, // разрешить HTTP (нужно для локального dev без HTTPS)
-  },
+  // server.url убран → Capacitor грузит файлы ЛОКАЛЬНО из out/
+  // Все /api/ запросы идут на Vercel через fetch-перехватчик в _app.tsx
   android: {
     allowMixedContent: true, // позволяет смешанный HTTP/HTTPS в dev-режиме
     backgroundColor: "#1a1a2e",

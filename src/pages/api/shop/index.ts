@@ -2,8 +2,7 @@
 // API для получения товаров магазина и покупок игрока
 
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
+import { getAuthSession } from "../../../lib/getAuthSession";
 import { prisma } from "@/lib/prisma";
 import { allShopItems, getShopItemsByType, ShopItemType } from "@/lib/shopData";
 
@@ -11,7 +10,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getAuthSession(req, res);
   
   if (!session?.user?.email) {
     return res.status(401).json({ error: "Не авторизован" });

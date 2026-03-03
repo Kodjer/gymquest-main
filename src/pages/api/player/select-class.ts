@@ -1,7 +1,6 @@
 // src/pages/api/player/select-class.ts
 import type { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
+import { getAuthSession } from "../../../lib/getAuthSession";
 import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
@@ -34,7 +33,7 @@ export default async function handler(
   }
 
   try {
-    const session = await getServerSession(req, res, authOptions);
+    const session = await getAuthSession(req, res);
 
     if (!session?.user?.email) {
       return res.status(401).json({ error: "Unauthorized" });

@@ -2,15 +2,14 @@
 // API для использования утилит из магазина
 
 import { NextApiRequest, NextApiResponse } from "next";
-import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]";
+import { getAuthSession } from "../../../lib/getAuthSession";
 import { prisma } from "@/lib/prisma";
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const session = await getServerSession(req, res, authOptions);
+  const session = await getAuthSession(req, res);
   
   if (!session?.user?.email) {
     return res.status(401).json({ error: "Не авторизован" });
