@@ -1,5 +1,5 @@
 // src/pages/index.tsx
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component, ReactNode } from "react";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
@@ -21,6 +21,37 @@ import { Layout } from "../components/Layout";
 import { ClassSelection, PlayerClass, ClassInfo } from "../components/ClassSelection";
 import { Shop } from "../components/Shop";
 import { useEquipment } from "@/lib/useEquipment";
+
+// Error Boundary — catches crashes in AuthenticatedApp without kicking user to landing page
+interface EBState { hasError: boolean }
+class AppErrorBoundary extends Component<{ children: ReactNode }, EBState> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: React.ErrorInfo) {
+    console.error("AppErrorBoundary caught:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-800 p-6 text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-white mb-2">Что-то пошло не так</h2>
+          <p className="text-purple-200 mb-6">Произошла ошибка в приложении</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-white text-purple-700 font-bold rounded-xl"
+          >
+            Перезапустить
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 type Filter = "all" | "pending" | "done";
 
@@ -68,7 +99,11 @@ export default function Home() {
   }
 
   // Основной интерфейс для авторизованных пользователей
-  return <AuthenticatedApp />;
+  return (
+    <AppErrorBoundary>
+      <AuthenticatedApp />
+    </AppErrorBoundary>
+  );
 }
 
 function AuthenticatedApp() {

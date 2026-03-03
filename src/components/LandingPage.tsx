@@ -14,8 +14,8 @@ export function LandingPage() {
   const { data: session } = useSession();
 
   useEffect(() => {
-    if (session) router.push("/");
-  }, [session, router]);
+    if (session) window.location.href = "/";
+  }, [session]);
 
   // Показываем ошибку если NextAuth вернул error в URL
   useEffect(() => {
@@ -46,7 +46,7 @@ export function LandingPage() {
     if (res?.error) {
       setError("Неверный email или пароль");
     } else {
-      router.push(callbackUrl);
+      window.location.href = "/";
     }
   };
 
@@ -70,7 +70,7 @@ export function LandingPage() {
     if (signInRes?.error) {
       setError(signInRes.error);
     } else {
-      router.push(callbackUrl);
+      window.location.href = "/";
     }
   };
 
