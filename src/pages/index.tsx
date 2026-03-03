@@ -20,6 +20,7 @@ import { MapProgress } from "../components/MapProgress";
 import { Layout } from "../components/Layout";
 import { ClassSelection, PlayerClass, ClassInfo } from "../components/ClassSelection";
 import { Shop } from "../components/Shop";
+import { useEquipment } from "@/lib/useEquipment";
 
 type Filter = "all" | "pending" | "done";
 
@@ -97,7 +98,6 @@ function AuthenticatedApp() {
   }, [locationFilter]);
 
   // Хук для экипировки и бустов
-  const { useEquipment } = require("@/lib/useEquipment");
   const equipmentData = useEquipment();
 
   useEffect(() => {

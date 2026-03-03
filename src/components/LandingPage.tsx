@@ -17,6 +17,19 @@ export function LandingPage() {
     if (session) router.push("/");
   }, [session, router]);
 
+  // Показываем ошибку если NextAuth вернул error в URL
+  useEffect(() => {
+    if (router.query.error) {
+      const errMap: Record<string, string> = {
+        OAuthSignin: "Ошибка входа через Google",
+        OAuthCallback: "Ошибка ответа от Google",
+        OAuthCreateAccount: "Не удалось создать аккаунт",
+        Default: "Ошибка авторизации",
+      };
+      setError(errMap[router.query.error as string] || errMap.Default);
+    }
+  }, [router.query.error]);
+
   const callbackUrl = "/";
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -63,7 +76,11 @@ export function LandingPage() {
 
   const handleGoogle = () => {
     setLoading(true);
-    signIn("google", { callbackUrl });
+    setError("");
+    signIn("google", { callbackUrl: "/" }).catch(() => {
+      setError("Ошибка входа через Google");
+      setLoading(false);
+    });
   };
 
   return (
