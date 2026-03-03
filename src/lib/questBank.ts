@@ -2302,7 +2302,8 @@ export function getDifficultyByLevel(
 /**
  * Рассчитать XP с учётом уровня игрока
  */
-export function calculateXP(baseXP: number, playerLevel: number): number {
+export function calculateXP(baseXP: number, playerLevel: number, weekNumber: number = 1): number {
   // Базовая формула: baseXP * (1 + level * 0.1)
-  return Math.floor(baseXP * (1 + playerLevel * 0.1));
+  const weekMultiplier = 1 + (weekNumber - 1) * 0.05;
+  return Math.floor(baseXP * (1 + playerLevel * 0.1) * weekMultiplier);
 }

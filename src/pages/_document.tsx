@@ -4,6 +4,8 @@ export default function Document() {
   return (
     <Html lang="ru">
       <Head>
+        {/* Viewport — обязателен для мобилки */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         {/* PWA метатеги */}
         <meta name="application-name" content="GymQuest" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

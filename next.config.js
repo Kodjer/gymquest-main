@@ -22,6 +22,9 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   turbopack: {},
+  experimental: {
+    webpackMemoryOptimizations: true,
+  },
 };
 
 module.exports = withPWA(nextConfig);

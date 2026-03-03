@@ -13,7 +13,7 @@ const config: CapacitorConfig = {
     //
     // После деплоя на Vercel — замени URL ниже и пересобери APK.
     // ────────────────────────────────────────────────────────────────────────
-    url: "https://gymquest-main.vercel.app",
+    url: "https://gymquest-pied.vercel.app",
     cleartext: true, // разрешить HTTP (нужно для локального dev без HTTPS)
   },
   android: {
