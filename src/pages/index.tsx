@@ -83,9 +83,18 @@ function AuthenticatedApp() {
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoadingQuests, setIsLoadingQuests] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [locationFilter, setLocationFilter] = useState<"home" | "gym">(
-    "home"
-  );
+  const [locationFilter, setLocationFilter] = useState<"home" | "gym">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("locationFilter");
+      if (saved === "gym" || saved === "home") return saved;
+    }
+    return "home";
+  });
+
+  // Сохраняем выбор локации при каждом изменении
+  useEffect(() => {
+    localStorage.setItem("locationFilter", locationFilter);
+  }, [locationFilter]);
 
   // Хук для экипировки и бустов
   const { useEquipment } = require("@/lib/useEquipment");
@@ -646,14 +655,11 @@ function AuthenticatedApp() {
               quests={quests}
               onLocationFilterChange={setLocationFilter}
               trainingMode={
-                player.onboardingData?.workoutPreference?.[0] ===
-                "Силовые тренировки"
+                player.playerClass === "warrior" || player.playerClass === "berserker"
                   ? "strength"
-                  : player.onboardingData?.workoutPreference?.[0] ===
-                    "Кардио-тренировки"
+                  : player.playerClass === "scout"
                   ? "cardio"
-                  : player.onboardingData?.workoutPreference?.[0] ===
-                    "Йога и растяжка"
+                  : player.playerClass === "monk"
                   ? "flexibility"
                   : "mixed"
               }

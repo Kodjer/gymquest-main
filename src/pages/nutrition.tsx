@@ -4,13 +4,17 @@ import Link from "next/link";
 import { NutritionTips } from "../components/NutritionTips";
 import { useState, useEffect } from "react";
 import { Settings } from "../components/Settings";
+import { Shop } from "../components/Shop";
 import { LandingPage } from "../components/LandingPage";
 import { Layout } from "../components/Layout";
+import { usePlayer } from "../lib/usePlayer";
 
 export default function NutritionPage() {
   const { data: session, status } = useSession();
   const [isDark, setIsDark] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [player, setPlayer] = usePlayer();
 
   useEffect(() => {
     const saved = localStorage.getItem("theme");
@@ -36,7 +40,7 @@ export default function NutritionPage() {
   }
 
   return (
-    <Layout onSettingsClick={() => setSettingsOpen(true)}>
+    <Layout onSettingsClick={() => setSettingsOpen(true)} onShopClick={() => setShopOpen(true)}>
       {/* Основной контент */}
       <NutritionTips />
 
@@ -47,6 +51,15 @@ export default function NutritionPage() {
         isDark={isDark}
         onThemeToggle={() => setIsDark((prev) => !prev)}
         onChangeClass={() => {}}
+      />
+
+      {/* Магазин */}
+      <Shop
+        isOpen={shopOpen}
+        onClose={() => setShopOpen(false)}
+        playerCoins={player.coins || 0}
+        playerLevel={player.level || 1}
+        onPurchase={() => {}}
       />
     </Layout>
   );

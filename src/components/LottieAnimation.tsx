@@ -9,13 +9,16 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 // Shorthand for dotLottie CDN base
 const CDN = "https://assets-v2.lottiefiles.com/a";
 
-// ─── 23 уникальных анимации, каждое упражнение своя ──────────────────────────
+// ─── 29 уникальных анимации, каждое упражнение своя ──────────────────────────
 // Источники:
 //   Dinh Bui Xuan (buixuandinh) — https://lottiefiles.com/buixuandinh
 //   Blinix Solutions              — https://lottiefiles.com/blinixsolutions
 //   Seyfi Cem Baskin              — https://lottiefiles.com/seyfi
 //   UX animation                  — https://lottiefiles.com/uxanimation
 //   Abdul Latif (animoox)         — https://lottiefiles.com/animoox
+//   Musa Adanur                   — https://lottiefiles.com/musaadanur
+//   Priyanshu Rijhwani            — https://lottiefiles.com/priyanshurijhwani
+//   Agent Smith                   — https://lottiefiles.com/yk36yojcr9mycqgj
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Все 23 анимации — уникальные, без дублей
@@ -50,22 +53,49 @@ const A = {
   tricep:        `${CDN}/65928b78-855c-11ee-9196-efdceffa963b/TV0n1P9yJk.lottie`,
   // 15. Deadlifts — Blinix | deadlifts-exercise-DSBGziW6Us
   deadlift:      `${CDN}/0385574e-85e8-11ee-9852-d7df6eaead2c/aQNp4R2fmk.lottie`,
-  // 16. Wide arm push-up — buixuandinh | wide-arm-push-up-KD96z4DT4Y
-  benchpress:    `${CDN}/333f4f4e-1171-11ee-aa03-23dee1fbdb3c/ReXNkakRwh.lottie`,
+  // 16. Push Up — Blinix | push-up-ZWIJ5vETTW
+  //     Тот же автор и стиль что deadlift/bicep/leg-press — тело горизонтально, руки работают
+  benchpress:    `${CDN}/d83e15b6-855c-11ee-a169-f710d4c5c628/dTFhz4lz7U.lottie`,
   // 17. Staggered push-ups — buixuandinh | staggered-push-ups-zgWfOIvx3C
   dips:          `${CDN}/d0bb8b5c-1171-11ee-bc50-032379eea90d/qXxM0Yd790.lottie`,
-  // 18. Frog Press — buixuandinh | frog-press-LqkyGCKGpu
-  shoulder:      `${CDN}/2d66a188-116e-11ee-94ed-c7f98f54e189/xj6SSR2eJX.lottie`,
+  // 18. Double Arm Clean and Press Barbell — buixuandinh | double-arm-clean-and-press-barbell-wpiqpl8RKn
+  shoulder:      `${CDN}/7e29fad4-1182-11ee-a91b-0f315e1d0acd/2MbAZkcu8V.lottie`,
   // 19. Press up position toe tap — buixuandinh | press-up-postion-toe-tap-KunqnEdK18
   climber:       `${CDN}/7e30d732-1182-11ee-a920-b3627aa227e0/7tujEvB2wt.lottie`,
   // 20. Split Jump Exercise — buixuandinh | split-jump-exercise-AHHpx1bumx
   highknee:      `${CDN}/dc732190-1189-11ee-a70e-ab45a48260ad/ZROBPAI55W.lottie`,
   // 21. Step Up On Chair — buixuandinh | step-up-on-chair-zcvfCJwhkF
   legext:        `${CDN}/8c2fd882-116a-11ee-ae26-37d18dd2eef5/HuhwaJMuEx.lottie`,
-  // 22. Inchworm — buixuandinh | inchworm-oMKbWGAaDD
-  cablerow:      `${CDN}/8c27d682-116a-11ee-ae23-838ae461b028/yXjVtxnIso.lottie`,
+  // 22. Back Exercise (dumbbell bent-over row) — Sanket Birajdar | back-excercise-gjCCOO2dKZ
+  cablerow:      `${CDN}/639a734a-117a-11ee-9abb-bfa1912dce07/Pponl1kAzz.lottie`,
   // 23. Reverse Crunches — buixuandinh | reverse-crunches-79P2FMTS7Z
   crunch:        `${CDN}/8c2ca306-116a-11ee-ae25-1fdd7969ba2e/jiKqqB91JX.lottie`,
+  // 24. Rope skipping (with person) — Abdul Latif | rope-skipping-4upnEw5J9G
+  ropeWithPerson: `${CDN}/aa7f6818-67ee-11ee-9683-e71567e2da28/wAk0uRxN2O.lottie`,
+  // 25. Walking and drinking — Abdul Latif | walking-and-drinking-PCGpQbbADU
+  drinkWater:    `${CDN}/74a4a6a4-b203-11ee-ba3a-87d2cc23af2d/yWuNkUgb4z.lottie`,
+  // 26. Sleeping — DU AMV | sleeping-duJHnWdTuw
+  sleep:         `${CDN}/0ee4b980-41ae-11f0-b446-2f5900a963ac/icVA3BqeE0.lottie`,
+  // 27. Cycling — Priyanshu Rijhwani | cycling-yDIsbK5QBB
+  cycling:       `${CDN}/fc4b7bae-117d-11ee-ab45-6319e358fb46/I0hv6QOGXo.lottie`,
+  // 28. Swimming — Musa Adanur | swimming-2RXrcVUMFx
+  swimming:      `${CDN}/462ac92a-117c-11ee-9ee7-df0f5eb780fa/XdsjHLWcUG.lottie`,
+  // 29. Happy Woman Eating — Agent Smith | happy-woman-eating-N7pTW13Nqb
+  eating:        `${CDN}/6b082d9c-1185-11ee-ab04-237900be7e3b/H5bGG12ID4.lottie`,
+  // 30. Overhead Press — Arka Bhowmik | weight-lifting-kfzUYCND6B
+  //     Мужик поднимает штангу над головой — жим стоя/над головой
+  overheadpress: `${CDN}/ec5c7e0c-1185-11ee-8890-238802282f9a/nf1lCTEjYl.lottie`,
+  // 31. Leg Press — Blinix | leg-press-IirCP8idhZ
+  //     Жим ногами на тренажёре — ближайшая анимация для подъёмов / ног
+  legpress:      `${CDN}/b24f11bc-85e7-11ee-98ac-339ebd655a22/hRkeOm5JUn.lottie`,
+  // 32. Woman using dumbbells — bezi | woman-using-dumbbells-hJlLbE6XHm
+  lateralRaise:  `${CDN}/2dc70adc-43af-11ee-838b-9fd039685ce8/nwxNoiHXLc.lottie`,
+  // 33. Tricep Exercises By Women — So G / LeverageStudio | tricep-exercises-by-women-flVL6jDABJ
+  //     Трицепс-упражнения s гантелёй (kickback-тип) — специфично
+  tricepKickback:`${CDN}/64ba5aa2-1165-11ee-a736-3bdf05fb3fd9/YApKEMJ4qO.lottie`,
+  // 34. Woman using dumbbells — bezi | woman-using-dumbbells-hJlLbE6XHm
+  //     Женщина с гантелями — наиболее подходящее для разведения лёжа
+  dumbbellFly:   `${CDN}/2dc70adc-43af-11ee-838b-9fd039685ce8/nwxNoiHXLc.lottie`,
 };
 
 const EXERCISE_ANIMATION_URLS: Record<string, string> = {
@@ -105,7 +135,22 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "yoga":         A.cobra,
   "йога":         A.cobra,  "пилатес":      A.cobra,
   "шпагат":       A.cobra,
-  "гибкост":      A.cobra,
+  "гибкост":      A.cobra,  // ── Вода / Водный баланс ─────────────────────────────────────
+  "водный балан":  A.drinkWater,
+  "водной балан":  A.drinkWater,
+  "водный":        A.drinkWater,
+  "выпей вод":      A.drinkWater,
+  "drinking":      A.drinkWater,
+  "water":         A.drinkWater,
+  "вода":          A.drinkWater,
+  "воду":          A.drinkWater,
+
+  // ── Сон / Здоровый сон ────────────────────────────────
+  "здоровый сон":    A.sleep,
+  "сон":           A.sleep,
+  "спать":         A.sleep,
+  "sleep":         A.sleep,
+  "ночной":        A.sleep,
   // ── Медитация ──────────────────────────────────────────────────────────────
   "meditat":      A.meditate,
   "медитац":      A.meditate,
@@ -126,8 +171,52 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "спринт":       A.run,
   "ходьб":        A.run,
   "ходить":       A.run,
+  "велопрогулк":  A.cycling,  // велопрогулка — раньше чем общий "прогулк"
+  "прогулк":      A.run,
+  "walking":      A.run,
 
-  // ── Скакалка ───────────────────────────────────────────────────────────────
+  // ── Велосипед / Велотренажер ────────────────────────────────────────────────
+  "вело":         A.cycling,
+  "cycling":      A.cycling,
+  "bicycle":      A.cycling,
+  "bike":         A.cycling,
+
+  // ── Плавание ───────────────────────────────────────────────────────────────
+  "плав":         A.swimming,
+  "swimming":     A.swimming,
+
+  // ── Гребля / Гребной тренажер ──────────────────────────────────────────────
+  "гребл":        A.cablerow,
+  "гребн":        A.cablerow,
+  "rowing":       A.cablerow,
+
+  // ── Эллипс / Эллиптический тренажер ──────────────────────────────────────
+  "эллип":        A.run,
+  "elliptic":     A.run,
+
+  // ── Степпер ────────────────────────────────────────────────────────────────
+  "степп":        A.legext,
+
+  // ── Лестница / Stair climber ───────────────────────────────────────────────
+  "лестниц":      A.climber,
+
+  // ── Табата ─────────────────────────────────────────────────────────────────
+  "табат":        A.burpee,
+
+  // ── Еда / Питание / Завтрак ────────────────────────────────────────────────
+  "завтрак":      A.eating,
+  "питани":       A.eating,
+  "сахар":        A.eating,
+  "детокс":       A.eating,
+  "еда":          A.eating,
+  "eating":       A.eating,
+  "food":         A.eating,
+
+  // ── Отдых / Здоровье / День здоровья ──────────────────────────────────────
+  "отдых":        A.meditate,
+  "здоровь":      A.meditate,
+
+  // ── Скакалка ──────────────────────────────────────────────────────
   "jump rope":    A.rope,
   "jump-rope":    A.rope,
   "jumprope":     A.rope,
@@ -147,25 +236,58 @@ const EXERCISE_ANIMATION_URLS: Record<string, string> = {
   "тяга верхн":   A.latpull,
   "верхняя тяг":  A.latpull,
 
+  // ── Гантели — специфичные правила (ОБЯЗАТЕЛЬНО до общих `жим`, `тяга`!) ───
+  // Жим лёжа / на наклонной: "Жим гантелей лежа", "Жим гантелей на наклонной скамье"
+  "гантелей лежа":      A.dumbbellFly,
+  "гантелей на наклон": A.dumbbellFly,
+  "наклонной скамь":    A.dumbbellFly,
+  // Разведение / разводка гантелей лёжа: женщина с гантелями
+  "разведение гантел":  A.dumbbellFly,
+  "разводка гантел":    A.dumbbellFly,
+  // Жим гантелей стоя / над головой
+  "гантелей стоя":      A.shoulder,
+  // Жим гантелей над головой
+  "гантелей над гол":   A.shoulder,
+  // Отведение назад (kickback): специфичная трицепс-анимация
+  "отведение назад":    A.tricepKickback,
+  // Подъёмы через стороны (lateral raise): специфичная анимация
+  "через сторон":       A.lateralRaise,
+  "подъёмы гантелей":   A.lateralRaise,
+  "подъемы гантелей":   A.lateralRaise,
+  // Тяга гантели в наклоне (one-arm row): "Тяга гантели в наклоне"
+  "тяга гантел":        A.cablerow,
+  // Шраги: "Шраги с гантелями"
+  "шраг":               A.shoulder,
+  // Подъёмы на носки: "Подъёмы на носки с гантелями"
+  "носки":              A.legpress,
+  // Любое упражнение с гантелями (catch-all — ПОСЛЕ всех специфичных!)
+  "гантел":             A.dumbbellFly,
+
   // ── Бицепс ─────────────────────────────────────────────────────────────────
   "bicep":        A.bicep,
   "curl":         A.bicep,
   "бицепс":       A.bicep,  "сгибани":      A.bicep,
   "молотков":     A.bicep,
-  "гантел":       A.bicep,
+  // "гантел" убран — теперь не перехватывает все упражнения с гантелями!
   // ── Трицепс ────────────────────────────────────────────────────────────────
   "tricep":       A.tricep,
   "трицепс":      A.tricep,  "разгибани рук": A.tricep,
   "french":       A.tricep,
-  // ── Становая тяга ──────────────────────────────────────────────────────────
+  // ── Становая тяга / Гиперэкстензия ────────────────────────────────────────
   "deadlift":     A.deadlift,
   "становая":     A.deadlift,  "румынск":      A.deadlift,
+  "гиперэкст":    A.deadlift,
+  "hyperext":     A.deadlift,
   // ── Жим от груди / Bench press ─────────────────────────────────────────────
   "bench":        A.benchpress,
   "жим лёж":      A.benchpress,
   "жим лежа":     A.benchpress,
-  "chest press":  A.benchpress,  "разводк":      A.benchpress,
-  "флай":         A.benchpress,
+  "chest press":  A.benchpress,
+  // флай/разведение/сведение — это упражнения с гантелями/кабелями, не отжимания
+  "разводк":      A.dumbbellFly,
+  "флай":         A.dumbbellFly,
+  "сведени":      A.dumbbellFly,
+  "разведени":    A.dumbbellFly,
   // ── Брусья / Dips ──────────────────────────────────────────────────────────
   "dip":          A.dips,
   "брусь":        A.dips,

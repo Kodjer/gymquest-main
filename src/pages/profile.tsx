@@ -1,7 +1,6 @@
 // src/pages/profile.tsx
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useSession, signOut } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
 import { PlayerCard } from "../components/PlayerCard";
@@ -10,6 +9,7 @@ import { Achievements } from "../components/Achievements";
 import { Settings } from "../components/Settings";
 import { Shop } from "../components/Shop";
 import { Layout } from "../components/Layout";
+import { useAppTheme } from "../lib/ThemeContext";
 
 type Quest = {
   id: string;
@@ -19,6 +19,45 @@ type Quest = {
   difficulty: "easy" | "medium" | "hard";
   nodeId?: string;
 };
+
+function StatCard({ isLoading, rows }: { isLoading: boolean; rows: { label: string; value: string; accent?: string }[] }) {
+  const { colors, theme } = useAppTheme();
+  const isAlwaysDark = theme === "cyberpunk" || theme === "galaxy";
+  return (
+    <div className={`relative ${colors.cardBg} ${colors.text} rounded-2xl overflow-hidden shadow-sm`}>
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-indigo-500" />
+      <div className="pl-5 pr-4 pt-4 pb-3">
+        <p className="text-xs font-semibold uppercase tracking-wide opacity-40 mb-3">Статистика</p>
+        {isLoading ? (
+          <p className="text-sm opacity-40 py-4 text-center">Загрузка...</p>
+        ) : (
+          <div className="space-y-0">
+            {rows.map((row, i) => (
+              <div key={i} className={`flex items-center justify-between py-2 ${
+                i < rows.length - 1 ? "border-b border-black/5 dark:border-white/5" : ""
+              }`}>
+                <span className="text-sm opacity-60">{row.label}</span>
+                <span className={`text-sm font-semibold ${row.accent ?? ""}`}>{row.value}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EmptyChart() {
+  const { colors } = useAppTheme();
+  return (
+    <div className={`relative ${colors.cardBg} ${colors.text} rounded-2xl overflow-hidden shadow-sm`}>
+      <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
+      <div className="pl-5 pr-4 py-8 text-center">
+        <p className="text-sm opacity-40">Сгенерируйте недельный план,<br />чтобы увидеть прогресс</p>
+      </div>
+    </div>
+  );
+}
 
 export default function Profile() {
   const { data: session } = useSession();
@@ -110,20 +149,11 @@ export default function Profile() {
 
   return (
     <Layout onSettingsClick={() => setSettingsOpen(true)} onShopClick={() => setShopOpen(true)}>
-      <div className="max-w-4xl mx-auto p-4">
-        {/* Заголовок страницы */}
-        <header className="mb-8">
-          <h1 className="text-3xl font-bold">Профиль игрока</h1>
-          {session?.user?.email && (
-            <p className="text-gray-600 dark:text-gray-400">
-              {session.user.email}
-            </p>
-          )}
-        </header>
+      <div className="max-w-4xl mx-auto p-4 space-y-4">
 
-        <div className="grid gap-8 md:grid-cols-2">
-          {/* Левая колонка - Карточка игрока и статистика */}
-          <div className="space-y-6">
+        <div className="grid gap-4 md:grid-cols-2">
+          {/* Левая колонка */}
+          <div className="space-y-4">
             <PlayerCard
               player={player}
               setPlayer={setPlayer}
@@ -132,99 +162,23 @@ export default function Profile() {
               showResetButton={true}
             />
 
-            {/* Дополнительная статистика */}
-            <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">
-                Детальная статистика
-              </h3>
-
-              {isLoading ? (
-                <div className="text-center py-8 text-gray-500">
-                  Загрузка статистики...
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Всего квестов:
-                    </span>
-                    <span className="font-semibold">{quests.length}</span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Выполнено:
-                    </span>
-                    <span className="font-semibold text-green-600 dark:text-green-400">
-                      {totalCompletedQuests}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      В процессе:
-                    </span>
-                    <span className="font-semibold text-blue-600 dark:text-blue-400">
-                      {totalPendingQuests}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Процент выполнения:
-                    </span>
-                    <span className="font-semibold">
-                      {quests.length > 0
-                        ? Math.round(
-                            (totalCompletedQuests / quests.length) * 100
-                          )
-                        : 0}
-                      %
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Средний XP за квест:
-                    </span>
-                    <span className="font-semibold text-purple-600 dark:text-purple-400">
-                      {averageXpPerQuest}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">
-                      Активных дней:
-                    </span>
-                    <span className="font-semibold text-orange-600 dark:text-orange-400">
-                      {daysWithQuests}
-                    </span>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Статистика */}
+            <StatCard isLoading={isLoading} rows={[
+              { label: "Всего квестов",       value: String(quests.length) },
+              { label: "Выполнено",           value: String(totalCompletedQuests),  accent: "text-green-500" },
+              { label: "В процессе",          value: String(totalPendingQuests),    accent: "text-blue-500" },
+              { label: "Процент выполнения",  value: `${quests.length > 0 ? Math.round((totalCompletedQuests / quests.length) * 100) : 0}%` },
+              { label: "Средний XP за квест", value: String(averageXpPerQuest),     accent: "text-violet-500" },
+            ]} />
           </div>
 
-          {/* Правая колонка - График прогресса */}
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-6">
-              <h3 className="text-xl font-semibold mb-4">
-                График прогресса по дням
-              </h3>
-              {quests.length > 0 ? (
-                <ProgressChart quests={quests} />
-              ) : (
-                <div className="text-center text-gray-500 dark:text-gray-400 py-8">
-                  <p>
-                    Сгенерируйте недельный план,
-                    <br />
-                    чтобы увидеть прогресс по дням
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Система достижений */}
+          {/* Правая колонка */}
+          <div className="space-y-4">
+            {quests.some((q) => q.nodeId) ? (
+              <ProgressChart quests={quests} />
+            ) : (
+              <EmptyChart />
+            )}
             <Achievements player={player} quests={quests} />
           </div>
         </div>

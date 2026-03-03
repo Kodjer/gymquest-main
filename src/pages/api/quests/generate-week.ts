@@ -38,12 +38,8 @@ export default async function handler(
     const player = user.player;
     const onboardingData = player.onboardingData;
 
-    if (!onboardingData) {
-      return res.status(400).json({
-        error: "Please complete onboarding first",
-        needsOnboarding: true,
-      });
-    }
+    // onboardingData больше не обязателен — класс игрока теперь главный источник данных
+    // Если onboardingData нет, продолжаем с дефолтами
 
     // Удаляем все старые квесты текущей недели
     await prisma.quest.deleteMany({
@@ -123,30 +119,22 @@ export default async function handler(
     let exercisesPerDay = 7;
 
     // Мягкая фильтрация по времени из опросника (не сильно меняет комплекс)
-    const availableTime = onboardingData.availableTime.toLowerCase();
+    const availableTime = (onboardingData?.availableTime ?? "30").toLowerCase();
     if (availableTime.includes("15") || availableTime.includes("20")) {
-      exercisesPerDay = 6; // Немного меньше для людей с очень малым временем
-      console.log(
-        `⏱️ Доступно мало времени (${onboardingData.availableTime}) - 6 упражнений`
-      );
+      exercisesPerDay = 6;
+      console.log(`⏱️ Доступно мало времени (${availableTime}) - 6 упражнений`);
     } else if (availableTime.includes("30") || availableTime.includes("45")) {
-      exercisesPerDay = 7; // Стандартный комплекс
-      console.log(
-        `⏱️ Оптимальное время (${onboardingData.availableTime}) - 7 упражнений`
-      );
+      exercisesPerDay = 7;
+      console.log(`⏱️ Оптимальное время (${availableTime}) - 7 упражнений`);
     } else if (
       availableTime.includes("60") ||
       availableTime.includes("90") ||
       availableTime.includes("час")
     ) {
-      exercisesPerDay = 8; // Чуть больше для людей с большим временем
-      console.log(
-        `⏱️ Много времени (${onboardingData.availableTime}) - 8 упражнений`
-      );
+      exercisesPerDay = 8;
+      console.log(`⏱️ Много времени (${availableTime}) - 8 упражнений`);
     } else {
-      console.log(
-        `💪 Генерирую комплексы: ${exercisesPerDay} упражнений на каждый день`
-      );
+      console.log(`💪 Генерирую комплексы: ${exercisesPerDay} упражнений на каждый день`);
     }
 
     // Фиксируем 6 квестов для каждого режима
@@ -163,7 +151,8 @@ export default async function handler(
 
     // Определяем базовую сложность на основе УРОВНЯ ИГРОКА (а не недели)
     const playerLevel = player.level;
-    const experienceLevel = onboardingData.fitnessExperience.toLowerCase();
+    // Используем fitnessExperience из onboardingData если оно есть, иначе дефолт
+    const experienceLevel = onboardingData?.fitnessExperience?.toLowerCase() ?? "средний";
     const isBeginnerExperience =
       experienceLevel.includes("начинающий") ||
       experienceLevel.includes("новичок");
@@ -214,6 +203,17 @@ export default async function handler(
 
     // Убираем дополнительную прогрессию, т.к. теперь прогрессия встроена в логику выше
     const difficultyProgression = 0;
+
+    // Пул категорий квестов на основе класса игрока
+    const categoryPoolByClass: Record<string, string[]> = {
+      warrior:   ["strength", "strength", "strength", "strength", "cardio", "cardio", "flexibility"],
+      berserker: ["strength", "strength", "strength", "cardio", "cardio", "cardio", "cardio"],
+      scout:     ["cardio", "cardio", "cardio", "cardio", "strength", "flexibility", "flexibility"],
+      monk:      ["flexibility", "flexibility", "flexibility", "wellness", "wellness", "cardio", "cardio"],
+    };
+    const categoryPool = categoryPoolByClass[player.playerClass ?? "warrior"] ??
+      ["strength", "cardio", "flexibility", "wellness", "strength", "cardio", "flexibility"];
+    const pickCategory = (idx: number): string => categoryPool[idx % categoryPool.length];
 
     // Генерируем квесты на 7 дней
     const generatedQuests: any[] = [];
@@ -327,31 +327,42 @@ export default async function handler(
       ): Promise<boolean> => {
         const difficulty = dayDifficulties[questIndex % dayDifficulties.length];
 
-        // Для домашних квестов ищем во ВСЕХ категориях, т.к. их меньше
-        const categoriesToSearch = locationType === "home" 
-          ? Object.keys(questBank) 
-          : questCategories;
-        
-        // Собираем все доступные квесты из всех категорий
+        // Собираем доступные квесты: для зальных сначала пробуем приоритетную категорию класса
         let availableQuests: QuestTemplate[] = [];
-        
-        for (const cat of categoriesToSearch) {
-          const catQuests = questBank[cat] || [];
-          const filtered = catQuests.filter((q) => {
+
+        if (locationType === "gym") {
+          // Шаг 1: только приоритетная категория
+          const primaryCat = pickCategory(questIndex);
+          const primaryQuests = (questBank[primaryCat] || []).filter((q) => {
             const isGymQuest = requiresEquipment(q);
-            const matchesType = locationType === "gym" ? isGymQuest : !isGymQuest;
-            const matchesDifficulty = q.difficulty === difficulty;
-            const notDuplicate = !dayQuestTitles.some((dayTitle) =>
-              isSimilarQuest(q.title, dayTitle)
-            );
-            return matchesType && matchesDifficulty && notDuplicate;
+            return isGymQuest && q.difficulty === difficulty &&
+              !dayQuestTitles.some((t) => isSimilarQuest(q.title, t));
           });
-          availableQuests.push(...filtered);
+          if (primaryQuests.length > 0) {
+            availableQuests = primaryQuests;
+          }
+        }
+        
+        // Если приоритетная категория не дала результов — берём из всех
+        if (availableQuests.length === 0) {
+          for (const cat of Object.keys(questBank)) {
+            const catQuests = questBank[cat] || [];
+            const filtered = catQuests.filter((q) => {
+              const isGymQuest = requiresEquipment(q);
+              const matchesType = locationType === "gym" ? isGymQuest : !isGymQuest;
+              const matchesDifficulty = q.difficulty === difficulty;
+              const notDuplicate = !dayQuestTitles.some((dayTitle) =>
+                isSimilarQuest(q.title, dayTitle)
+              );
+              return matchesType && matchesDifficulty && notDuplicate;
+            });
+            availableQuests.push(...filtered);
+          }
         }
 
         // Если нет квестов нужной сложности, берем любую сложность
         if (availableQuests.length === 0) {
-          for (const cat of categoriesToSearch) {
+          for (const cat of Object.keys(questBank)) {
             const catQuests = questBank[cat] || [];
             const filtered = catQuests.filter((q) => {
               const isGymQuest = requiresEquipment(q);

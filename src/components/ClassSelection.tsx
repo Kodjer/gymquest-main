@@ -1,5 +1,6 @@
 // src/components/ClassSelection.tsx
 import { useState } from "react";
+import { useAppTheme } from "../lib/ThemeContext";
 
 export type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
 
@@ -8,6 +9,9 @@ interface ClassInfo {
   name: string;
   icon: string;
   color: string;
+  bar: string;
+  ring: string;
+  borderCls: string;
   bgGradient: string;
   focus: string;
   description: string;
@@ -35,6 +39,9 @@ const classes: ClassInfo[] = [
     name: "Воин",
     icon: "💪",
     color: "text-red-500",
+    bar: "bg-orange-500",
+    ring: "ring-orange-400",
+    borderCls: "border-orange-400",
     bgGradient: "from-red-500 to-orange-600",
     focus: "Силовые тренировки",
     description: "Мастер силы и выносливости. Воины специализируются на силовых упражнениях и получают бонусы за тяжёлые тренировки.",
@@ -60,6 +67,9 @@ const classes: ClassInfo[] = [
     name: "Скаут",
     icon: "🏃",
     color: "text-blue-500",
+    bar: "bg-blue-500",
+    ring: "ring-blue-400",
+    borderCls: "border-blue-400",
     bgGradient: "from-blue-500 to-cyan-600",
     focus: "Кардио тренировки",
     description: "Быстрый и выносливый. Скауты превосходны в кардио упражнениях и получают бонусы за поддержание стрика.",
@@ -85,6 +95,9 @@ const classes: ClassInfo[] = [
     name: "Монах",
     icon: "🧘",
     color: "text-purple-500",
+    bar: "bg-violet-500",
+    ring: "ring-violet-400",
+    borderCls: "border-violet-400",
     bgGradient: "from-purple-500 to-pink-600",
     focus: "Гибкость и баланс",
     description: "Мастер гармонии тела и духа. Монахи специализируются на растяжке, йоге и получают больше монет.",
@@ -110,6 +123,9 @@ const classes: ClassInfo[] = [
     name: "Берсерк",
     icon: "🔥",
     color: "text-orange-500",
+    bar: "bg-red-500",
+    ring: "ring-red-400",
+    borderCls: "border-red-400",
     bgGradient: "from-orange-500 to-red-700",
     focus: "Хардкорные тренировки",
     description: "Безумный воин, живущий ради вызова. Берсерки получают огромные бонусы за сложные квесты, но меньше за лёгкие.",
@@ -139,12 +155,23 @@ interface ClassSelectionProps {
 
 export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) {
   const [selectedClass, setSelectedClass] = useState<PlayerClass | null>(null);
-  const [hoveredClass, setHoveredClass] = useState<PlayerClass | null>(null);
+  const { theme } = useAppTheme();
 
-  const displayClass = hoveredClass || selectedClass;
-  const classInfo = displayClass
-    ? classes.find((c) => c.id === displayClass)
-    : null;
+  const modalBg = () => {
+    switch (theme) {
+      case "cyberpunk": return "bg-gray-900 text-pink-100";
+      case "galaxy":    return "bg-indigo-950 text-purple-100";
+      default:          return "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100";
+    }
+  };
+
+  const rowBg = () => {
+    switch (theme) {
+      case "cyberpunk": return "bg-gray-800";
+      case "galaxy":    return "bg-indigo-900";
+      default:          return "bg-gray-100 dark:bg-gray-800";
+    }
+  };
 
   const handleConfirm = () => {
     if (selectedClass) {
@@ -154,196 +181,117 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-gray-900 flex items-center justify-center p-4 overflow-y-auto">
-      <div className="max-w-6xl w-full my-8">
-        {/* Кнопка закрытия */}
+    <div className={`fixed inset-0 z-[9999] flex flex-col overflow-y-auto ${modalBg()}`}>
+      {/* Шапка */}
+      <div className={`flex items-center justify-between px-5 py-4 sticky top-0 z-10 ${modalBg()}`}>
+        <h2 className="text-lg font-semibold">Выбор класса</h2>
         {onClose && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-white/70 hover:text-white text-3xl font-bold transition-colors"
+            className="w-8 h-8 rounded-full flex items-center justify-center opacity-40 hover:opacity-70 transition-opacity"
           >
-            ✕
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         )}
+      </div>
 
-        {/* Заголовок */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Выбери свой класс
-          </h1>
-          <p className="text-gray-300 text-lg">
-            Твой класс определит стиль тренировок и бонусы
+      <div className="px-4 pb-6 space-y-2 max-w-lg mx-auto w-full">
+
+        {/* Вводный блок */}
+        <div className={`${rowBg()} rounded-2xl px-4 py-4 space-y-3 mb-4`}>
+          <p className="text-sm font-semibold">Кто ты в этом путешествии?</p>
+          <p className="text-xs opacity-50 leading-relaxed">
+            Класс определяет, какие упражнения будут генерироваться для тебя каждую неделю. Воин получает силовые тренировки, Скаут — кардио, Монах — растяжку и восстановление, Берсерк — максимальную интенсивность.
           </p>
+          <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
+            <span className="text-xs opacity-40">Класс можно сменить позже в настройках · 500 монет</span>
+          </div>
         </div>
+        {/* Список классов */}
+        {classes.map((cls) => {
+          const active = selectedClass === cls.id;
+          return (
+            <button
+              key={cls.id}
+              onClick={() => setSelectedClass(active ? null : cls.id)}
+              className={`relative w-full text-left rounded-2xl overflow-hidden transition-all duration-200 border-2 ${
+                active
+                  ? `${rowBg()} ${cls.borderCls}`
+                  : `${rowBg()} border-transparent`
+              }`}
+            >
+              {/* Левая полоса */}
+              <div className={`absolute left-0 top-0 bottom-0 w-1 ${cls.bar}`} />
 
-        <div className="grid md:grid-cols-2 gap-8">
-          {/* Карточки классов */}
-          <div className="grid grid-cols-2 gap-4">
-            {classes.map((cls) => (
-              <button
-                key={cls.id}
-                onClick={() => setSelectedClass(cls.id)}
-                onMouseEnter={() => setHoveredClass(cls.id)}
-                onMouseLeave={() => setHoveredClass(null)}
-                className={`relative p-6 rounded-2xl border-2 transition-all duration-300 transform hover:scale-105 ${
-                  selectedClass === cls.id
-                    ? `border-white bg-gradient-to-br ${cls.bgGradient} shadow-2xl scale-105`
-                    : "border-gray-600 bg-gray-800/50 hover:border-gray-400"
-                }`}
-              >
-                {/* Выбранная метка */}
-                {selectedClass === cls.id && (
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white font-bold shadow-lg">
-                    ✓
+              <div className="pl-5 pr-4 py-3.5">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{cls.icon}</span>
+                    <div>
+                      <p className="text-sm font-semibold">{cls.name}</p>
+                      <p className="text-xs opacity-40">{cls.focus}</p>
+                    </div>
+                  </div>
+                  {active && (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+
+                {/* Детали раскрываются при выборе */}
+                {active && (
+                  <div className="mt-3 space-y-2 border-t border-black/8 dark:border-white/8 pt-3">
+                    <p className="text-xs opacity-60 leading-relaxed">{cls.description}</p>
+
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                      <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase opacity-40 mb-0.5">Пассивка</p>
+                        <p className="text-xs font-medium">{cls.passive.name}</p>
+                        <p className="text-[11px] opacity-50 mt-0.5">{cls.passive.bonus}</p>
+                      </div>
+                      <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
+                        <p className="text-[10px] font-semibold uppercase opacity-40 mb-0.5">Активка</p>
+                        <p className="text-xs font-medium">{cls.active.name}</p>
+                        <p className="text-[11px] opacity-50 mt-0.5">{cls.active.cooldown}</p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2">
+                      <p className="text-[10px] font-semibold uppercase opacity-40">Эволюция</p>
+                      <div className="flex items-center gap-1.5 ml-1">
+                        <span className="text-sm">{cls.icon}</span>
+                        <span className="text-xs opacity-30">→</span>
+                        <span className="text-sm">{cls.evolution.icon}</span>
+                        <span className="text-xs font-semibold">{cls.evolution.name}</span>
+                        <span className="text-[10px] opacity-40">· уровень {cls.evolution.level}</span>
+                      </div>
+                    </div>
                   </div>
                 )}
-
-                <div className="text-5xl mb-3">{cls.icon}</div>
-                <h3
-                  className={`text-xl font-bold ${
-                    selectedClass === cls.id ? "text-white" : cls.color
-                  }`}
-                >
-                  {cls.name}
-                </h3>
-                <p
-                  className={`text-sm mt-1 ${
-                    selectedClass === cls.id ? "text-white/80" : "text-gray-400"
-                  }`}
-                >
-                  {cls.focus}
-                </p>
-
-                {/* Мини бонус */}
-                <div
-                  className={`mt-3 text-xs px-2 py-1 rounded-full inline-block ${
-                    selectedClass === cls.id
-                      ? "bg-white/20 text-white"
-                      : "bg-gray-700 text-gray-300"
-                  }`}
-                >
-                  {cls.passive.bonus.split(",")[0]}
-                </div>
-              </button>
-            ))}
-          </div>
-
-          {/* Панель информации */}
-          <div
-            className={`rounded-2xl p-6 border-2 transition-all duration-500 ${
-              classInfo
-                ? `bg-gradient-to-br ${classInfo.bgGradient} border-white/30`
-                : "bg-gray-800/50 border-gray-600"
-            }`}
-          >
-            {classInfo ? (
-              <div className="text-white">
-                {/* Заголовок класса */}
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="text-6xl">{classInfo.icon}</div>
-                  <div>
-                    <h2 className="text-3xl font-bold">{classInfo.name}</h2>
-                    <p className="text-white/70">{classInfo.focus}</p>
-                  </div>
-                </div>
-
-                {/* Описание */}
-                <p className="text-white/90 mb-6 leading-relaxed">
-                  {classInfo.description}
-                </p>
-
-                {/* Пассивная способность */}
-                <div className="bg-white/10 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold">
-                      Пассивка: {classInfo.passive.name}
-                    </h3>
-                  </div>
-                  <p className="text-white/80 text-sm mb-2">
-                    {classInfo.passive.description}
-                  </p>
-                  <div className="text-yellow-300 font-semibold">
-                    {classInfo.passive.bonus}
-                  </div>
-                </div>
-
-                {/* Активная способность */}
-                <div className="bg-white/10 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold">
-                      Активка: {classInfo.active.name}
-                    </h3>
-                  </div>
-                  <p className="text-white/80 text-sm mb-2">
-                    {classInfo.active.description}
-                  </p>
-                  <div className="text-cyan-300 text-sm">
-                    Перезарядка: {classInfo.active.cooldown}
-                  </div>
-                </div>
-
-                {/* Эволюция */}
-                <div className="bg-white/10 rounded-xl p-4 mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h3 className="font-bold">Эволюция на уровне {classInfo.evolution.level}</h3>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl">{classInfo.icon}</span>
-                    <span className="text-white/50">→</span>
-                    <span className="text-2xl">{classInfo.evolution.icon}</span>
-                    <span className="font-bold text-yellow-300">
-                      {classInfo.evolution.name}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Типы квестов */}
-                <div className="mb-6">
-                  <h4 className="text-sm text-white/70 mb-2">
-                    Рекомендуемые упражнения:
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    {classInfo.questTypes.map((type) => (
-                      <span
-                        key={type}
-                        className="px-3 py-1 bg-white/20 rounded-full text-sm"
-                      >
-                        {type}
-                      </span>
-                    ))}
-                  </div>
-                </div>
               </div>
-            ) : (
-              <div className="h-full flex items-center justify-center text-gray-400">
-                <div className="text-center">
-                  <p>Выбери класс слева, чтобы увидеть подробности</p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
+            </button>
+          );
+        })}
 
         {/* Кнопка подтверждения */}
-        <div className="mt-8 text-center">
-          <button
-            onClick={handleConfirm}
-            disabled={!selectedClass}
-            className={`px-12 py-4 rounded-2xl font-bold text-xl transition-all duration-300 ${
-              selectedClass
-                ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 hover:scale-105 shadow-2xl"
-                : "bg-gray-700 text-gray-400 cursor-not-allowed"
-            }`}
-          >
-            {selectedClass ? "Начать" : "Выбери класс"}
-          </button>
+        <button
+          onClick={handleConfirm}
+          disabled={!selectedClass}
+          className={`w-full mt-2 py-3.5 rounded-2xl text-sm font-semibold transition-all duration-200 ${
+            selectedClass
+              ? "bg-blue-500 hover:bg-blue-600 text-white shadow-sm"
+              : "bg-black/8 dark:bg-white/8 opacity-40 cursor-not-allowed"
+          }`}
+        >
+          {selectedClass ? `Выбрать ${classes.find(c => c.id === selectedClass)?.name}` : "Выбери класс"}
+        </button>
 
-          {selectedClass && (
-            <p className="text-gray-400 mt-4 text-sm">
-              Класс можно будет сменить позже за 500 монет
-            </p>
-          )}
-        </div>
+        {selectedClass && (
+          <p className="text-center text-xs opacity-40">Сменить класс позже можно за 500 монет</p>
+        )}
       </div>
     </div>
   );

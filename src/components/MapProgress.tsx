@@ -935,133 +935,111 @@ export function MapProgress({
       {/* Модальное окно с квестами узла */}
       {selectedNode &&
         (() => {
-          // Вычисляем данные сразу, когда selectedNode существует
-          const nodeQuests = getNodeQuests(selectedNode.id);
+          const allNodeQuests = quests.filter((q) => q.nodeId === selectedNode.id);
+          const homeQuests = allNodeQuests.filter((q) => q.location === "home");
+          const gymQuests = allNodeQuests.filter((q) => q.location === "gym");
           const progress = getNodeProgress(selectedNode.id);
+
+          const modalBg = () => {
+            switch (theme) {
+              case "cyberpunk": return "bg-gray-900 text-pink-100";
+              case "galaxy":    return "bg-indigo-950 text-purple-100";
+              case "forest":    return "bg-green-950 text-green-100";
+              case "sunset":    return "bg-orange-950 text-orange-100";
+              default:          return "bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100";
+            }
+          };
+
+          const rowBg = () => {
+            switch (theme) {
+              case "cyberpunk": return "bg-gray-800";
+              case "galaxy":    return "bg-indigo-900";
+              case "forest":    return "bg-green-900";
+              case "sunset":    return "bg-orange-900";
+              default:          return "bg-gray-100 dark:bg-gray-800";
+            }
+          };
+
+          const accentColor = () => {
+            switch (theme) {
+              case "cyberpunk": return "bg-pink-500";
+              case "galaxy":    return "bg-purple-500";
+              case "forest":    return "bg-green-500";
+              case "sunset":    return "bg-orange-500";
+              default:          return "bg-blue-500";
+            }
+          };
+
+          const barColor = () => {
+            switch (theme) {
+              case "cyberpunk": return "bg-pink-500";
+              case "galaxy":    return "bg-purple-500";
+              case "forest":    return "bg-green-400";
+              case "sunset":    return "bg-orange-400";
+              default:          return "bg-blue-500";
+            }
+          };
 
           return (
             <div
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/60"
               onClick={() => setSelectedNode(null)}
             >
               <div
-                className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-8"
+                className={`${modalBg()} rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden`}
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-4">
-                    <div
-                      className={`w-16 h-16 rounded-full bg-gradient-to-br ${selectedNode.color} flex items-center justify-center text-4xl shadow-lg`}
-                    >
-                      {selectedNode.icon}
-                    </div>
-                    <div>
-                      <h3 className="text-2xl font-bold text-gray-800 dark:text-white">
-                        {selectedNode.name}
-                      </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
-                        {selectedNode.description}
-                      </p>
-                    </div>
+                {/* Header */}
+                <div className="relative px-5 py-4 flex items-center justify-between">
+                  <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor()} rounded-l-2xl`} />
+                  <div className="pl-3">
+                    <p className="text-base font-semibold leading-tight">
+                      {selectedNode.icon} {selectedNode.name}
+                    </p>
+                    <p className="text-xs opacity-50 mt-0.5">{selectedNode.description}</p>
                   </div>
                   <button
                     onClick={() => setSelectedNode(null)}
-                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-3xl font-bold"
+                    className="text-2xl font-bold opacity-40 hover:opacity-70 transition-opacity leading-none ml-3"
                   >
                     ×
                   </button>
                 </div>
 
-                <div className="space-y-4">
-                  {/* Прогресс узла */}
-                  <div className="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-xl p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                        Прогресс узла
-                      </span>
-                      <span className="text-lg font-bold text-purple-600 dark:text-purple-400">
-                        {progress.completed} / {progress.total}
-                      </span>
+                <div className="px-4 pb-4 space-y-2">
+                  {/* Прогресс */}
+                  <div className={`${rowBg()} rounded-2xl px-4 py-3`}>
+                    <div className="flex justify-between text-xs mb-1.5">
+                      <span className="opacity-50">Прогресс</span>
+                      <span className="font-semibold">{progress.completed} / {progress.total}</span>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                    <div className="h-1.5 rounded-full bg-black/10 dark:bg-white/10">
                       <div
-                        className="bg-gradient-to-r from-purple-500 to-pink-500 h-3 rounded-full transition-all duration-500"
+                        className={`h-full rounded-full ${barColor()} transition-all duration-500`}
                         style={{ width: `${progress.percent}%` }}
-                      ></div>
+                      />
                     </div>
-                    <div className="text-xs text-gray-600 dark:text-gray-400 mt-1 text-right">
-                      {progress.percent}% завершено
-                    </div>
+                    <div className="text-xs opacity-40 mt-1 text-right">{progress.percent}%</div>
                   </div>
 
-                  {/* Информация о квестах узла */}
-                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-xl p-6">
-                    <div className="flex items-center justify-center gap-4 mb-4">
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-                          {nodeQuests.length}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Всего квестов
-                        </div>
-                      </div>
-                      <div className="w-px h-12 bg-gray-300 dark:bg-gray-600"></div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-green-600 dark:text-green-400">
-                          {progress.completed}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Выполнено
-                        </div>
-                      </div>
-                      <div className="w-px h-12 bg-gray-300 dark:bg-gray-600"></div>
-                      <div className="text-center">
-                        <div className="text-4xl font-bold text-orange-600 dark:text-orange-400">
-                          {nodeQuests.length - progress.completed}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400">
-                          Осталось
-                        </div>
-                      </div>
-                    </div>
-
-                    {nodeQuests.length > 0 ? (
-                      <div className="text-center text-sm text-gray-600 dark:text-gray-400 mb-4">
-                        Готовы начать тренировку? Нажмите кнопку ниже!
-                      </div>
-                    ) : (
-                      <div className="text-center py-4">
-                        <div className="text-4xl mb-2">📭</div>
-                        <p className="text-gray-600 dark:text-gray-400 mb-1">
-                          В этом узле пока нет квестов
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-500">
-                          Сгенерируйте новые квесты, чтобы продолжить!
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Кнопка начать тренировку */}
-                  {nodeQuests.length > 0 && (
+                  {/* Кнопки старта или пустое состояние */}
+                  {allNodeQuests.length > 0 ? (
                     <button
                       onClick={() => {
                         router.push(`/?nodeId=${selectedNode.id}`);
                         setSelectedNode(null);
                       }}
-                      className="w-full mt-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-xl font-bold text-lg hover:from-green-600 hover:to-emerald-700 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95"
+                      className="w-full py-3 rounded-2xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 active:scale-95 text-white transition-all"
                     >
-                      Начать тренировку
+                      Начать день
                     </button>
+                  ) : (
+                    <div className={`${rowBg()} rounded-2xl px-4 py-6 text-center`}>
+                      <p className="text-sm opacity-40">
+                        Квесты не найдены.<br />Сгенерируйте план недели.
+                      </p>
+                    </div>
                   )}
-
-                  {/* Кнопка закрытия */}
-                  <button
-                    onClick={() => setSelectedNode(null)}
-                    className="w-full mt-6 bg-gradient-to-r from-purple-500 to-pink-500 text-white py-3 rounded-xl font-semibold hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    Закрыть
-                  </button>
                 </div>
               </div>
             </div>
