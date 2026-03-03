@@ -50,13 +50,16 @@ export default async function handler(
 
     // Парсим предпочтения пользователя
     let workoutPreferences: string[] = [];
-    try {
-      workoutPreferences =
-        typeof onboardingData.workoutPreference === "string"
-          ? JSON.parse(onboardingData.workoutPreference)
-          : onboardingData.workoutPreference;
-    } catch (e) {
-      workoutPreferences = [];
+    if (onboardingData) {
+      try {
+        const od = onboardingData;
+        workoutPreferences =
+          typeof od.workoutPreference === "string"
+            ? JSON.parse(od.workoutPreference)
+            : od.workoutPreference ?? [];
+      } catch (e) {
+        workoutPreferences = [];
+      }
     }
 
     // Определяем предпочтение по location на основе workoutPreference
