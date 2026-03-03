@@ -1,7 +1,7 @@
 ﻿import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { setNativeSession } from "../_app";
+import { setNativeSession } from "../../lib/nativeAuth";
 
 export default function SignIn() {
   const [tab, setTab] = useState<"login" | "register">("login");

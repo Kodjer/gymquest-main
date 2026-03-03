@@ -7,6 +7,8 @@ import { ThemeProvider } from "../lib/ThemeContext";
 const VERCEL_BASE = "https://gymquest-pied.vercel.app";
 const NATIVE_SESSION_KEY = "gymquest_native_session";
 
+export { setNativeSession, clearNativeSession } from "../lib/nativeAuth";
+
 // Когда APK загружает статические файлы локально (capacitor://localhost),
 // перехватываем fetch:
 // - /api/auth/session → отдаём из localStorage (нативная сессия)
@@ -51,18 +53,7 @@ if (typeof window !== "undefined" && (window as any)?.Capacitor?.isNativePlatfor
   };
 }
 
-export function setNativeSession(user: { id: string; email: string; name?: string | null }) {
-  const session = {
-    user: { name: user.name || user.email, email: user.email, image: null, id: user.id },
-    expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-  };
-  localStorage.setItem(NATIVE_SESSION_KEY, JSON.stringify(session));
-}
 
-export function clearNativeSession() {
-  localStorage.removeItem(NATIVE_SESSION_KEY);
-  localStorage.removeItem("gymquest_native_token");
-}
 
 export default function App({
   Component,
