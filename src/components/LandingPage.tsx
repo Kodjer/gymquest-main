@@ -2,7 +2,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { setNativeSession } from "../pages/_app";
+import { setNativeSession } from "../lib/nativeAuth";
 
 // Detect Capacitor native APK context
 function useIsNative() {
