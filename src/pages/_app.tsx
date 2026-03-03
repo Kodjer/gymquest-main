@@ -11,7 +11,10 @@ const NATIVE_SESSION_KEY = "gymquest_native_session";
 // перехватываем fetch:
 // - /api/auth/session → отдаём из localStorage (нативная сессия)
 // - остальные /api/… → проксируем на Vercel
-if (typeof window !== "undefined" && (window as any)?.Capacitor?.isNativePlatform?.()) {
+if (typeof window !== "undefined" && (
+  !!(window as any)?.Capacitor?.isNativePlatform?.() ||
+  window.location.protocol === "capacitor:"
+)) {
   const _originalFetch = window.fetch.bind(window);
   const CAPACITOR_ORIGIN = "capacitor://localhost";
 
