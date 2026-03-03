@@ -15,7 +15,7 @@ export function LandingPage() {
 
   useEffect(() => {
     if (session) router.push("/");
-  }, [session]);
+  }, [session, router]);
 
   const callbackUrl = "/";
 
@@ -67,27 +67,27 @@ export function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 flex items-center justify-center p-4">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen w-full bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 flex flex-col items-center justify-center p-5">
+      <div className="w-full" style={{ maxWidth: 360 }}>
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mx-auto mb-4">
-            <span className="text-4xl">&#x1F4AA;</span>
+          <div className="w-16 h-16 bg-white/20 border-2 border-white/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6.5 6.5h11M6.5 17.5h11M4 10h16M4 14h16"/>
+            </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white">GymQuest</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">GymQuest</h1>
           <p className="text-purple-200 text-sm mt-1">Превратите фитнес в игру</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 shadow-2xl border border-white/20">
+        <div className="bg-white/10 rounded-2xl p-5 border border-white/20">
           {/* Tabs */}
-          <div className="flex mb-5 bg-white/10 rounded-xl p-1">
+          <div className="flex mb-4 bg-black/20 rounded-xl p-1 gap-1">
             <button
               onClick={() => { setTab("login"); setError(""); }}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "login"
-                  ? "bg-white text-purple-700 shadow"
-                  : "text-white/70 hover:text-white"
+                tab === "login" ? "bg-white text-purple-700" : "text-white/60"
               }`}
             >
               Вход
@@ -95,52 +95,54 @@ export function LandingPage() {
             <button
               onClick={() => { setTab("register"); setError(""); }}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
-                tab === "register"
-                  ? "bg-white text-purple-700 shadow"
-                  : "text-white/70 hover:text-white"
+                tab === "register" ? "bg-white text-purple-700" : "text-white/60"
               }`}
             >
               Регистрация
             </button>
           </div>
 
-          <form onSubmit={tab === "login" ? handleLogin : handleRegister} className="space-y-3">
-            {tab === "register" && (
+          <form onSubmit={tab === "login" ? handleLogin : handleRegister}>
+            <div className="space-y-2.5">
+              {tab === "register" && (
+                <input
+                  type="text"
+                  placeholder="Имя"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/50 placeholder-white/40 text-sm"
+                />
+              )}
               <input
-                type="text"
-                placeholder="Имя"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/60 placeholder-white/40 text-sm"
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/50 placeholder-white/40 text-sm"
               />
-            )}
-            <input
-              type="email"
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/60 placeholder-white/40 text-sm"
-            />
-            <input
-              type="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/60 placeholder-white/40 text-sm"
-            />
+              <input
+                type="password"
+                placeholder="Пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                className="w-full px-4 py-3 bg-white/10 text-white rounded-xl border border-white/20 focus:outline-none focus:border-white/50 placeholder-white/40 text-sm"
+              />
+            </div>
 
             {error && (
-              <p className="text-red-300 text-xs text-center bg-red-500/20 rounded-lg py-2 px-3">{error}</p>
+              <div className="mt-3 text-red-300 text-xs text-center bg-red-500/20 rounded-lg py-2 px-3">
+                {error}
+              </div>
             )}
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 disabled:opacity-50 transition-all shadow-lg text-sm"
+              className="mt-4 w-full py-3 bg-white text-purple-700 font-bold rounded-xl disabled:opacity-50 transition-all text-sm"
             >
-              {loading ? "..." : tab === "login" ? "Войти" : "Создать аккаунт"}
+              {loading ? "Загрузка..." : tab === "login" ? "Войти" : "Создать аккаунт"}
             </button>
           </form>
 

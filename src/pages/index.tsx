@@ -570,7 +570,7 @@ function AuthenticatedApp() {
       onSettingsClick={() => setSettingsOpen(true)}
       onShopClick={() => setShopOpen(true)}
     >
-      <div className="p-4 md:p-8 max-w-4xl mx-auto">
+      <div className="p-4 overflow-x-hidden w-full">
         <div className="space-y-6">
           {/* Профиль игрока */}
           <PlayerCard
@@ -651,6 +651,7 @@ function AuthenticatedApp() {
             </div>
           ) : (
             /* Карта прогресса - главный элемент */
+            <div className="overflow-hidden rounded-xl">
             <MapProgress
               quests={quests}
               onLocationFilterChange={setLocationFilter}
@@ -664,6 +665,7 @@ function AuthenticatedApp() {
                   : "mixed"
               }
             />
+            </div>
           )}
         </div>
       </div>

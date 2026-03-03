@@ -69,10 +69,12 @@ export default function SignIn() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mx-auto mb-4">
-            <span className="text-4xl">&#x1F4AA;</span>
+          <div className="w-16 h-16 bg-white/20 border-2 border-white/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6.5 6.5h11M6.5 17.5h11M4 10h16M4 14h16"/>
+            </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white">GymQuest</h1>
+          <h1 className="text-3xl font-bold text-white tracking-tight">GymQuest</h1>
           <p className="text-purple-200 text-sm mt-1">Превратите фитнес в игру</p>
         </div>
 

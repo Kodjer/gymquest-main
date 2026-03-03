@@ -27,13 +27,20 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#1a1a2e",
+      backgroundColor: "#7c3aed",
       androidSplashResourceName: "splash",
       showSpinner: false,
+      splashFullScreen: true,
+      splashImmersive: true,
     },
     StatusBar: {
-      style: "dark",
-      backgroundColor: "#1a1a2e",
+      style: "light",
+      backgroundColor: "#7c3aed",
+      overlaysWebView: false,
+      hide: false,
+    },
+    EdgeToEdge: {
+      backgroundColor: "#7c3aed",
     },
   },
 };

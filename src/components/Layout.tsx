@@ -95,10 +95,10 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
   ];
 
   return (
-    <div className={getBackgroundClasses()}>
+    <div className={`${getBackgroundClasses()} overflow-x-hidden`}>
       {/* Верхняя шапка — только лого */}
       <div className={`sticky top-0 z-50 border-b safe-top ${headerBg()}`}>
-        <div className="max-w-4xl mx-auto px-4 h-12 flex items-center justify-between">
+        <div className="px-4 h-12 flex items-center justify-between">
           <span className={`text-lg font-bold tracking-tight ${logoClass()}`}>GymQuest</span>
           {session && (
             <span className={`text-xs truncate max-w-[140px] ${
@@ -117,7 +117,7 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
 
       {/* Нижняя навигация */}
       <div className={`fixed bottom-0 left-0 right-0 z-50 border-t safe-bottom ${bottomNavBg()}`}>
-        <div className="flex items-stretch justify-around max-w-4xl mx-auto">
+        <div className="flex items-stretch justify-around">
           {navItems.map((item) => {
             const active = item.href ? router.pathname === item.href : false;
             const cls = `flex flex-col items-center justify-center gap-0.5 py-2 flex-1 min-w-0 transition-colors ${
