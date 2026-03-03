@@ -1,6 +1,6 @@
 ﻿// src/components/LandingPage.tsx
-import { signIn } from "next-auth/react";
-import { useState } from "react";
+import { signIn, useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 
 export function LandingPage() {
@@ -10,6 +10,12 @@ export function LandingPage() {
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  useEffect(() => {
+    if (session) router.push("/");
+  }, [session]);
 
   const callbackUrl = "/";
 
@@ -26,6 +32,8 @@ export function LandingPage() {
     setLoading(false);
     if (res?.error) {
       setError("Неверный email или пароль");
+    } else {
+      router.push(callbackUrl);
     }
   };
 
@@ -44,8 +52,13 @@ export function LandingPage() {
       setLoading(false);
       return;
     }
-    await signIn("credentials", { email, password, callbackUrl, redirect: false });
+    const signInRes = await signIn("credentials", { email, password, callbackUrl, redirect: false });
     setLoading(false);
+    if (signInRes?.error) {
+      setError(signInRes.error);
+    } else {
+      router.push(callbackUrl);
+    }
   };
 
   const handleGoogle = () => {
