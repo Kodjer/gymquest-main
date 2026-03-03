@@ -13,15 +13,24 @@ const NATIVE_SESSION_KEY = "gymquest_native_session";
 // - остальные /api/… → проксируем на Vercel
 if (typeof window !== "undefined" && (
   !!(window as any)?.Capacitor?.isNativePlatform?.() ||
-  window.location.protocol === "capacitor:"
+  window.location.protocol === "capacitor:" ||
+  // Capacitor 3+ / 8 на Android: грузит assets через https://localhost (без порта)
+  (window.location.hostname === "localhost" && window.location.port === "")
 )) {
   const _originalFetch = window.fetch.bind(window);
-  const CAPACITOR_ORIGIN = "capacitor://localhost";
+  // Все локальные origins, которые нужно перехватывать
+  const LOCAL_ORIGINS = [
+    "capacitor://localhost",
+    "https://localhost",
+    "http://localhost",
+  ];
 
-  // Извлекаем путь из URL (поддерживает "/api/..." и "capacitor://localhost/api/...")
+  // Извлекаем путь из URL (поддерживает "/api/..." и любые localhost origins)
   function extractPath(url: string): string | null {
     if (url.startsWith("/")) return url;
-    if (url.startsWith(CAPACITOR_ORIGIN)) return url.slice(CAPACITOR_ORIGIN.length) || "/";
+    for (const origin of LOCAL_ORIGINS) {
+      if (url.startsWith(origin)) return url.slice(origin.length) || "/";
+    }
     return null;
   }
 
