@@ -1,7 +1,20 @@
 // src/components/QuestCard.tsx
-import { useState } from "react";
+import { useState, Component, ReactNode } from "react";
 import { LottieAnimation } from "./LottieAnimation";
 import { useAppTheme } from "../lib/ThemeContext";
+
+// Catch any crash inside DotLottie without killing the whole card
+class LottieErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  render() {
+    if (this.state.hasError) return null; // silently hide broken animation
+    return this.props.children;
+  }
+}
 
 type VisualDemo = {
   type: "image" | "video" | "gif" | "youtube" | "lottie";
@@ -146,7 +159,9 @@ export function QuestCard({
         {/* Анимация */}
         {hasAnimation && !isDone && (
           <div className="mb-4">
-            <LottieAnimation title={quest.title} />
+            <LottieErrorBoundary>
+              <LottieAnimation title={quest.title} />
+            </LottieErrorBoundary>
           </div>
         )}
 

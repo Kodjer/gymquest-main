@@ -1,5 +1,5 @@
 // src/pages/index.tsx
-import { useState, useEffect, Component, ReactNode } from "react";
+import { useState, useEffect, Component, ReactNode, ErrorInfo } from "react";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
@@ -23,23 +23,35 @@ import { Shop } from "../components/Shop";
 import { useEquipment } from "@/lib/useEquipment";
 
 // Error Boundary — catches crashes in AuthenticatedApp without kicking user to landing page
-interface EBState { hasError: boolean }
+interface EBState { hasError: boolean; retries: number; recovering: boolean }
 class AppErrorBoundary extends Component<{ children: ReactNode }, EBState> {
   constructor(props: { children: ReactNode }) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false, retries: 0, recovering: false };
   }
-  static getDerivedStateFromError() { return { hasError: true }; }
-  componentDidCatch(error: Error, info: React.ErrorInfo) {
+  static getDerivedStateFromError() { return { hasError: true, recovering: false }; }
+  componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("AppErrorBoundary caught:", error, info);
+    // Auto-recover up to 3 times
+    if (this.state.retries < 3) {
+      this.setState({ recovering: true });
+      setTimeout(() => {
+        this.setState(prev => ({
+          hasError: false,
+          recovering: false,
+          retries: prev.retries + 1,
+        }));
+      }, 800);
+    }
   }
   render() {
-    if (this.state.hasError) {
+    if (this.state.hasError && !this.state.recovering) {
+      // Exhausted retries — show full-screen with reload
       return (
         <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-800 p-6 text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-white mb-2">Что-то пошло не так</h2>
-          <p className="text-purple-200 mb-6">Произошла ошибка в приложении</p>
+          <div className="text-5xl mb-4">⚠️</div>
+          <h2 className="text-xl font-bold text-white mb-2">Что-то пошло не так</h2>
+          <p className="text-purple-200 text-sm mb-6">Попробуйте перезапустить приложение</p>
           <button
             onClick={() => window.location.reload()}
             className="px-6 py-3 bg-white text-purple-700 font-bold rounded-xl"
@@ -49,7 +61,42 @@ class AppErrorBoundary extends Component<{ children: ReactNode }, EBState> {
         </div>
       );
     }
+    if (this.state.recovering) {
+      return (
+        <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-800">
+          <div className="text-white text-lg">Восстановление...</div>
+        </div>
+      );
+    }
     return this.props.children;
+  }
+}
+
+// Smaller boundary just for MapProgress — on crash shows "reload map" without killing app
+class MapErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean; resetKey: number }> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, resetKey: 0 };
+  }
+  static getDerivedStateFromError() { return { hasError: true }; }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error("MapErrorBoundary caught:", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="rounded-2xl bg-gray-100 dark:bg-gray-800 p-10 text-center">
+          <p className="text-gray-500 dark:text-gray-400 mb-4">Ошибка загрузки карты</p>
+          <button
+            onClick={() => this.setState({ hasError: false, resetKey: this.state.resetKey + 1 })}
+            className="px-5 py-2 bg-purple-500 text-white rounded-xl text-sm font-semibold"
+          >
+            Обновить карту
+          </button>
+        </div>
+      );
+    }
+    return <>{this.props.children}</>;
   }
 }
 
@@ -687,6 +734,7 @@ function AuthenticatedApp() {
           ) : (
             /* Карта прогресса - главный элемент */
             <div className="overflow-hidden rounded-xl">
+            <MapErrorBoundary>
             <MapProgress
               quests={quests}
               onLocationFilterChange={setLocationFilter}
@@ -700,6 +748,7 @@ function AuthenticatedApp() {
                   : "mixed"
               }
             />
+            </MapErrorBoundary>
             </div>
           )}
         </div>
