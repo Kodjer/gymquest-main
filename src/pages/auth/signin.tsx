@@ -1,6 +1,7 @@
 ﻿import { signIn } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/router";
+import { setNativeSession } from "../_app";
 
 export default function SignIn() {
   const [tab, setTab] = useState<"login" | "register">("login");
@@ -16,6 +17,24 @@ export default function SignIn() {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Пробуем нативный логин (работает в APK без CSRF)
+    const nativeRes = await fetch("/api/auth/native-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+    if (nativeRes.ok) {
+      const nativeData = await nativeRes.json();
+      if (nativeData.token && nativeData.user) {
+        localStorage.setItem("gymquest_native_token", nativeData.token);
+        localStorage.setItem("gymquest_native_user", JSON.stringify(nativeData.user));
+        setNativeSession(nativeData.user);
+      }
+      setLoading(false);
+      router.push(callbackUrl);
+      return;
+    }
+    // Фоллбек на стандартный NextAuth (для браузера)
     const res = await signIn("credentials", {
       email,
       password,
@@ -45,18 +64,37 @@ export default function SignIn() {
       setLoading(false);
       return;
     }
-    const signInRes = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-      callbackUrl,
+    // После регистрации — логинимся через нативный эндпоинт (работает в APK без CSRF)
+    const loginRes = await fetch("/api/auth/native-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
-    setLoading(false);
-    if (signInRes?.error) {
-      setError(signInRes.error);
-    } else {
-      router.push(callbackUrl);
+    const loginData = await loginRes.json();
+    if (!loginRes.ok) {
+      // Фоллбек на стандартный signIn (для браузера)
+      const signInRes = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+        callbackUrl,
+      });
+      setLoading(false);
+      if (signInRes?.error) {
+        setError(signInRes.error);
+      } else {
+        router.push(callbackUrl);
+      }
+      return;
     }
+    // Сохраняем токен и сессию для нативного APK
+    if (loginData.token && loginData.user) {
+      localStorage.setItem("gymquest_native_token", loginData.token);
+      localStorage.setItem("gymquest_native_user", JSON.stringify(loginData.user));
+      setNativeSession(loginData.user);
+    }
+    setLoading(false);
+    router.push(callbackUrl);
   };
 
   const handleGoogle = () => {
