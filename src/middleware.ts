@@ -3,6 +3,8 @@ import type { NextRequest } from "next/server";
 
 const ALLOWED_ORIGINS = [
   "capacitor://localhost",
+  "https://localhost",
+  "http://localhost",
   "https://gymquest-pied.vercel.app",
   "http://localhost:3000",
 ];
@@ -18,7 +20,7 @@ export function middleware(request: NextRequest) {
       headers: {
         "Access-Control-Allow-Origin": isAllowed ? origin : ALLOWED_ORIGINS[0],
         "Access-Control-Allow-Methods": "GET,POST,PUT,DELETE,PATCH,OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, X-Native-Auth",
         "Access-Control-Allow-Credentials": "true",
         "Access-Control-Max-Age": "86400",
       },
@@ -32,7 +34,7 @@ export function middleware(request: NextRequest) {
     response.headers.set("Access-Control-Allow-Credentials", "true");
     response.headers.set(
       "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Requested-With"
+      "Content-Type, Authorization, X-Requested-With, X-Native-Auth"
     );
   }
 
