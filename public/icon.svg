@@ -1,6 +1,6 @@
 <svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <!-- Фон -->
-  <rect width="512" height="512" fill="#3b82f6" rx="80"/>
+  <rect width="512" height="512" fill="#7c3aed" rx="80"/>
   
   <!-- Главная иконка - Trophy -->
   <g transform="translate(128, 100)">
