@@ -7,8 +7,6 @@ import { ThemeProvider } from "../lib/ThemeContext";
 const VERCEL_BASE = "https://gymquest-pied.vercel.app";
 const NATIVE_SESSION_KEY = "gymquest_native_session";
 
-export { setNativeSession, clearNativeSession } from "../lib/nativeAuth";
-
 // Когда APK загружает статические файлы локально (capacitor://localhost),
 // перехватываем fetch:
 // - /api/auth/session → отдаём из localStorage (нативная сессия)
