@@ -33,13 +33,13 @@ if (typeof window !== "undefined" && (window as any)?.Capacitor?.isNativePlatfor
 
     // Добавляем нативный токен авторизации ко всем API запросам
     const nativeToken = localStorage.getItem("gymquest_native_token");
-    const authHeaders = nativeToken ? { "X-Native-Auth": nativeToken } : {};
+    const authHeaders: Record<string, string> = nativeToken ? { "X-Native-Auth": nativeToken } : {};
 
     // Перенаправляем все /api/… запросы на Vercel
     if (typeof input === "string" && input.startsWith("/")) {
       return _originalFetch(VERCEL_BASE + input, {
         ...init,
-        headers: { ...(init?.headers as Record<string, string> || {}), ...authHeaders },
+        headers: { ...((init?.headers || {}) as Record<string, string>), ...authHeaders },
       });
     }
     if (input instanceof Request && input.url.startsWith("/")) {
