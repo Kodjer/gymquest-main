@@ -86,7 +86,7 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
 
     const price = utilityPrices[utilityType];
     if (!price || playerCoins < price) {
-      setPurchaseMessage('❌ Недостаточно монет!');
+      setPurchaseMessage('Недостаточно монет');
       setTimeout(() => setPurchaseMessage(null), 2000);
       return;
     }
@@ -102,18 +102,17 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
       const data = await res.json();
 
       if (res.ok) {
-        if (res.ok) {
-          setPurchaseMessage(data.message);
-          onPurchase({ price } as ShopItem, data.newBalance);
-          setSelectedItem(null);
-          if (data.action === 'refresh' || data.action === 'regenerate') {
-            setTimeout(() => { window.location.reload(); }, 1500);
-          }
-        } else {
-          setPurchaseMessage(data.error || 'Ошибка');
+        setPurchaseMessage(data.message);
+        onPurchase({ price } as ShopItem, data.newBalance);
+        setSelectedItem(null);
+        if (data.action === 'refresh' || data.action === 'regenerate') {
+          setTimeout(() => { window.location.reload(); }, 1500);
         }
+      } else {
+        setPurchaseMessage(data.error || 'Ошибка');
+      }
     } catch (error) {
-      setPurchaseMessage('❌ Ошибка');
+      setPurchaseMessage('Ошибка соединения');
     } finally {
       setLoading(false);
       setTimeout(() => setPurchaseMessage(null), 2000);
@@ -136,7 +135,7 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
     }
 
     if (playerCoins < item.price) {
-      setPurchaseMessage('❌ Недостаточно монет!');
+      setPurchaseMessage('Недостаточно монет');
       setTimeout(() => setPurchaseMessage(null), 2000);
       return;
     }
