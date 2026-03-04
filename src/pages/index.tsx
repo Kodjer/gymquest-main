@@ -341,6 +341,16 @@ function AuthenticatedApp() {
           console.log("🤖 Нет квестов, запускаем автогенерацию...");
           await generateQuests();
         }
+
+        // Если ВСЕ квесты выполнены - генерируем новую неделю
+        if (data.length > 0 && player.onboardingCompleted) {
+          const allDone = data.every((q: any) => q.status === "done");
+          if (allDone) {
+            console.log("🏆 Неделя завершена! Генерируем новую неделю...");
+            try { localStorage.removeItem("gymquest_quests_cache"); } catch {}
+            await generateQuests();
+          }
+        }
       }
     } catch (error) {
       console.error("Error loading quests:", error);

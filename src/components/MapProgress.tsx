@@ -343,6 +343,7 @@ export function MapProgress({
   const [animatingPaths, setAnimatingPaths] = useState<Set<string>>(new Set());
   const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
   const prevCompletedRef = useRef<Set<string> | null>(null); // null = ещё не инициализировано
+  const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   // Сохраняем и восстанавливаем позицию скролла при переходе между вкладками
   useEffect(() => {
@@ -394,6 +395,16 @@ export function MapProgress({
           return mapNodes[idx + 1]?.id;
         })
         .filter(Boolean) as string[];
+
+      // Скроллим к завершённому узлу чтобы пользователь увидел анимацию
+      requestAnimationFrame(() => {
+        const firstDone = newlyDone[0];
+        const el = nodeRefs.current[firstDone];
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+
       setNewlyUnlocked((s) => new Set([...s, ...nextIds]));
       setTimeout(() => {
         setAnimatingPaths((s) => {
@@ -401,14 +412,14 @@ export function MapProgress({
           newlyDone.forEach((id) => next.delete(id));
           return next;
         });
-      }, 1600);
+      }, 3200);
       setTimeout(() => {
         setNewlyUnlocked((s) => {
           const next = new Set(s);
           nextIds.forEach((id) => next.delete(id));
           return next;
         });
-      }, 2800);
+      }, 4800);
     }
     prevCompletedRef.current = nowCompleted;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -509,20 +520,25 @@ export function MapProgress({
     }
 
     // Если не выполнен полностью - показываем прогресс текущей локации
-    let nodeQuests = quests.filter((q) => q.nodeId === nodeId);
+    const allNodeQuests = quests.filter((q) => q.nodeId === nodeId);
 
     // Применяем фильтр по локации
-    nodeQuests = nodeQuests.filter((q) => {
+    // Квесты с location "both" или без location входят в обе локации
+    let nodeQuests = allNodeQuests.filter((q) => {
+      const loc = q.location;
       if (locationFilter === "home") {
-        // Дома - квесты без инвентаря (location === "home")
-        return q.location === "home";
+        return loc === "home" || loc === "both" || !loc;
       }
       if (locationFilter === "gym") {
-        // В зале - квесты с инвентарем (location === "gym")
-        return q.location === "gym";
+        return loc === "gym" || loc === "both" || !loc;
       }
       return true;
     });
+
+    // Если фильтр дал < половины квестов узла, показываем все (quests без location)
+    if (nodeQuests.length === 0 && allNodeQuests.length > 0) {
+      nodeQuests = allNodeQuests;
+    }
 
     if (nodeQuests.length === 0) return { completed: 0, total: 0, percent: 0 };
     const completed = nodeQuests.filter((q) => q.status === "done").length;
@@ -859,7 +875,7 @@ export function MapProgress({
                     style={{
                       strokeDasharray: "1",
                       strokeDashoffset: "1",
-                      animation: "mapFillPath 1.4s cubic-bezier(0.4,0,0.2,1) forwards",
+                      animation: "mapFillPath 3s cubic-bezier(0.4,0,0.2,1) forwards",
                       filter: "brightness(1.8) drop-shadow(0 0 4px rgba(167,139,250,0.9))",
                       opacity: 0.95,
                     }}
@@ -884,6 +900,7 @@ export function MapProgress({
           return (
             <div
               key={node.id}
+              ref={(el) => { nodeRefs.current[node.id] = el; }}
               className="absolute transform -translate-x-1/2 -translate-y-1/2"
               style={{
                 left: `${node.position.x}%`,
