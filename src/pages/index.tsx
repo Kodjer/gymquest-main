@@ -883,10 +883,16 @@ function AuthenticatedApp() {
           localStorage.removeItem("gymquest_native_session");
           localStorage.removeItem("gymquest_native_token");
           localStorage.removeItem("gymquest_native_user");
-          // Выходим и редиректим внутри приложения (не открывая браузер)
-          signOut({ redirect: false }).then(() => {
-            window.location.href = "/auth/signin";
-          });
+          const isNative = !!(window as any)?.Capacitor?.isNativePlatform?.();
+          if (isNative) {
+            // В APK не вызываем NextAuth signOut (он проксируется на Vercel и открывает браузер)
+            // Просто перезагружаем — index покажет LandingPage без сессии
+            window.location.replace("/");
+          } else {
+            signOut({ redirect: false }).then(() => {
+              window.location.href = "/auth/signin";
+            });
+          }
         }}
       />
 

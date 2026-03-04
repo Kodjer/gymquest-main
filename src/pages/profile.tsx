@@ -196,9 +196,14 @@ export default function Profile() {
             localStorage.removeItem("gymquest_native_session");
             localStorage.removeItem("gymquest_native_token");
             localStorage.removeItem("gymquest_native_user");
-            signOut({ redirect: false }).then(() => {
-              window.location.href = "/auth/signin";
-            });
+            const isNative = !!(window as any)?.Capacitor?.isNativePlatform?.();
+            if (isNative) {
+              window.location.replace("/");
+            } else {
+              signOut({ redirect: false }).then(() => {
+                window.location.href = "/auth/signin";
+              });
+            }
           }}
         />
       )}
