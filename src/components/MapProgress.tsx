@@ -1,6 +1,6 @@
 // src/components/MapProgress.tsx
 import { useRouter } from "next/router";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useAppTheme } from "../lib/ThemeContext";
 
 type MapNode = {
@@ -338,6 +338,50 @@ export function MapProgress({
   const { theme } = useAppTheme();
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+
+  // Анимация заполнения линии и разблокировки узла
+  const [animatingPaths, setAnimatingPaths] = useState<Set<string>>(new Set());
+  const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
+  const prevCompletedRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const nowCompleted = new Set(
+      mapNodes
+        .filter((n) => {
+          const p = getGlobalNodeProgress(n.id);
+          return p.percent === 100 && p.total > 0;
+        })
+        .map((n) => n.id)
+    );
+    const prev = prevCompletedRef.current;
+    const newlyDone = [...nowCompleted].filter((id) => !prev.has(id));
+    if (newlyDone.length > 0) {
+      setAnimatingPaths((s) => new Set([...s, ...newlyDone]));
+      const nextIds = newlyDone
+        .map((id) => {
+          const idx = mapNodes.findIndex((n) => n.id === id);
+          return mapNodes[idx + 1]?.id;
+        })
+        .filter(Boolean) as string[];
+      setNewlyUnlocked((s) => new Set([...s, ...nextIds]));
+      setTimeout(() => {
+        setAnimatingPaths((s) => {
+          const next = new Set(s);
+          newlyDone.forEach((id) => next.delete(id));
+          return next;
+        });
+      }, 1600);
+      setTimeout(() => {
+        setNewlyUnlocked((s) => {
+          const next = new Set(s);
+          nextIds.forEach((id) => next.delete(id));
+          return next;
+        });
+      }, 2800);
+    }
+    prevCompletedRef.current = nowCompleted;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [quests]);
 
   // Декоративные элементы для каждой темы
   const getThemeDecorations = () => {
@@ -758,8 +802,11 @@ export function MapProgress({
 
             const pathData = `M ${startX} ${startY} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${endX} ${endY}`;
 
+            const isPathAnimating = animatingPaths.has(node.id);
+
             return (
               <g key={`path-${node.id}`}>
+                {/* Базовая линия */}
                 <path
                   d={pathData}
                   stroke={isUnlocked ? `url(#${themeColors.gradientId})` : "#4b5563"}
@@ -769,6 +816,23 @@ export function MapProgress({
                   fill="none"
                   className="transition-all duration-500"
                 />
+                {/* Анимированная линия заполнения при завершении дня */}
+                {isPathAnimating && (
+                  <path
+                    d={pathData}
+                    stroke="#facc15"
+                    strokeWidth="1.1"
+                    strokeLinecap="round"
+                    fill="none"
+                    pathLength="1"
+                    style={{
+                      strokeDasharray: "1",
+                      strokeDashoffset: "1",
+                      animation: "mapFillPath 1.4s cubic-bezier(0.4,0,0.2,1) forwards",
+                      filter: "drop-shadow(0 0 3px #facc15)",
+                    }}
+                  />
+                )}
               </g>
             );
           })}
@@ -804,7 +868,7 @@ export function MapProgress({
                   isUnlocked
                     ? "cursor-pointer hover:scale-[1.25] active:scale-95"
                     : "cursor-not-allowed opacity-60"
-                }`}
+                } ${newlyUnlocked.has(node.id) ? "map-node-unlock" : ""}`}
                 style={{ zIndex: 10 }}
               >
                 {/* Круг узла */}

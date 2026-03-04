@@ -133,9 +133,18 @@ type Quest = {
 export default function Home() {
   const { data: session, status } = useSession();
   const [sessionTimedOut, setSessionTimedOut] = useState(false);
-  const [splashDone, setSplashDone] = useState(false);
+  // Если уже показывали сплэш в этой сессии — не показываем снова (при переходе с других вкладок)
+  const [splashDone, setSplashDone] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("gymquest_splash_done") === "1";
+    }
+    return false;
+  });
 
-  const handleSplashDone = useCallback(() => setSplashDone(true), []);
+  const handleSplashDone = useCallback(() => {
+    sessionStorage.setItem("gymquest_splash_done", "1");
+    setSplashDone(true);
+  }, []);
 
   // Если сессия грузится дольше 5 секунд — считаем пользователя неавторизованным
   useEffect(() => {
