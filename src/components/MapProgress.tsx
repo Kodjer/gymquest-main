@@ -350,7 +350,8 @@ export function MapProgress({
     const saved = sessionStorage.getItem("gymquest_map_scroll");
     if (saved) {
       const y = parseInt(saved, 10);
-      setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 80);
+      // Ждём пока layout устаканится
+      setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 200);
     }
     const onScroll = () => {
       sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
@@ -749,6 +750,20 @@ export function MapProgress({
                 <stop key={i} offset={`${(i / (themeColors.stops.length - 1)) * 100}%`} stopColor={color} />
               ))}
             </linearGradient>
+            {/* Маска: белый = видимо, чёрный = скрыто. Скрываем линии в зоне узлов */}
+            <mask id="mapNodesMask">
+              <rect width="100%" height="100%" fill="white" />
+              {mapNodes.map((node) => (
+                <ellipse
+                  key={`msk-${node.id}`}
+                  cx={`${node.position.x}%`}
+                  cy={`${node.position.y}%`}
+                  rx="5.2%"
+                  ry="5%"
+                  fill="black"
+                />
+              ))}
+            </mask>
           </defs>
           {mapNodes.slice(0, -1).map((node, i) => {
             const nextNode = mapNodes[i + 1];
@@ -760,8 +775,8 @@ export function MapProgress({
             const x2 = nextNode.position.x;
             const y2 = nextNode.position.y;
 
-            // Радиус окружности в процентах
-            const radius = 2.86;
+            // Радиус окружности в процентах — достаточно большой чтобы линии не касались кружков
+            const radius = 5.2;
 
             // Определяем направление (вправо/влево)
             const goingRight = x2 > x1;
@@ -828,7 +843,7 @@ export function MapProgress({
             const isPathAnimated = animatedPaths.has(i);
 
             return (
-              <g key={`path-${node.id}`}>
+              <g key={`path-${node.id}`} mask="url(#mapNodesMask)">
                 {/* Базовая серая линия */}
                 <path
                   d={pathData}
@@ -878,6 +893,7 @@ export function MapProgress({
               </g>
             );
           })}
+          {/* Конец путей */}
         </svg>
 
         {/* Узлы карты */}
@@ -951,11 +967,13 @@ export function MapProgress({
                     </div>
                   )}
 
-                  {/* Галочка */}
+                  {/* Выполненный день — пульсирующее кольцо вместо галочки */}
                   {isCompleted && (
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center shadow-xl border-2 border-white">
-                      <span className="text-white text-base font-bold">✓</span>
-                    </div>
+                    <div className="absolute inset-0 rounded-full pointer-events-none" style={{
+                      boxShadow: "0 0 0 3px rgba(167,139,250,0.9), 0 0 16px 4px rgba(139,92,246,0.5)",
+                      animation: "completedRing 2s ease-in-out infinite",
+                      borderRadius: "50%",
+                    }} />
                   )}
 
                   {/* Замок для закрытых узлов */}
@@ -1133,7 +1151,8 @@ export function MapProgress({
                   {allNodeQuests.length > 0 ? (
                     <button
                       onClick={() => {
-                        router.push(`/?nodeId=${selectedNode.id}`);
+                        sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
+                        router.push(`/?nodeId=${selectedNode.id}`, undefined, { scroll: false });
                         setSelectedNode(null);
                       }}
                       className="w-full py-3 rounded-2xl text-sm font-semibold bg-blue-500 hover:bg-blue-600 active:scale-95 text-white transition-all"

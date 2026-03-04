@@ -804,7 +804,7 @@ function AuthenticatedApp() {
             <div className="space-y-6">
               {/* Кнопка возврата к карте */}
               <button
-                onClick={() => router.push("/")}
+                onClick={() => router.push("/", undefined, { scroll: false })}
                 className="flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 font-semibold transition-colors"
               >
                 <span className="text-xl">←</span>
