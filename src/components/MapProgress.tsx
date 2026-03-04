@@ -978,18 +978,9 @@ export function MapProgress({
 
                   {/* Прогресс */}
                   {isUnlocked && progress.total > 0 && (
-                    <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-xl border-2 border-white dark:border-gray-900">
+                    <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-xl border-2 border-white dark:border-gray-900" style={{ zIndex: 20 }}>
                       {progress.completed}/{progress.total}
                     </div>
-                  )}
-
-                  {/* Выполненный день — пульсирующее кольцо вместо галочки */}
-                  {isCompleted && (
-                    <div className="absolute inset-0 rounded-full pointer-events-none" style={{
-                      boxShadow: "0 0 0 3px rgba(167,139,250,0.9), 0 0 16px 4px rgba(139,92,246,0.5)",
-                      animation: "completedRing 2s ease-in-out infinite",
-                      borderRadius: "50%",
-                    }} />
                   )}
 
                   {/* Замок для закрытых узлов */}
