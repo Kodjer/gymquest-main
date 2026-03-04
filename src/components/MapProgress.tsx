@@ -762,46 +762,18 @@ export function MapProgress({
                 <stop key={i} offset={`${(i / (themeColors.stops.length - 1)) * 100}%`} stopColor={color} />
               ))}
             </linearGradient>
-            {/* Маска: увеличенные эллипсы покрывают кружки на мобильных экранах */}
-            <mask id="mapNodesMask">
-              <rect width="100%" height="100%" fill="white" />
-              {mapNodes.map((node) => (
-                <ellipse
-                  key={`msk-${node.id}`}
-                  cx={`${node.position.x}`}
-                  cy={`${node.position.y}`}
-                  rx="9.5"
-                  ry="5.5"
-                  fill="black"
-                />
-              ))}
-            </mask>
           </defs>
           {mapNodes.slice(0, -1).map((node, i) => {
             const nextNode = mapNodes[i + 1];
             const isUnlocked = isNodeUnlocked(i + 1);
 
-            // Координаты центров узлов
-            const x1 = node.position.x;
-            const y1 = node.position.y;
-            const x2 = nextNode.position.x;
-            const y2 = nextNode.position.y;
+            // Линии выходят ровно из центров узлов
+            const startX = node.position.x;
+            const startY = node.position.y;
+            const endX = nextNode.position.x;
+            const endY = nextNode.position.y;
 
-            // Радиус смещения кончиков линий от центра узла (в единицах viewBox 0-100)
-            const radius = 9.5;
-
-            // Определяем направление (вправо/влево)
-            const goingRight = x2 > x1;
-
-            // Линия выходит СБОКУ от первого круга
-            const startX = x1 + (goingRight ? radius : -radius);
-            const startY = y1;
-
-            // Линия входит СБОКУ во второй круг
-            const endX = x2 + (goingRight ? -radius : radius);
-            const endY = y2;
-
-            const verticalDistance = Math.abs(y2 - y1);
+            const verticalDistance = Math.abs(endY - startY);
 
             // Плавные хаотичные дуги, идущие вниз
             let control1X, control1Y, control2X, control2Y;
@@ -856,7 +828,7 @@ export function MapProgress({
             const isNoDelay = noDelayPaths.has(i);
 
             return (
-              <g key={`path-${node.id}`} mask="url(#mapNodesMask)">
+              <g key={`path-${node.id}`}>
                 {/* Базовая серая линия — тонкая */}
                 <path
                   d={pathData}
@@ -871,7 +843,7 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="1.2"
+                    strokeWidth="0.8"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -888,7 +860,7 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="1.2"
+                    strokeWidth="0.8"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -950,17 +922,15 @@ export function MapProgress({
                 <div
                   className={`w-16 h-16 rounded-full ${
                     isCompleted
-                      ? "bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 shadow-2xl shadow-yellow-500/50"
+                      ? "bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 shadow-md"
                       : isUnlocked
-                      ? `bg-gradient-to-br ${node.color} shadow-2xl ${
-                          isHovered ? "shadow-purple-500/50" : ""
-                        }`
-                      : "bg-gray-800 dark:bg-gray-900 shadow-lg"
+                      ? `bg-gradient-to-br ${node.color} shadow-md`
+                      : "bg-gray-800 dark:bg-gray-900 shadow-sm"
                   } flex items-center justify-center relative ${
-                    isHovered ? "ring-4 ring-purple-400 ring-opacity-50" : ""
+                    isHovered ? "ring-2 ring-purple-400 ring-opacity-50" : ""
                   }`}
                   style={{
-                    filter: isUnlocked ? "brightness(1.1)" : "brightness(0.7)",
+                    filter: isUnlocked ? "brightness(1)" : "brightness(0.7)",
                     transform: node.isBoss ? "scale(1.2)" : "scale(1)",
                     position: "relative",
                     zIndex: 10,
@@ -1021,16 +991,6 @@ export function MapProgress({
             </div>
           );
         })}
-      </div>
-
-      <div className="mt-16 text-center space-y-2">
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Проходи узлы последовательно. Новый узел открывается после 70%
-          прогресса.
-        </div>
-        <div className="text-xs text-gray-500 dark:text-gray-500">
-          Боссовые узлы требуют 100% прохождения предыдущего узла
-        </div>
       </div>
 
       {/* Модальное окно с квестами узла */}
