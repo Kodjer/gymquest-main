@@ -342,7 +342,7 @@ export function MapProgress({
   // Анимация заполнения линии и разблокировки узла
   const [animatingPaths, setAnimatingPaths] = useState<Set<string>>(new Set());
   const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
-  const prevCompletedRef = useRef<Set<string>>(new Set());
+  const prevCompletedRef = useRef<Set<string> | null>(null); // null = ещё не инициализировано
 
   useEffect(() => {
     const nowCompleted = new Set(
@@ -353,6 +353,13 @@ export function MapProgress({
         })
         .map((n) => n.id)
     );
+
+    // Первый запуск — просто запоминаем текущее состояние без анимации
+    if (prevCompletedRef.current === null) {
+      prevCompletedRef.current = nowCompleted;
+      return;
+    }
+
     const prev = prevCompletedRef.current;
     const newlyDone = [...nowCompleted].filter((id) => !prev.has(id));
     if (newlyDone.length > 0) {
@@ -820,8 +827,8 @@ export function MapProgress({
                 {isPathAnimating && (
                   <path
                     d={pathData}
-                    stroke="#facc15"
-                    strokeWidth="1.1"
+                    stroke={`url(#${themeColors.gradientId})`}
+                    strokeWidth="1.8"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -829,7 +836,8 @@ export function MapProgress({
                       strokeDasharray: "1",
                       strokeDashoffset: "1",
                       animation: "mapFillPath 1.4s cubic-bezier(0.4,0,0.2,1) forwards",
-                      filter: "drop-shadow(0 0 3px #facc15)",
+                      filter: "brightness(1.8) drop-shadow(0 0 4px rgba(167,139,250,0.9))",
+                      opacity: 0.95,
                     }}
                   />
                 )}
