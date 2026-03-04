@@ -51,6 +51,7 @@ export default function NutritionPage() {
         isDark={isDark}
         onThemeToggle={() => setIsDark((prev) => !prev)}
         onChangeClass={() => {}}
+        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
       />
 
       {/* Магазин */}

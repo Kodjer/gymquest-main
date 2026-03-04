@@ -1,6 +1,6 @@
 // src/pages/profile.tsx
 import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
 import { PlayerCard } from "../components/PlayerCard";
@@ -192,6 +192,7 @@ export default function Profile() {
           onThemeToggle={() => setIsDark(!isDark)}
           onChangeClass={() => {}}
           onClose={() => setSettingsOpen(false)}
+          onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
         />
       )}
 
