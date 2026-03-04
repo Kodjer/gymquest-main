@@ -344,6 +344,30 @@ export function MapProgress({
   const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
   const prevCompletedRef = useRef<Set<string> | null>(null); // null = ещё не инициализировано
 
+  // Сохраняем и восстанавливаем позицию скролла при переходе между вкладками
+  useEffect(() => {
+    const saved = sessionStorage.getItem("gymquest_map_scroll");
+    if (saved) {
+      const y = parseInt(saved, 10);
+      // Небольшая задержка чтобы DOM успел отрисоваться
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          window.scrollTo({ top: y, behavior: "instant" });
+        });
+      });
+    }
+
+    const onScroll = () => {
+      sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
+    };
+  }, []);
+
   useEffect(() => {
     const nowCompleted = new Set(
       mapNodes
