@@ -33,7 +33,7 @@ interface Equipment {
   activePet?: string | null;
 }
 
-export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: ShopProps): React.ReactElement | null {
+export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: ShopProps) {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [purchasedItems, setPurchasedItems] = useState<PurchasedItems>({});
   const [equipment, setEquipment] = useState<Equipment>({});
