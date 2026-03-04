@@ -519,26 +519,14 @@ export function MapProgress({
       return { completed: 1, total: 1, percent: 100 };
     }
 
-    // Если не выполнен полностью - показываем прогресс текущей локации
-    const allNodeQuests = quests.filter((q) => q.nodeId === nodeId);
+    // Показываем прогресс текущей локации
+    let nodeQuests = quests.filter((q) => q.nodeId === nodeId);
 
-    // Применяем фильтр по локации
-    // Квесты с location "both" или без location входят в обе локации
-    let nodeQuests = allNodeQuests.filter((q) => {
-      const loc = q.location;
-      if (locationFilter === "home") {
-        return loc === "home" || loc === "both" || !loc;
-      }
-      if (locationFilter === "gym") {
-        return loc === "gym" || loc === "both" || !loc;
-      }
+    nodeQuests = nodeQuests.filter((q) => {
+      if (locationFilter === "home") return q.location === "home";
+      if (locationFilter === "gym")  return q.location === "gym";
       return true;
     });
-
-    // Если фильтр дал < половины квестов узла, показываем все (quests без location)
-    if (nodeQuests.length === 0 && allNodeQuests.length > 0) {
-      nodeQuests = allNodeQuests;
-    }
 
     if (nodeQuests.length === 0) return { completed: 0, total: 0, percent: 0 };
     const completed = nodeQuests.filter((q) => q.status === "done").length;
