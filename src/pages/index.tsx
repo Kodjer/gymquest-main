@@ -878,7 +878,16 @@ function AuthenticatedApp() {
           setShowClassSelection(true);
         }}
         currentClass={player.playerClass}
-        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
+        onSignOut={() => {
+          // Очищаем нативную сессию APK
+          localStorage.removeItem("gymquest_native_session");
+          localStorage.removeItem("gymquest_native_token");
+          localStorage.removeItem("gymquest_native_user");
+          // Выходим и редиректим внутри приложения (не открывая браузер)
+          signOut({ redirect: false }).then(() => {
+            window.location.href = "/auth/signin";
+          });
+        }}
       />
 
       {/* Выбор класса */}

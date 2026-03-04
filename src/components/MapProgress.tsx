@@ -982,15 +982,15 @@ export function MapProgress({
 
           return (
             <div
-              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60"
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
               onClick={() => setSelectedNode(null)}
             >
               <div
-                className={`${modalBg()} rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm shadow-2xl overflow-hidden`}
+                className={`${modalBg()} rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="relative px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between">
+                <div className="relative px-4 py-4 flex items-center justify-between">
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor()} rounded-l-2xl`} />
                   <div className="pl-3">
                     <p className="text-sm sm:text-base font-semibold leading-tight">
@@ -1006,7 +1006,7 @@ export function MapProgress({
                   </button>
                 </div>
 
-                <div className="px-3 sm:px-4 pb-4 sm:pb-4 space-y-2">
+                <div className="px-3 sm:px-4 pb-4 space-y-2">
                   {/* Прогресс */}
                   <div className={`${rowBg()} rounded-2xl px-4 py-3`}>
                     <div className="flex justify-between text-xs mb-1.5">

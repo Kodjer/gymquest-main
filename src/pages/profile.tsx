@@ -192,7 +192,14 @@ export default function Profile() {
           onThemeToggle={() => setIsDark(!isDark)}
           onChangeClass={() => {}}
           onClose={() => setSettingsOpen(false)}
-          onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
+          onSignOut={() => {
+            localStorage.removeItem("gymquest_native_session");
+            localStorage.removeItem("gymquest_native_token");
+            localStorage.removeItem("gymquest_native_user");
+            signOut({ redirect: false }).then(() => {
+              window.location.href = "/auth/signin";
+            });
+          }}
         />
       )}
 

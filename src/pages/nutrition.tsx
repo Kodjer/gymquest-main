@@ -51,7 +51,14 @@ export default function NutritionPage() {
         isDark={isDark}
         onThemeToggle={() => setIsDark((prev) => !prev)}
         onChangeClass={() => {}}
-        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
+        onSignOut={() => {
+          localStorage.removeItem("gymquest_native_session");
+          localStorage.removeItem("gymquest_native_token");
+          localStorage.removeItem("gymquest_native_user");
+          signOut({ redirect: false }).then(() => {
+            window.location.href = "/auth/signin";
+          });
+        }}
       />
 
       {/* Магазин */}
