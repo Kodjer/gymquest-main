@@ -376,8 +376,25 @@ export function MapProgress({
         .map((n) => n.id)
     );
     if (prevCompletedRef.current === null) {
-      // Первая загрузка квестов — сохраняем снимок, CSS анимация с задержкой обработает всё сама
+      // Первая загрузка — все уже пройденные пути, кроме последнего, показываем мгновенно.
+      // Последний пройденный путь анимируется (чтобы видеть прогресс).
       prevCompletedRef.current = nowCompleted;
+      if (nowCompleted.size > 0) {
+        const completedIndices = mapNodes.slice(0, -1)
+          .map((node, i) => ({ id: node.id, i }))
+          .filter(({ id }) => nowCompleted.has(id))
+          .map(({ i }) => i);
+        // Все кроме последнего — мгновенно
+        const instantIndices = completedIndices.slice(0, -1);
+        if (instantIndices.length > 0) {
+          setAnimatedPaths(new Set(instantIndices));
+        }
+        // Последний пройденный путь — анимируется сразу без задержки
+        const lastIdx = completedIndices[completedIndices.length - 1];
+        if (lastIdx !== undefined) {
+          setNoDelayPaths(new Set([lastIdx]));
+        }
+      }
       return;
     }
     const prev = prevCompletedRef.current;
@@ -745,16 +762,16 @@ export function MapProgress({
                 <stop key={i} offset={`${(i / (themeColors.stops.length - 1)) * 100}%`} stopColor={color} />
               ))}
             </linearGradient>
-            {/* Маска: белый = видимо, чёрный = скрыто. Скрываем линии в зоне узлов */}
+            {/* Маска: увеличенные эллипсы покрывают кружки на мобильных экранах */}
             <mask id="mapNodesMask">
               <rect width="100%" height="100%" fill="white" />
               {mapNodes.map((node) => (
                 <ellipse
                   key={`msk-${node.id}`}
-                  cx={`${node.position.x}%`}
-                  cy={`${node.position.y}%`}
-                  rx="5.2%"
-                  ry="5%"
+                  cx={`${node.position.x}`}
+                  cy={`${node.position.y}`}
+                  rx="9.5"
+                  ry="5.5"
                   fill="black"
                 />
               ))}
@@ -770,8 +787,8 @@ export function MapProgress({
             const x2 = nextNode.position.x;
             const y2 = nextNode.position.y;
 
-            // Радиус окружности в процентах — достаточно большой чтобы линии не касались кружков
-            const radius = 5.2;
+            // Радиус смещения кончиков линий от центра узла (в единицах viewBox 0-100)
+            const radius = 9.5;
 
             // Определяем направление (вправо/влево)
             const goingRight = x2 > x1;
@@ -840,13 +857,13 @@ export function MapProgress({
 
             return (
               <g key={`path-${node.id}`} mask="url(#mapNodesMask)">
-                {/* Базовая серая линия */}
+                {/* Базовая серая линия — тонкая */}
                 <path
                   d={pathData}
-                  stroke="#4b5563"
-                  strokeWidth="1"
+                  stroke="#6b7280"
+                  strokeWidth="0.45"
                   strokeLinecap="round"
-                  opacity="0.3"
+                  opacity="0.4"
                   fill="none"
                 />
                 {/* Градиентная линия для завершённых патей (статично после анимации) */}
@@ -854,14 +871,14 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="1.6"
+                    strokeWidth="1.2"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
                     style={{
                       strokeDasharray: "1",
                       strokeDashoffset: "0",
-                      filter: "brightness(1.5) drop-shadow(0 0 3px rgba(167,139,250,0.7))",
+                      filter: "brightness(1.4) drop-shadow(0 0 2px rgba(167,139,250,0.6))",
                       opacity: 0.9,
                     }}
                   />
@@ -871,7 +888,7 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="1.6"
+                    strokeWidth="1.2"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -880,7 +897,7 @@ export function MapProgress({
                       strokeDashoffset: "1",
                       animation: `mapFillPath 2.5s cubic-bezier(0.4,0,0.2,1) forwards`,
                       animationDelay: isNoDelay ? "0ms" : `${i * 400}ms`,
-                      filter: "brightness(1.5) drop-shadow(0 0 3px rgba(167,139,250,0.7))",
+                      filter: "brightness(1.4) drop-shadow(0 0 2px rgba(167,139,250,0.6))",
                       opacity: 0.9,
                     }}
                     onAnimationEnd={() => {
@@ -922,7 +939,7 @@ export function MapProgress({
                 onMouseEnter={() => setHoveredNode(node.id)}
                 onMouseLeave={() => setHoveredNode(null)}
                 disabled={!isUnlocked}
-                className={`relative transition-all duration-500 ${
+                className={`relative transition-all duration-500 bg-transparent border-0 outline-none ${
                   isUnlocked
                     ? "cursor-pointer hover:scale-[1.25] active:scale-95"
                     : "cursor-not-allowed opacity-60"
