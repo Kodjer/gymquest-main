@@ -1,5 +1,6 @@
 // src/pages/index.tsx
-import { useState, useEffect, Component, ReactNode, ErrorInfo } from "react";
+import { useState, useEffect, useCallback, Component, ReactNode, ErrorInfo } from "react";
+import { SplashScreen } from "../components/SplashScreen";
 import { useRouter } from "next/router";
 import { useLocalStorage } from "../lib/useLocalStorage";
 import { usePlayer } from "../lib/usePlayer";
@@ -132,6 +133,9 @@ type Quest = {
 export default function Home() {
   const { data: session, status } = useSession();
   const [sessionTimedOut, setSessionTimedOut] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
+
+  const handleSplashDone = useCallback(() => setSplashDone(true), []);
 
   // Если сессия грузится дольше 5 секунд — считаем пользователя неавторизованным
   useEffect(() => {
@@ -140,27 +144,27 @@ export default function Home() {
     return () => clearTimeout(t);
   }, [status]);
 
-  // Показываем Landing Page для неавторизованных пользователей
-  if (status === "loading" && !sessionTimedOut) {
+  // Рендерим содержимое (сплэш — оверлей поверх)
+  const renderContent = () => {
+    if ((status === "loading" && !sessionTimedOut) || !splashDone) {
+      // Пустой фон пока грузится / показывается сплэш
+      return <div className="min-h-screen bg-gradient-to-br from-purple-700 via-indigo-800 to-purple-900" />;
+    }
+    if (!session || sessionTimedOut) {
+      return <LandingPage />;
+    }
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-800">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
-          <div className="text-white text-lg font-medium">Загрузка...</div>
-        </div>
-      </div>
+      <AppErrorBoundary>
+        <AuthenticatedApp />
+      </AppErrorBoundary>
     );
-  }
+  };
 
-  if (!session || sessionTimedOut) {
-    return <LandingPage />;
-  }
-
-  // Основной интерфейс для авторизованных пользователей
   return (
-    <AppErrorBoundary>
-      <AuthenticatedApp />
-    </AppErrorBoundary>
+    <>
+      {!splashDone && <SplashScreen onDone={handleSplashDone} />}
+      {renderContent()}
+    </>
   );
 }
 
