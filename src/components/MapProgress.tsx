@@ -339,36 +339,30 @@ export function MapProgress({
   const [selectedNode, setSelectedNode] = useState<MapNode | null>(null);
   const [hoveredNode, setHoveredNode] = useState<string | null>(null);
 
-  // Анимация заполнения линии и разблокировки узла
-  const [animatingPaths, setAnimatingPaths] = useState<Set<string>>(new Set());
+  // animatedPaths — индекс завершённых патей (запускаются в каскаде при монте или при завершении)
+  const [animatedPaths, setAnimatedPaths] = useState<Set<number>>(new Set());
   const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
-  const prevCompletedRef = useRef<Set<string> | null>(null); // null = ещё не инициализировано
+  const prevCompletedRef = useRef<Set<string> | null>(null);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  // Сохраняем и восстанавливаем позицию скролла при переходе между вкладками
+  // Восстанавливаем позицию скролла при возврате на карту
   useEffect(() => {
     const saved = sessionStorage.getItem("gymquest_map_scroll");
     if (saved) {
       const y = parseInt(saved, 10);
-      // Небольшая задержка чтобы DOM успел отрисоваться
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo({ top: y, behavior: "instant" });
-        });
-      });
+      setTimeout(() => window.scrollTo({ top: y, behavior: "instant" }), 80);
     }
-
     const onScroll = () => {
       sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-
     return () => {
       window.removeEventListener("scroll", onScroll);
       sessionStorage.setItem("gymquest_map_scroll", String(window.scrollY));
     };
   }, []);
 
+  // Анимируем новые завершённые пати при выполнении квеста
   useEffect(() => {
     const nowCompleted = new Set(
       mapNodes
@@ -378,48 +372,42 @@ export function MapProgress({
         })
         .map((n) => n.id)
     );
-
-    // Первый запуск — просто запоминаем текущее состояние без анимации
     if (prevCompletedRef.current === null) {
+      // Первая загрузка квестов — запускаем каскадную анимацию всех завершённых путей
       prevCompletedRef.current = nowCompleted;
+      if (nowCompleted.size > 0) {
+        const indices = mapNodes.slice(0, -1)
+          .map((node, i) => ({ id: node.id, i }))
+          .filter(({ id }) => nowCompleted.has(id));
+        indices.forEach(({ i }, order) => {
+          setTimeout(() => setAnimatedPaths((s) => new Set([...s, i])), order * 350);
+        });
+      }
       return;
     }
-
     const prev = prevCompletedRef.current;
     const newlyDone = [...nowCompleted].filter((id) => !prev.has(id));
     if (newlyDone.length > 0) {
-      setAnimatingPaths((s) => new Set([...s, ...newlyDone]));
+      newlyDone.forEach((id) => {
+        const idx = mapNodes.findIndex((n) => n.id === id);
+        if (idx !== -1 && idx < mapNodes.length - 1) {
+          setAnimatedPaths((s) => new Set([...s, idx]));
+        }
+      });
+      requestAnimationFrame(() => {
+        const el = nodeRefs.current[newlyDone[0]];
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+      });
       const nextIds = newlyDone
         .map((id) => {
           const idx = mapNodes.findIndex((n) => n.id === id);
           return mapNodes[idx + 1]?.id;
         })
         .filter(Boolean) as string[];
-
-      // Скроллим к завершённому узлу чтобы пользователь увидел анимацию
-      requestAnimationFrame(() => {
-        const firstDone = newlyDone[0];
-        const el = nodeRefs.current[firstDone];
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
-        }
-      });
-
-      setNewlyUnlocked((s) => new Set([...s, ...nextIds]));
-      setTimeout(() => {
-        setAnimatingPaths((s) => {
-          const next = new Set(s);
-          newlyDone.forEach((id) => next.delete(id));
-          return next;
-        });
-      }, 3200);
-      setTimeout(() => {
-        setNewlyUnlocked((s) => {
-          const next = new Set(s);
-          nextIds.forEach((id) => next.delete(id));
-          return next;
-        });
-      }, 4800);
+      setTimeout(() => setNewlyUnlocked((s) => new Set([...s, ...nextIds])), 3000);
+      setTimeout(() => setNewlyUnlocked((s) => {
+        const next = new Set(s); nextIds.forEach((id) => next.delete(id)); return next;
+      }), 5000);
     }
     prevCompletedRef.current = nowCompleted;
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -837,36 +825,54 @@ export function MapProgress({
 
             const pathData = `M ${startX} ${startY} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${endX} ${endY}`;
 
-            const isPathAnimating = animatingPaths.has(node.id);
+            const isPathAnimated = animatedPaths.has(i);
 
             return (
               <g key={`path-${node.id}`}>
-                {/* Базовая линия */}
+                {/* Базовая серая линия */}
                 <path
                   d={pathData}
-                  stroke={isUnlocked ? `url(#${themeColors.gradientId})` : "#4b5563"}
+                  stroke="#4b5563"
                   strokeWidth="0.5"
                   strokeLinecap="round"
-                  opacity={isUnlocked ? "0.6" : "0.3"}
+                  opacity="0.3"
                   fill="none"
-                  className="transition-all duration-500"
                 />
-                {/* Анимированная линия заполнения при завершении дня */}
-                {isPathAnimating && (
+                {/* Градиентная линия для завершённых патей */}
+                {isUnlocked && isPathAnimated && (
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="1.8"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    fill="none"
+                    pathLength="1"
+                    style={{
+                      strokeDasharray: "1",
+                      strokeDashoffset: "0",
+                      filter: "brightness(1.5) drop-shadow(0 0 3px rgba(167,139,250,0.7))",
+                      opacity: 0.9,
+                    }}
+                  />
+                )}
+                {/* Анимированная линия заполнения — показываем пока не анимация не закончилась */}
+                {isUnlocked && !isPathAnimated && (
+                  <path
+                    d={pathData}
+                    stroke={`url(#${themeColors.gradientId})`}
+                    strokeWidth="1.6"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
                     style={{
                       strokeDasharray: "1",
                       strokeDashoffset: "1",
-                      animation: "mapFillPath 3s cubic-bezier(0.4,0,0.2,1) forwards",
-                      filter: "brightness(1.8) drop-shadow(0 0 4px rgba(167,139,250,0.9))",
-                      opacity: 0.95,
+                      animation: `mapFillPath 2.5s cubic-bezier(0.4,0,0.2,1) forwards`,
+                      animationDelay: `${i * 400}ms`,
+                      filter: "brightness(1.5) drop-shadow(0 0 3px rgba(167,139,250,0.7))",
+                      opacity: 0.9,
                     }}
+                    onAnimationEnd={() => setAnimatedPaths((s) => new Set([...s, i]))}
                   />
                 )}
               </g>
