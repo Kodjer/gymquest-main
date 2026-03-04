@@ -341,6 +341,8 @@ export function MapProgress({
 
   // animatedPaths — индекс завершённых патей (запускаются в каскаде при монте или при завершении)
   const [animatedPaths, setAnimatedPaths] = useState<Set<number>>(new Set());
+  // noDelayPaths — пути завершённые во время сессии, анимируются сразу (без задержки)
+  const [noDelayPaths, setNoDelayPaths] = useState<Set<number>>(new Set());
   const [newlyUnlocked, setNewlyUnlocked] = useState<Set<string>>(new Set());
   const prevCompletedRef = useRef<Set<string> | null>(null);
   const nodeRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -374,16 +376,8 @@ export function MapProgress({
         .map((n) => n.id)
     );
     if (prevCompletedRef.current === null) {
-      // Первая загрузка квестов — запускаем каскадную анимацию всех завершённых путей
+      // Первая загрузка квестов — сохраняем снимок, CSS анимация с задержкой обработает всё сама
       prevCompletedRef.current = nowCompleted;
-      if (nowCompleted.size > 0) {
-        const indices = mapNodes.slice(0, -1)
-          .map((node, i) => ({ id: node.id, i }))
-          .filter(({ id }) => nowCompleted.has(id));
-        indices.forEach(({ i }, order) => {
-          setTimeout(() => setAnimatedPaths((s) => new Set([...s, i])), order * 350);
-        });
-      }
       return;
     }
     const prev = prevCompletedRef.current;
@@ -392,7 +386,8 @@ export function MapProgress({
       newlyDone.forEach((id) => {
         const idx = mapNodes.findIndex((n) => n.id === id);
         if (idx !== -1 && idx < mapNodes.length - 1) {
-          setAnimatedPaths((s) => new Set([...s, idx]));
+          // Добавляем в noDelayPaths для мгновенной анимации (delay 0)
+          setNoDelayPaths((s) => new Set([...s, idx]));
         }
       });
       requestAnimationFrame(() => {
@@ -841,6 +836,7 @@ export function MapProgress({
             const pathData = `M ${startX} ${startY} C ${control1X} ${control1Y}, ${control2X} ${control2Y}, ${endX} ${endY}`;
 
             const isPathAnimated = animatedPaths.has(i);
+            const isNoDelay = noDelayPaths.has(i);
 
             return (
               <g key={`path-${node.id}`} mask="url(#mapNodesMask)">
@@ -848,12 +844,12 @@ export function MapProgress({
                 <path
                   d={pathData}
                   stroke="#4b5563"
-                  strokeWidth="0.5"
+                  strokeWidth="1"
                   strokeLinecap="round"
                   opacity="0.3"
                   fill="none"
                 />
-                {/* Градиентная линия для завершённых патей */}
+                {/* Градиентная линия для завершённых патей (статично после анимации) */}
                 {isUnlocked && isPathAnimated && (
                   <path
                     d={pathData}
@@ -870,7 +866,7 @@ export function MapProgress({
                     }}
                   />
                 )}
-                {/* Анимированная линия заполнения — показываем пока не анимация не закончилась */}
+                {/* Анимированная линия — плавное заполнение */}
                 {isUnlocked && !isPathAnimated && (
                   <path
                     d={pathData}
@@ -883,11 +879,14 @@ export function MapProgress({
                       strokeDasharray: "1",
                       strokeDashoffset: "1",
                       animation: `mapFillPath 2.5s cubic-bezier(0.4,0,0.2,1) forwards`,
-                      animationDelay: `${i * 400}ms`,
+                      animationDelay: isNoDelay ? "0ms" : `${i * 400}ms`,
                       filter: "brightness(1.5) drop-shadow(0 0 3px rgba(167,139,250,0.7))",
                       opacity: 0.9,
                     }}
-                    onAnimationEnd={() => setAnimatedPaths((s) => new Set([...s, i]))}
+                    onAnimationEnd={() => {
+                      setAnimatedPaths((s) => new Set([...s, i]));
+                      setNoDelayPaths((s) => { const n = new Set(s); n.delete(i); return n; });
+                    }}
                   />
                 )}
               </g>
@@ -1009,38 +1008,7 @@ export function MapProgress({
                   </div>
                 </div>
 
-                {/* Описание при наведении - чередуется слева-справа */}
-                {isHovered && isUnlocked && (
-                  <div
-                    className={`absolute top-1/2 transform -translate-y-1/2 whitespace-nowrap ${
-                      index % 2 === 0 ? "left-full ml-4" : "right-full mr-4"
-                    }`}
-                  >
-                    <div
-                      className={`text-xs text-gray-600 dark:text-gray-400 bg-white/90 dark:bg-gray-800/90 px-3 py-2 rounded-lg backdrop-blur-sm max-w-xs shadow-lg ${
-                        index % 2 === 0 ? "text-left" : "text-right"
-                      }`}
-                    >
-                      {node.description}
-                    </div>
-                  </div>
-                )}
-                {!isUnlocked && isHovered && (
-                  <div
-                    className={`absolute top-1/2 transform -translate-y-1/2 whitespace-nowrap ${
-                      index % 2 === 0 ? "left-full ml-4" : "right-full mr-4"
-                    }`}
-                  >
-                    <div
-                      className={`text-xs text-red-600 dark:text-red-400 bg-white/90 dark:bg-gray-800/90 px-3 py-2 rounded-lg backdrop-blur-sm shadow-lg ${
-                        index % 2 === 0 ? "text-left" : "text-right"
-                      }`}
-                    >
-                      Требуется {mapNodes[index - 1]?.isBoss ? "100%" : "70%"}{" "}
-                      прогресса
-                    </div>
-                  </div>
-                )}
+
               </button>
             </div>
           );
