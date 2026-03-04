@@ -3,12 +3,78 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { setNativeSession } from "../../lib/nativeAuth";
 
+// Prefetch player + quests (and generate if needed) before redirecting.
+// This ensures the main page opens instantly with data already in localStorage.
+async function preloadUserData() {
+  try {
+    // Parallel fetch of player and quests
+    const [playerRes, questsRes] = await Promise.all([
+      fetch("/api/player"),
+      fetch("/api/quests"),
+    ]);
+
+    if (playerRes.ok) {
+      const playerData = await playerRes.json();
+      if (playerData && typeof playerData === "object") {
+        // Merge with default player structure so usePlayer() reads it instantly
+        const defaultPlayer = {
+          xp: 0,
+          level: 1,
+          coins: 0,
+          streak: 0,
+          lastQuestDate: null,
+          onboardingCompleted: false,
+          playerClass: undefined,
+          classLevel: 1,
+          classXp: 0,
+          isEvolved: false,
+        };
+        localStorage.setItem(
+          "player",
+          JSON.stringify({ ...defaultPlayer, ...playerData }),
+        );
+      }
+    }
+
+    if (questsRes.ok) {
+      const questsData = await questsRes.json();
+      if (Array.isArray(questsData) && questsData.length > 0) {
+        localStorage.setItem(
+          "gymquest_quests_cache",
+          JSON.stringify(questsData),
+        );
+      } else {
+        // No quests yet — check if onboarding is done and generate
+        const playerRaw = localStorage.getItem("player");
+        const player = playerRaw ? JSON.parse(playerRaw) : null;
+        if (player?.onboardingCompleted) {
+          await fetch("/api/quests/generate-week", { method: "POST" });
+          const freshRes = await fetch("/api/quests");
+          if (freshRes.ok) {
+            const freshQuests = await freshRes.json();
+            if (Array.isArray(freshQuests) && freshQuests.length > 0) {
+              localStorage.setItem(
+                "gymquest_quests_cache",
+                JSON.stringify(freshQuests),
+              );
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Non-fatal — the main page will load the data itself
+    console.warn("preloadUserData failed (will retry on main page):", e);
+  }
+}
+
 export default function SignIn() {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const callbackUrl = (router.query.callbackUrl as string) || "/";
@@ -16,6 +82,7 @@ export default function SignIn() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoadingMsg("");
     setError("");
     // Пробуем нативный логин (работает в APK без CSRF)
     const nativeRes = await fetch("/api/auth/native-login", {
@@ -27,9 +94,15 @@ export default function SignIn() {
       const nativeData = await nativeRes.json();
       if (nativeData.token && nativeData.user) {
         localStorage.setItem("gymquest_native_token", nativeData.token);
-        localStorage.setItem("gymquest_native_user", JSON.stringify(nativeData.user));
+        localStorage.setItem(
+          "gymquest_native_user",
+          JSON.stringify(nativeData.user),
+        );
         setNativeSession(nativeData.user);
       }
+      // Pre-load player + quests so main page opens instantly
+      setLoadingMsg("Загружаем прогресс...");
+      await preloadUserData();
       setLoading(false);
       // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
       window.location.href = callbackUrl || "/";
@@ -53,6 +126,7 @@ export default function SignIn() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoadingMsg("");
     setError("");
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -91,9 +165,15 @@ export default function SignIn() {
     // Сохраняем токен и сессию для нативного APK
     if (loginData.token && loginData.user) {
       localStorage.setItem("gymquest_native_token", loginData.token);
-      localStorage.setItem("gymquest_native_user", JSON.stringify(loginData.user));
+      localStorage.setItem(
+        "gymquest_native_user",
+        JSON.stringify(loginData.user),
+      );
       setNativeSession(loginData.user);
     }
+    // Pre-load player data (new user, no quests yet — onboarding will run first)
+    setLoadingMsg("Настраиваем аккаунт...");
+    await preloadUserData();
     setLoading(false);
     // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
     window.location.href = callbackUrl || "/";
@@ -110,12 +190,25 @@ export default function SignIn() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-white/20 border-2 border-white/30 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M6.5 6.5h11M6.5 17.5h11M4 10h16M4 14h16"/>
+            <svg
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="white"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M6.5 6.5h11M6.5 17.5h11M4 10h16M4 14h16" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-white tracking-tight">GymQuest</h1>
-          <p className="text-purple-200 text-sm mt-1">Превратите фитнес в игру</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">
+            GymQuest
+          </h1>
+          <p className="text-purple-200 text-sm mt-1">
+            Превратите фитнес в игру
+          </p>
         </div>
 
         {/* Card */}
@@ -123,7 +216,10 @@ export default function SignIn() {
           {/* Tabs */}
           <div className="flex mb-5 bg-white/10 rounded-xl p-1">
             <button
-              onClick={() => { setTab("login"); setError(""); }}
+              onClick={() => {
+                setTab("login");
+                setError("");
+              }}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                 tab === "login"
                   ? "bg-white text-purple-700 shadow"
@@ -133,7 +229,10 @@ export default function SignIn() {
               Вход
             </button>
             <button
-              onClick={() => { setTab("register"); setError(""); }}
+              onClick={() => {
+                setTab("register");
+                setError("");
+              }}
               className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-all ${
                 tab === "register"
                   ? "bg-white text-purple-700 shadow"
@@ -144,7 +243,10 @@ export default function SignIn() {
             </button>
           </div>
 
-          <form onSubmit={tab === "login" ? handleLogin : handleRegister} className="space-y-3">
+          <form
+            onSubmit={tab === "login" ? handleLogin : handleRegister}
+            className="space-y-3"
+          >
             {tab === "register" && (
               <input
                 type="text"
@@ -172,7 +274,9 @@ export default function SignIn() {
             />
 
             {error && (
-              <p className="text-red-300 text-xs text-center bg-red-500/20 rounded-lg py-2 px-3">{error}</p>
+              <p className="text-red-300 text-xs text-center bg-red-500/20 rounded-lg py-2 px-3">
+                {error}
+              </p>
             )}
 
             <button
@@ -180,7 +284,12 @@ export default function SignIn() {
               disabled={loading}
               className="w-full py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 disabled:opacity-50 transition-all shadow-lg text-sm"
             >
-              {loading ? "..." : tab === "login" ? "Войти" : "Создать аккаунт"}
+              {loading
+                ? loadingMsg ||
+                  (tab === "login" ? "Входим..." : "Создаём аккаунт...")
+                : tab === "login"
+                  ? "Войти"
+                  : "Создать аккаунт"}
             </button>
           </form>
 
@@ -196,10 +305,22 @@ export default function SignIn() {
             className="w-full flex items-center justify-center gap-3 py-3 bg-white/10 text-white rounded-xl border border-white/20 hover:bg-white/20 disabled:opacity-50 transition-all text-sm font-medium"
           >
             <svg width="18" height="18" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+              <path
+                fill="#4285F4"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="#34A853"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="#FBBC05"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                fill="#EA4335"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
             </svg>
             Войти через Google
           </button>
