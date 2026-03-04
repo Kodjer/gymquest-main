@@ -19,9 +19,10 @@ export default async function handler(
     return res.status(400).json({ error: "Invalid quest ID" });
   }
 
-  // Получаем пользователя
+  // Получаем пользователя (только id)
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
+    select: { id: true },
   });
 
   if (!user) {
@@ -56,36 +57,36 @@ export default async function handler(
       if (status === "done" && existingQuest.status === "pending") {
         const player = await prisma.player.findUnique({
           where: { userId: user.id },
+          select: { id: true, xp: true, completedQuests: true },
         });
 
         if (player) {
           const newXp = player.xp + updatedQuest.xpReward;
           const newLevel = Math.floor(newXp / 100) + 1;
 
-          await prisma.player.update({
-            where: { id: player.id },
-            data: {
-              xp: newXp,
-              level: newLevel,
-              completedQuests: player.completedQuests + 1,
-            },
-          });
-
-          // Сохраняем историю XP
-          await prisma.xpHistory.create({
-            data: {
-              userId: user.id,
-              xp: newXp,
-            },
-          });
-
-          // Обновляем completedAt для квеста
-          await prisma.quest.update({
-            where: { id },
-            data: {
-              completedAt: new Date(),
-            },
-          });
+          // Выполняем все три обновления параллельно
+          await Promise.all([
+            prisma.player.update({
+              where: { id: player.id },
+              data: {
+                xp: newXp,
+                level: newLevel,
+                completedQuests: player.completedQuests + 1,
+              },
+            }),
+            prisma.xpHistory.create({
+              data: {
+                userId: user.id,
+                xp: newXp,
+              },
+            }),
+            prisma.quest.update({
+              where: { id },
+              data: {
+                completedAt: new Date(),
+              },
+            }),
+          ]);
         }
       }
 

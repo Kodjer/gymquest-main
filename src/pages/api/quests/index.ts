@@ -13,9 +13,10 @@ export default async function handler(
     return res.status(401).json({ error: "Unauthorized" });
   }
 
-  // Получаем пользователя по email
+  // Получаем пользователя по email (только id)
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
+    select: { id: true },
   });
 
   if (!user) {

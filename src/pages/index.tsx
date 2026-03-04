@@ -131,17 +131,28 @@ type Quest = {
 
 export default function Home() {
   const { data: session, status } = useSession();
+  const [sessionTimedOut, setSessionTimedOut] = useState(false);
+
+  // Если сессия грузится дольше 5 секунд — считаем пользователя неавторизованным
+  useEffect(() => {
+    if (status !== "loading") return;
+    const t = setTimeout(() => setSessionTimedOut(true), 5000);
+    return () => clearTimeout(t);
+  }, [status]);
 
   // Показываем Landing Page для неавторизованных пользователей
-  if (status === "loading") {
+  if (status === "loading" && !sessionTimedOut) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-600 to-indigo-800">
-        <div className="text-white text-2xl">Загрузка...</div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+          <div className="text-white text-lg font-medium">Загрузка...</div>
+        </div>
       </div>
     );
   }
 
-  if (!session) {
+  if (!session || sessionTimedOut) {
     return <LandingPage />;
   }
 
@@ -164,7 +175,7 @@ function AuthenticatedApp() {
   const [shopOpen, setShopOpen] = useState(false);
   const [equipmentVersion, setEquipmentVersion] = useState(0); // Для обновления PlayerCard
   const [quests, setQuests] = useState<Quest[]>([]);
-  const [isLoadingQuests, setIsLoadingQuests] = useState(true);
+  const [isLoadingQuests, setIsLoadingQuests] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [locationFilter, setLocationFilter] = useState<"home" | "gym">(() => {
     if (typeof window !== "undefined") {
@@ -238,9 +249,32 @@ function AuthenticatedApp() {
 
   // Загрузка квестов из API
   const loadQuests = async () => {
-    setIsLoadingQuests(true);
+    // Сразу показываем кэш если есть (без спиннера задержки)
     try {
-      const response = await fetch("/api/quests");
+      const cached = localStorage.getItem("gymquest_quests_cache");
+      if (cached) {
+        setQuests(JSON.parse(cached));
+      } else {
+        setIsLoadingQuests(true);
+      }
+    } catch {}
+
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 сек таймаут
+      let response: Response;
+      try {
+        response = await fetch("/api/quests", { signal: controller.signal });
+        clearTimeout(timeoutId);
+      } catch (fetchErr: any) {
+        clearTimeout(timeoutId);
+        if (fetchErr?.name === "AbortError") {
+          console.warn("⏱ Загрузка квестов: таймаут 15с");
+        } else {
+          console.error("Fetch /api/quests error:", fetchErr);
+        }
+        return;
+      }
       if (response.ok) {
         const data = await response.json();
         console.log("🎮 Загружено квестов:", data.length);
@@ -256,6 +290,8 @@ function AuthenticatedApp() {
           });
         }
         setQuests(data);
+        // Сохраняем свежие данные в кэш
+        try { localStorage.setItem("gymquest_quests_cache", JSON.stringify(data)); } catch {}
 
         // Если квестов нет и пройден onboarding - генерируем автоматически
         if (data.length === 0 && player.onboardingCompleted) {
@@ -275,6 +311,29 @@ function AuthenticatedApp() {
       loadQuests();
     }
   }, [session]);
+
+  // Android Back button — предотвращает случайный выход из приложения
+  useEffect(() => {
+    const isNative = !!(window as any)?.Capacitor?.isNativePlatform?.();
+    if (!isNative) return;
+    let lastBackPress = 0;
+    const handleBack = (e: Event) => {
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastBackPress < 2000) {
+        // Дважды нажали Back в течение 2с — выходим
+        (window as any)?.Capacitor?.nativeCallback?.("App", "exitApp", {});
+        return;
+      }
+      lastBackPress = now;
+      // Возвращаемся по истории, или показываем подсказку
+      if (window.history.length > 1) {
+        window.history.back();
+      }
+    };
+    document.addEventListener("backbutton", handleBack);
+    return () => document.removeEventListener("backbutton", handleBack);
+  }, []);
 
   // Проверка завершения недели (все 7 дней должны быть завершены в ЛЮБОЙ локации)
   useEffect(() => {
@@ -431,6 +490,120 @@ function AuthenticatedApp() {
 
     const newStatus = quest.status === "pending" ? "done" : "pending";
 
+    // Сохраняем предыдущее состояние для возможного отката
+    const previousQuests = quests;
+    const previousPlayer = { ...player };
+
+    // === ОПТИМИСТИЧНОЕ ОБНОВЛЕНИЕ — мгновенно меняем UI ===
+    setQuests((prev) =>
+      prev.map((q) => (q.id === id ? { ...q, status: newStatus } : q))
+    );
+
+    // Если квест завершен, начисляем XP и монеты
+    if (newStatus === "done") {
+      const today = new Date().toISOString().split("T")[0];
+      let newStreak = player.streak;
+
+      // Обновляем стрик
+      if (player.lastQuestDate === today) {
+        // Уже выполняли квест сегодня
+        newStreak = player.streak;
+      } else if (player.lastQuestDate) {
+        const lastDate = new Date(player.lastQuestDate);
+        const todayDate = new Date(today);
+        const diffDays = Math.floor(
+          (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
+        );
+
+        if (diffDays === 1) {
+          // Продолжаем стрик
+          newStreak = player.streak + 1;
+        } else {
+          // Стрик прервался
+          newStreak = 1;
+        }
+      } else {
+        // Первый квест
+        newStreak = 1;
+      }
+
+      // Базовые награды за квест
+      const baseCoins =
+        quest.difficulty === "easy"
+          ? 10
+          : quest.difficulty === "medium"
+          ? 20
+          : 30;
+      
+      // Применяем бонусы класса
+      const classBonus = calculateClassBonus(
+        quest.xpReward,
+        baseCoins,
+        quest.category,
+        quest.difficulty,
+        player.playerClass,
+        newStreak
+      );
+
+      // Бонус стрика для Скаута (+10%)
+      let streakMultiplier = 1;
+      if (player.playerClass === "scout" && newStreak >= 3) {
+        streakMultiplier = 1.1;
+      }
+
+      // Добавляем бонус стрика от питомца
+      const petStreakBonus = equipmentData.getStreakBonus();
+      streakMultiplier += petStreakBonus;
+
+      const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
+      
+      // Применяем множители от бустов и питомцев
+      const xpMultiplier = equipmentData.getXpMultiplier();
+      const coinMultiplier = equipmentData.getCoinMultiplier();
+      const categoryBonus = equipmentData.getCategoryXpBonus(quest.category || '');
+      
+      let totalXp = Math.round(classBonus.xp * streakMultiplier * xpMultiplier);
+      // Добавляем категорийный бонус (например, от кота-йога за гибкость)
+      if (categoryBonus > 0) {
+        totalXp = Math.round(totalXp * (1 + categoryBonus));
+      }
+      
+      const totalCoins = Math.round(classBonus.coins * streakMultiplier * coinMultiplier) + streakBonus;
+
+      const newXp = player.xp + totalXp;
+      const newLevel = Math.floor(newXp / 500) + 1;
+      const newCoins = player.coins + totalCoins;
+
+      // Логируем бонус если есть
+      if (classBonus.bonusText) {
+        console.log(`🎮 Бонус класса: ${classBonus.bonusText}`);
+      }
+      if (xpMultiplier > 1 || coinMultiplier > 1) {
+        console.log(`✨ Множители: XP x${xpMultiplier.toFixed(1)}, Монеты x${coinMultiplier.toFixed(1)}`);
+      }
+
+      setPlayer({
+        ...player,
+        xp: newXp,
+        level: newLevel,
+        coins: newCoins,
+        streak: newStreak,
+        lastQuestDate: today,
+      });
+      setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
+
+      celebrateQuestComplete(quest.difficulty);
+    }
+    // Если квест отменен, отнимаем XP
+    else if (newStatus === "pending") {
+      const newXp = Math.max(0, player.xp - quest.xpReward);
+      const newLevel = Math.floor(newXp / 500) + 1;
+
+      setPlayer({ ...player, xp: newXp, level: newLevel });
+      setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
+    }
+
+    // === Синхронизируем с сервером в фоне ===
     try {
       const response = await fetch(`/api/quests/${id}`, {
         method: "PUT",
@@ -440,117 +613,24 @@ function AuthenticatedApp() {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      if (response.ok) {
-        // Обновляем локально
-        setQuests((prev) =>
-          prev.map((q) => (q.id === id ? { ...q, status: newStatus } : q))
-        );
-
-        // Если квест завершен, начисляем XP и монеты
-        if (newStatus === "done") {
-          const today = new Date().toISOString().split("T")[0];
-          let newStreak = player.streak;
-
-          // Обновляем стрик
-          if (player.lastQuestDate === today) {
-            // Уже выполняли квест сегодня
-            newStreak = player.streak;
-          } else if (player.lastQuestDate) {
-            const lastDate = new Date(player.lastQuestDate);
-            const todayDate = new Date(today);
-            const diffDays = Math.floor(
-              (todayDate.getTime() - lastDate.getTime()) / (1000 * 60 * 60 * 24)
-            );
-
-            if (diffDays === 1) {
-              // Продолжаем стрик
-              newStreak = player.streak + 1;
-            } else {
-              // Стрик прервался
-              newStreak = 1;
-            }
-          } else {
-            // Первый квест
-            newStreak = 1;
-          }
-
-          // Базовые награды за квест
-          const baseCoins =
-            quest.difficulty === "easy"
-              ? 10
-              : quest.difficulty === "medium"
-              ? 20
-              : 30;
-          
-          // Применяем бонусы класса
-          const classBonus = calculateClassBonus(
-            quest.xpReward,
-            baseCoins,
-            quest.category,
-            quest.difficulty,
-            player.playerClass,
-            newStreak
+      if (!response.ok) {
+        // Откатываем оптимистичные изменения при ошибке
+        setQuests(previousQuests);
+        setPlayer(previousPlayer);
+        console.error("Ошибка сохранения квеста, откат изменений");
+      } else {
+        // Обновляем кэш после успешного сохранения
+        try {
+          const updatedQuests = previousQuests.map((q) =>
+            q.id === id ? { ...q, status: newStatus } : q
           );
-
-          // Бонус стрика для Скаута (+10%)
-          let streakMultiplier = 1;
-          if (player.playerClass === "scout" && newStreak >= 3) {
-            streakMultiplier = 1.1;
-          }
-
-          // Добавляем бонус стрика от питомца
-          const petStreakBonus = equipmentData.getStreakBonus();
-          streakMultiplier += petStreakBonus;
-
-          const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
-          
-          // Применяем множители от бустов и питомцев
-          const xpMultiplier = equipmentData.getXpMultiplier();
-          const coinMultiplier = equipmentData.getCoinMultiplier();
-          const categoryBonus = equipmentData.getCategoryXpBonus(quest.category || '');
-          
-          let totalXp = Math.round(classBonus.xp * streakMultiplier * xpMultiplier);
-          // Добавляем категорийный бонус (например, от кота-йога за гибкость)
-          if (categoryBonus > 0) {
-            totalXp = Math.round(totalXp * (1 + categoryBonus));
-          }
-          
-          const totalCoins = Math.round(classBonus.coins * streakMultiplier * coinMultiplier) + streakBonus;
-
-          const newXp = player.xp + totalXp;
-          const newLevel = Math.floor(newXp / 500) + 1;
-          const newCoins = player.coins + totalCoins;
-
-          // Логируем бонус если есть
-          if (classBonus.bonusText) {
-            console.log(`🎮 Бонус класса: ${classBonus.bonusText}`);
-          }
-          if (xpMultiplier > 1 || coinMultiplier > 1) {
-            console.log(`✨ Множители: XP x${xpMultiplier.toFixed(1)}, Монеты x${coinMultiplier.toFixed(1)}`);
-          }
-
-          setPlayer({
-            ...player,
-            xp: newXp,
-            level: newLevel,
-            coins: newCoins,
-            streak: newStreak,
-            lastQuestDate: today,
-          });
-          setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
-
-          celebrateQuestComplete(quest.difficulty);
-        }
-        // Если квест отменен, отнимаем XP
-        else if (newStatus === "pending") {
-          const newXp = Math.max(0, player.xp - quest.xpReward);
-          const newLevel = Math.floor(newXp / 500) + 1;
-
-          setPlayer({ ...player, xp: newXp, level: newLevel });
-          setXpHistory((hist) => [...hist, { xp: newXp, time: Date.now() }]);
-        }
+          localStorage.setItem("gymquest_quests_cache", JSON.stringify(updatedQuests));
+        } catch {}
       }
     } catch (error) {
+      // Откатываем изменения при ошибке сети
+      setQuests(previousQuests);
+      setPlayer(previousPlayer);
       console.error("Error toggling quest:", error);
     }
   }
@@ -652,8 +732,8 @@ function AuthenticatedApp() {
       onSettingsClick={() => setSettingsOpen(true)}
       onShopClick={() => setShopOpen(true)}
     >
-      <div className="p-4 overflow-x-hidden w-full">
-        <div className="space-y-6">
+      <div className="p-3 sm:p-4 overflow-x-hidden w-full">
+        <div className="space-y-4 sm:space-y-6">
           {/* Профиль игрока */}
           <PlayerCard
             key={`player-card-${equipmentVersion}`}
@@ -677,8 +757,8 @@ function AuthenticatedApp() {
               </button>
 
               {/* Заголовок узла */}
-              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-6 text-white">
-                <h2 className="text-2xl font-bold mb-2">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl p-4 sm:p-6 text-white">
+                <h2 className="text-xl sm:text-2xl font-bold mb-1.5 sm:mb-2">
                   {nodeId === "node-1"
                     ? "День 1"
                     : nodeId === "node-2"
@@ -695,7 +775,7 @@ function AuthenticatedApp() {
                     ? "День 7"
                     : "Тренировка"}
                 </h2>
-                <p className="opacity-90">
+                <p className="text-sm sm:text-base opacity-90">
                   Выполните все квесты, чтобы открыть следующий узел
                 </p>
               </div>
