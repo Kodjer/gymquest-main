@@ -3,12 +3,61 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 import { setNativeSession } from "../../lib/nativeAuth";
 
+// Prefetch player + quests (and generate if needed) before redirecting.
+// This ensures the main page opens instantly with data already in localStorage.
+async function preloadUserData() {
+  try {
+    // Parallel fetch of player and quests
+    const [playerRes, questsRes] = await Promise.all([
+      fetch("/api/player"),
+      fetch("/api/quests"),
+    ]);
+
+    if (playerRes.ok) {
+      const playerData = await playerRes.json();
+      if (playerData && typeof playerData === "object") {
+        // Merge with default player structure so usePlayer() reads it instantly
+        const defaultPlayer = {
+          xp: 0, level: 1, coins: 0, streak: 0, lastQuestDate: null,
+          onboardingCompleted: false, playerClass: undefined, classLevel: 1, classXp: 0, isEvolved: false,
+        };
+        localStorage.setItem("player", JSON.stringify({ ...defaultPlayer, ...playerData }));
+      }
+    }
+
+    if (questsRes.ok) {
+      const questsData = await questsRes.json();
+      if (Array.isArray(questsData) && questsData.length > 0) {
+        localStorage.setItem("gymquest_quests_cache", JSON.stringify(questsData));
+      } else {
+        // No quests yet — check if onboarding is done and generate
+        const playerRaw = localStorage.getItem("player");
+        const player = playerRaw ? JSON.parse(playerRaw) : null;
+        if (player?.onboardingCompleted) {
+          await fetch("/api/quests/generate-week", { method: "POST" });
+          const freshRes = await fetch("/api/quests");
+          if (freshRes.ok) {
+            const freshQuests = await freshRes.json();
+            if (Array.isArray(freshQuests) && freshQuests.length > 0) {
+              localStorage.setItem("gymquest_quests_cache", JSON.stringify(freshQuests));
+            }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // Non-fatal — the main page will load the data itself
+    console.warn("preloadUserData failed (will retry on main page):", e);
+  }
+}
+
 export default function SignIn() {
   const [tab, setTab] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [loadingMsg, setLoadingMsg] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
   const callbackUrl = (router.query.callbackUrl as string) || "/";
@@ -16,6 +65,7 @@ export default function SignIn() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoadingMsg("");
     setError("");
     // Пробуем нативный логин (работает в APK без CSRF)
     const nativeRes = await fetch("/api/auth/native-login", {
@@ -30,6 +80,9 @@ export default function SignIn() {
         localStorage.setItem("gymquest_native_user", JSON.stringify(nativeData.user));
         setNativeSession(nativeData.user);
       }
+      // Pre-load player + quests so main page opens instantly
+      setLoadingMsg("Загружаем прогресс...");
+      await preloadUserData();
       setLoading(false);
       // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
       window.location.href = callbackUrl || "/";
@@ -53,6 +106,7 @@ export default function SignIn() {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setLoadingMsg("");
     setError("");
     const res = await fetch("/api/auth/register", {
       method: "POST",
@@ -94,6 +148,9 @@ export default function SignIn() {
       localStorage.setItem("gymquest_native_user", JSON.stringify(loginData.user));
       setNativeSession(loginData.user);
     }
+    // Pre-load player data (new user, no quests yet — onboarding will run first)
+    setLoadingMsg("Настраиваем аккаунт...");
+    await preloadUserData();
     setLoading(false);
     // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
     window.location.href = callbackUrl || "/";
@@ -180,7 +237,7 @@ export default function SignIn() {
               disabled={loading}
               className="w-full py-3 bg-white text-purple-700 font-bold rounded-xl hover:bg-purple-50 disabled:opacity-50 transition-all shadow-lg text-sm"
             >
-              {loading ? "..." : tab === "login" ? "Войти" : "Создать аккаунт"}
+              {loading ? (loadingMsg || (tab === "login" ? "Входим..." : "Создаём аккаунт...")) : tab === "login" ? "Войти" : "Создать аккаунт"}
             </button>
           </form>
 

@@ -737,13 +737,20 @@ export function MapProgress({
         </div>
       </div>
 
-      <div className="relative h-[700px] sm:h-[800px] px-4 sm:px-16 py-4 sm:py-12 overflow-visible">
+      <div className="relative h-[650px] sm:h-[800px] px-2 sm:px-16 py-6 sm:py-12 select-none overflow-visible">
+        {/* Базовые анимированные градиенты для заднего фона для визуального разнообразия */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none rounded-3xl opacity-20">
+          <div className="absolute -top-40 -left-40 w-96 h-96 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob" />
+          <div className="absolute top-1/3 -right-20 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-2000" />
+          <div className="absolute -bottom-40 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl opacity-40 animate-blob animation-delay-4000" />
+        </div>
+
         {/* Декоративные элементы темы */}
         {getThemeDecorations().map((deco, index) => (
           <div
             key={`deco-${index}`}
-            className={`absolute ${deco.position} ${deco.size} opacity-15 animate-float pointer-events-none`}
-            style={{ animationDelay: deco.delay }}
+            className={`absolute ${deco.position} ${deco.size} opacity-20 sm:opacity-15 animate-pulse sm:animate-float pointer-events-none`}
+            style={{ animationDelay: deco.delay, zIndex: 1 }}
           >
             {deco.emoji}
           </div>
@@ -833,7 +840,8 @@ export function MapProgress({
                 <path
                   d={pathData}
                   stroke="#6b7280"
-                  strokeWidth="0.45"
+                  strokeWidth="1.5"
+                  vectorEffect="non-scaling-stroke"
                   strokeLinecap="round"
                   opacity="0.4"
                   fill="none"
@@ -843,7 +851,8 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="0.8"
+                    strokeWidth="3"
+                    vectorEffect="non-scaling-stroke"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -860,7 +869,8 @@ export function MapProgress({
                   <path
                     d={pathData}
                     stroke={`url(#${themeColors.gradientId})`}
-                    strokeWidth="0.8"
+                    strokeWidth="3"
+                    vectorEffect="non-scaling-stroke"
                     strokeLinecap="round"
                     fill="none"
                     pathLength="1"
@@ -920,7 +930,7 @@ export function MapProgress({
               >
                 {/* Круг узла */}
                 <div
-                  className={`w-16 h-16 rounded-full ${
+                  className={`w-14 h-14 sm:w-16 sm:h-16 rounded-full ${
                     isCompleted
                       ? "bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 shadow-md"
                       : isUnlocked
@@ -937,7 +947,7 @@ export function MapProgress({
                   }}
                 >
                   <span
-                    className={`text-3xl font-bold ${
+                    className={`text-2xl sm:text-3xl font-bold ${
                       isUnlocked
                         ? "filter drop-shadow-lg"
                         : "opacity-30 grayscale"
@@ -948,7 +958,7 @@ export function MapProgress({
 
                   {/* Прогресс */}
                   {isUnlocked && progress.total > 0 && (
-                    <div className="absolute -bottom-2 -right-2 w-9 h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-xl border-2 border-white dark:border-gray-900" style={{ zIndex: 20 }}>
+                    <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold text-white shadow-xl border-[1.5px] sm:border-2 border-white dark:border-gray-900" style={{ zIndex: 20 }}>
                       {progress.completed}/{progress.total}
                     </div>
                   )}
@@ -957,7 +967,7 @@ export function MapProgress({
                   {!isUnlocked && (
                     <div className="absolute inset-0 flex items-center justify-center bg-gray-900/40 rounded-full backdrop-blur-sm">
                       <svg
-                        className="w-8 h-8 text-gray-300"
+                        className="w-6 h-6 sm:w-8 sm:h-8 text-gray-300"
                         fill="currentColor"
                         viewBox="0 0 20 20"
                       >
@@ -972,12 +982,12 @@ export function MapProgress({
                 </div>
 
                 {/* Название узла внизу */}
-                <div className="absolute top-full mt-5 left-1/2 transform -translate-x-1/2 whitespace-nowrap">
+                <div className="absolute top-full mt-2 sm:mt-3 left-1/2 transform -translate-x-1/2 w-max max-w-[100px] sm:max-w-[140px]">
                   <div
-                    className={`text-base font-bold text-center px-3 py-1 rounded-full ${
+                    className={`text-[11px] sm:text-sm leading-tight font-bold text-center px-1 sm:px-2 py-1 rounded-lg whitespace-normal break-words ${
                       isUnlocked
-                        ? "text-gray-800 dark:text-white bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm"
-                        : "text-gray-400 dark:text-gray-600"
+                        ? "text-gray-800 dark:text-white bg-white/70 dark:bg-gray-800/70 backdrop-blur-sm shadow-sm"
+                        : "text-gray-500 dark:text-gray-600"
                     } ${
                       isHovered ? "scale-110" : ""
                     } transition-transform duration-200`}
