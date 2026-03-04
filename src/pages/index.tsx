@@ -238,19 +238,7 @@ function AuthenticatedApp() {
   const db = useDBSync();
 
   // Восстановить данные из БД при входе (если localStorage пустой после переустановки)
-  // Инициализируем сразу как true если данные уже есть в кэше — избегаем лишнего рендер-цикла
-  const [dbHydrated, setDbHydrated] = useState(() => {
-    if (typeof window === "undefined") return false;
-    try {
-      const raw = localStorage.getItem("player");
-      if (raw) {
-        const p = JSON.parse(raw);
-        if (p?.onboardingCompleted && p?.playerClass) return true;
-      }
-    } catch {}
-    return false;
-  });
-
+  const [dbHydrated, setDbHydrated] = useState(false);
   useEffect(() => {
     if (!session?.user?.email) return;
     // Если в localStorage уже есть класс — гидрация не нужна
