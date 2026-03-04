@@ -149,9 +149,9 @@ export default function Profile() {
 
   return (
     <Layout onSettingsClick={() => setSettingsOpen(true)} onShopClick={() => setShopOpen(true)}>
-      <div className="max-w-4xl mx-auto p-4 space-y-4">
+      <div className="max-w-4xl mx-auto p-3 sm:p-4 space-y-3 sm:space-y-4">
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 sm:gap-4 md:grid-cols-2">
           {/* Левая колонка */}
           <div className="space-y-4">
             <PlayerCard

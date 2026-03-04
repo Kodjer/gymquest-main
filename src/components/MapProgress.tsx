@@ -609,24 +609,24 @@ export function MapProgress({
   const themeColors = getThemeColors();
 
   return (
-    <div className="w-full py-8">
-      <h2 className={`text-3xl font-bold text-center mb-8 ${themeColors.titleText}`}>
+    <div className="w-full py-4 sm:py-8">
+      <h2 className={`text-xl sm:text-3xl font-bold text-center mb-4 sm:mb-8 ${themeColors.titleText}`}>
         Карта прогресса
       </h2>
 
       {/* Слайдер для выбора локации */}
-      <div className="max-w-md mx-auto mb-8">
-        <div className={`${themeColors.cardBg} border ${themeColors.cardBorder} rounded-2xl shadow-lg p-6`}>
-          <label className={`block text-sm font-semibold ${themeColors.labelText} mb-3 text-center`}>
+      <div className="max-w-md mx-auto mb-4 sm:mb-8 px-3 sm:px-0">
+        <div className={`${themeColors.cardBg} border ${themeColors.cardBorder} rounded-2xl shadow-lg p-4 sm:p-6`}>
+          <label className={`block text-xs sm:text-sm font-semibold ${themeColors.labelText} mb-2 sm:mb-3 text-center`}>
             Где тренируемся?
           </label>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => {
                 setLocationFilter("home");
                 onLocationFilterChange?.("home");
               }}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
+              className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${
                 locationFilter === "home"
                   ? `bg-gradient-to-r ${themeColors.buttonActive} text-white shadow-lg scale-105`
                   : `${themeColors.buttonInactive} hover:opacity-80`
@@ -639,7 +639,7 @@ export function MapProgress({
                 setLocationFilter("gym");
                 onLocationFilterChange?.("gym");
               }}
-              className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-200 ${
+              className={`flex-1 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl font-semibold text-xs sm:text-sm transition-all duration-200 ${
                 locationFilter === "gym"
                   ? `bg-gradient-to-r ${themeColors.buttonActive} text-white shadow-lg scale-105`
                   : `${themeColors.buttonInactive} hover:opacity-80`
@@ -657,7 +657,7 @@ export function MapProgress({
         </div>
       </div>
 
-      <div className="relative h-[800px] px-16 py-12 overflow-visible">
+      <div className="relative h-[700px] sm:h-[800px] px-4 sm:px-16 py-4 sm:py-12 overflow-visible">
         {/* Декоративные элементы темы */}
         {getThemeDecorations().map((deco, index) => (
           <div
@@ -982,18 +982,18 @@ export function MapProgress({
 
           return (
             <div
-              className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60"
+              className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-4 bg-black/60"
               onClick={() => setSelectedNode(null)}
             >
               <div
-                className={`${modalBg()} rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden`}
+                className={`${modalBg()} rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm shadow-2xl overflow-hidden`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {/* Header */}
-                <div className="relative px-5 py-4 flex items-center justify-between">
+                <div className="relative px-4 sm:px-5 py-3 sm:py-4 flex items-center justify-between">
                   <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentColor()} rounded-l-2xl`} />
                   <div className="pl-3">
-                    <p className="text-base font-semibold leading-tight">
+                    <p className="text-sm sm:text-base font-semibold leading-tight">
                       {selectedNode.icon} {selectedNode.name}
                     </p>
                     <p className="text-xs opacity-50 mt-0.5">{selectedNode.description}</p>
@@ -1006,7 +1006,7 @@ export function MapProgress({
                   </button>
                 </div>
 
-                <div className="px-4 pb-4 space-y-2">
+                <div className="px-3 sm:px-4 pb-4 sm:pb-4 space-y-2">
                   {/* Прогресс */}
                   <div className={`${rowBg()} rounded-2xl px-4 py-3`}>
                     <div className="flex justify-between text-xs mb-1.5">

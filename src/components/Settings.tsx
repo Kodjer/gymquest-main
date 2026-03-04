@@ -12,21 +12,30 @@ interface SettingsProps {
   onThemeToggle: () => void;
   onChangeClass: () => void;
   currentClass?: PlayerClass;
+  onSignOut: () => void;
 }
 
-const classInfo: Record<PlayerClass, { icon: string; name: string; bar: string }> = {
-  warrior:   { icon: "💪", name: "Воин",    bar: "bg-orange-500" },
-  scout:     { icon: "🏃", name: "Скаут",   bar: "bg-blue-500" },
-  monk:      { icon: "🧘", name: "Монах",   bar: "bg-violet-500" },
-  berserker: { icon: "🔥", name: "Берсерк", bar: "bg-red-500" },
+const classInfo: Record<PlayerClass, { label: string; name: string; bar: string }> = {
+  warrior:   { label: "В", name: "Воин",    bar: "bg-orange-500" },
+  scout:     { label: "С", name: "Скаут",   bar: "bg-blue-500" },
+  monk:      { label: "М", name: "Монах",   bar: "bg-violet-500" },
+  berserker: { label: "Б", name: "Берсерк", bar: "bg-red-500" },
 };
 
-export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass, currentClass }: SettingsProps) {
+export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass, currentClass, onSignOut }: SettingsProps) {
   const [soundOn, setSoundOn] = useState(true);
   const { theme } = useAppTheme();
 
   useEffect(() => {
     setSoundOn(getAudioSettings().soundEnabled);
+  }, [isOpen]);
+
+  // Блокируем скролл фона когда открыто
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
   }, [isOpen]);
 
   const handleSoundToggle = () => {
@@ -71,8 +80,8 @@ export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60">
-      <div className={`${modalBg()} rounded-2xl w-full max-w-sm shadow-2xl`}>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60" onClick={onClose}>
+      <div className={`${modalBg()} rounded-2xl w-full max-w-sm shadow-2xl`} onClick={e => e.stopPropagation()}>
 
         {/* Шапка */}
         <div className="flex items-center justify-between px-5 py-4">
@@ -108,7 +117,7 @@ export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass
               <div className="relative flex items-center justify-between px-4 py-3.5">
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${classInfo[currentClass].bar}`} />
                 <div className="flex items-center gap-2.5 pl-2">
-                  <span className="text-lg">{classInfo[currentClass].icon}</span>
+                  <div className={`w-7 h-7 rounded-lg ${classInfo[currentClass].bar} flex items-center justify-center text-white text-xs font-bold`}>{classInfo[currentClass].label}</div>
                   <span className="text-sm font-medium">{classInfo[currentClass].name}</span>
                 </div>
                 <button
@@ -130,6 +139,14 @@ export function Settings({ isOpen, onClose, isDark, onThemeToggle, onChangeClass
               </div>
             )}
           </div>
+
+          {/* Выйти */}
+          <button
+            onClick={() => { onClose(); onSignOut(); }}
+            className={`${rowBg()} w-full rounded-2xl px-4 py-3.5 text-left`}
+          >
+            <span className="text-sm font-medium text-red-500">Выйти из аккаунта</span>
+          </button>
 
           {/* О приложении */}
           <div className={`${rowBg()} rounded-2xl px-4 py-3.5`}>

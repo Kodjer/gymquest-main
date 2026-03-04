@@ -73,9 +73,9 @@ export function ProgressChart({ xpHistory = [], quests = [] }: ProgressChartProp
     <div className={`relative ${colors.cardBg} ${colors.text} rounded-2xl overflow-hidden shadow-sm`}>
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-blue-500" />
 
-      <div className="pl-5 pr-4 pt-4 pb-4">
+      <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4">
         {/* Заголовок */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 sm:mb-4">
           <p className="text-base font-bold">Прогресс по дням</p>
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/70" : "bg-black/8 dark:bg-white/10 opacity-70"}`}>
             {completionRate}%

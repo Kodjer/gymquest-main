@@ -39,30 +39,30 @@ const classDisplayInfo: Record<
   }
 > = {
   warrior: {
-    icon: "💪",
+    icon: "В",
     name: "Воин",
-    evolvedIcon: "⚔️",
+    evolvedIcon: "Т",
     evolvedName: "Титан",
     bar: "bg-orange-500",
   },
   scout: {
-    icon: "🏃",
+    icon: "С",
     name: "Скаут",
-    evolvedIcon: "🦅",
+    evolvedIcon: "С+",
     evolvedName: "Следопыт",
     bar: "bg-blue-500",
   },
   monk: {
-    icon: "🧘",
+    icon: "М",
     name: "Монах",
-    evolvedIcon: "🌟",
+    evolvedIcon: "М+",
     evolvedName: "Мудрец",
     bar: "bg-violet-500",
   },
   berserker: {
-    icon: "🔥",
+    icon: "Б",
     name: "Берсерк",
-    evolvedIcon: "👹",
+    evolvedIcon: "Б+",
     evolvedName: "Демон",
     bar: "bg-red-500",
   },
@@ -98,11 +98,13 @@ export function PlayerCard({
     : null;
   const displayIcon =
     equipmentItems.avatar?.icon ||
-    (classInfo
-      ? player.isEvolved
-        ? classInfo.evolvedIcon
-        : classInfo.icon
-      : "👤");
+    (classInfo ? "/" : null);
+  // Для класса - буква-метка вместо эмоджи
+  const classLetter = classInfo
+    ? player.isEvolved
+      ? classInfo.evolvedIcon
+      : classInfo.icon
+    : null;
   const displayName = classInfo
     ? player.isEvolved
       ? classInfo.evolvedName
@@ -144,17 +146,17 @@ export function PlayerCard({
       {/* Цветная полоска слева */}
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
 
-      <div className="pl-5 pr-4 pt-4 pb-4">
+      <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4">
         {/* Верх: аватар + инфо + правая панель */}
-        <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex items-start justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
           {/* Аватар */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative flex-shrink-0">
               <div
-                className={`w-14 h-14 rounded-full bg-gradient-to-br ${frameGradient} p-0.5 shadow`}
+                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${frameGradient} p-0.5 shadow`}
               >
                 <div
-                  className={`w-full h-full rounded-full ${colors.cardBg} flex items-center justify-center text-2xl overflow-hidden`}
+                  className={`w-full h-full rounded-full ${colors.cardBg} flex items-center justify-center text-xl sm:text-2xl overflow-hidden`}
                 >
                   {customPhoto ? (
                     <img
@@ -162,8 +164,10 @@ export function PlayerCard({
                       alt="avatar"
                       className="w-full h-full object-cover rounded-full"
                     />
+                  ) : classLetter ? (
+                    <span className={`text-sm font-black text-white`}>{classLetter}</span>
                   ) : (
-                    displayIcon
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                   )}
                 </div>
               </div>
@@ -197,44 +201,48 @@ export function PlayerCard({
             </div>
 
             {/* Имя / класс */}
-            <div>
+            <div className="min-w-0">
               {equipmentItems.title && (
-                <p className="text-[11px] font-semibold text-amber-500 mb-0.5">
+                <p className="text-[11px] font-semibold text-amber-500 mb-0.5 truncate">
                   {equipmentItems.title.icon} {equipmentItems.title.name}
                 </p>
               )}
-              <h2 className="text-xl font-bold leading-tight">
+              <h2 className="text-lg sm:text-xl font-bold leading-tight">
                 Уровень {player.level}
               </h2>
               {displayName && (
-                <p className="text-sm opacity-50 font-medium">
+                <p className="text-xs sm:text-sm opacity-50 font-medium truncate">
                   {displayName}
                   {player.classLevel && player.classLevel > 1
                     ? ` · Кл. ${player.classLevel}`
                     : ""}
                 </p>
               )}
-              <p className="text-xs opacity-40 mt-0.5">{player.xp} XP всего</p>
+              <p className="text-[11px] opacity-40 mt-0.5">{player.xp} XP</p>
             </div>
           </div>
 
           {/* Правая панель: бусты, питомец, серия, монеты */}
-          <div className="flex flex-col items-end gap-2 flex-shrink-0">
+          <div className="flex flex-col items-end gap-1.5 flex-shrink-0 max-w-[45%]">
             {/* Бусты */}
             {(getXpMultiplier() > 1 || getCoinMultiplier() > 1) && (
-              <div className="flex gap-1.5">
+              <div className="flex gap-1 flex-wrap justify-end">
                 {getXpMultiplier() > 1 && (
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300"}`}
+                    className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                      isAlwaysDark ? "bg-white/10 text-white/80" : "bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300"
+                    }`}
                   >
                     XP x{getXpMultiplier().toFixed(1)}
                   </span>
                 )}
                 {getCoinMultiplier() > 1 && (
                   <span
-                    className={`text-xs font-bold px-2 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"}`}
+                    className={`text-[11px] font-bold px-1.5 py-0.5 rounded-full ${
+                      isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"
+                    }`}
                   >
-                    Монеты x{getCoinMultiplier().toFixed(1)}
+                    М x{getCoinMultiplier().toFixed(1)}
                   </span>
                 )}
               </div>
@@ -243,18 +251,22 @@ export function PlayerCard({
             {/* Серия */}
             {player.streak > 0 && (
               <div
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300"}`}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                  isAlwaysDark ? "bg-white/10 text-white/80" : "bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300"
+                }`}
               >
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-400 inline-block" />
-                Серия: {player.streak}
+                {player.streak}d
               </div>
             )}
 
             {/* Монеты */}
             <div
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"}`}
+              className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold ${
+                isAlwaysDark ? "bg-white/10 text-white/80" : "bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-300"
+              }`}
             >
-              <div className="w-3 h-3 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
+              <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
               {player.coins || 0}
             </div>
           </div>
@@ -277,7 +289,7 @@ export function PlayerCard({
         {showDetailedStats && (
           <FadeIn delay={200} direction="up">
             <div
-              className={`grid grid-cols-2 gap-3 mt-4 p-4 rounded-xl ${colors.insetBg}`}
+              className={`grid grid-cols-2 gap-2 sm:gap-3 mt-3 sm:mt-4 p-3 sm:p-4 rounded-xl ${colors.insetBg}`}
             >
               <AnimatedStat
                 value={completedQuests}

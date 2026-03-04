@@ -98,10 +98,10 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
     <div className={`${getBackgroundClasses()} overflow-x-hidden`}>
       {/* Верхняя шапка — только лого */}
       <div className={`sticky top-0 z-50 border-b safe-top ${headerBg()}`}>
-        <div className="px-4 h-12 flex items-center justify-between">
-          <span className={`text-lg font-bold tracking-tight ${logoClass()}`}>GymQuest</span>
+        <div className="max-w-2xl mx-auto px-3 sm:px-4 h-11 sm:h-12 flex items-center justify-between">
+          <span className={`text-base sm:text-lg font-bold tracking-tight ${logoClass()}`}>GymQuest</span>
           {session && (
-            <span className={`text-xs truncate max-w-[140px] ${
+            <span className={`text-[11px] truncate max-w-[120px] sm:max-w-[160px] ${
               isColoredTheme || isDarkTheme ? "text-white/50" : "text-gray-400 dark:text-gray-500"
             }`}>
               {session.user?.name || session.user?.email}
@@ -112,21 +112,23 @@ export function Layout({ children, onSettingsClick, onShopClick }: LayoutProps) 
 
       {/* Контент — с паддингом снизу под нижний бар */}
       <div className="pb-bottom-nav">
-        {children}
+        <div className="max-w-2xl mx-auto w-full">
+          {children}
+        </div>
       </div>
 
       {/* Нижняя навигация */}
       <div className={`fixed bottom-0 left-0 right-0 z-50 border-t safe-bottom ${bottomNavBg()}`}>
-        <div className="flex items-stretch justify-around">
+        <div className="max-w-2xl mx-auto flex items-stretch justify-around">
           {navItems.map((item) => {
             const active = item.href ? router.pathname === item.href : false;
-            const cls = `flex flex-col items-center justify-center gap-0.5 py-2 flex-1 min-w-0 transition-colors ${
+            const cls = `flex flex-col items-center justify-center gap-0.5 py-1.5 sm:py-2 flex-1 min-w-0 transition-colors ${
               active ? activeColor() : inactiveColor()
             }`;
             const content = (
               <>
-                {item.icon}
-                <span className="text-[10px] font-medium leading-none">{item.label}</span>
+                <span className="[&>svg]:w-5 [&>svg]:h-5 sm:[&>svg]:w-6 sm:[&>svg]:h-6">{item.icon}</span>
+                <span className="text-[9px] sm:text-[10px] font-medium leading-none">{item.label}</span>
               </>
             );
             if (item.onClick) {

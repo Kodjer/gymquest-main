@@ -126,11 +126,11 @@ export function QuestCard({
       <div className={`absolute left-0 top-0 bottom-0 w-1 ${isDone ? "opacity-20" : ""} ${catMeta.bar}`} />
 
       {/* Контент */}
-      <div className="pl-5 pr-4 pt-4 pb-4">
+      <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4">
 
         {/* Верхняя строка: заголовок + XP */}
-        <div className="flex items-start justify-between gap-3 mb-3">
-          <h3 className={`font-semibold text-[15px] leading-snug flex-1 ${isDone ? "line-through opacity-40" : ""}`}>
+        <div className="flex items-start justify-between gap-2 sm:gap-3 mb-2.5 sm:mb-3">
+          <h3 className={`font-semibold text-[14px] sm:text-[15px] leading-snug flex-1 ${isDone ? "line-through opacity-40" : ""}`}>
             {quest.title}
           </h3>
           <div className="flex-shrink-0 text-right">
@@ -146,7 +146,7 @@ export function QuestCard({
         </div>
 
         {/* Пилюли: категория + сложность */}
-        <div className="flex items-center gap-2 flex-wrap mb-4">
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap mb-3 sm:mb-4">
           <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${pillText} ${pillBg}`}>
             {catMeta.name}
           </span>
@@ -158,7 +158,7 @@ export function QuestCard({
 
         {/* Анимация */}
         {hasAnimation && !isDone && (
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <LottieErrorBoundary>
               <LottieAnimation title={quest.title} />
             </LottieErrorBoundary>
@@ -167,7 +167,7 @@ export function QuestCard({
 
         {/* Детали — выпадающий блок */}
         {hasDetails && (
-          <div className="mb-4">
+          <div className="mb-3 sm:mb-4">
             <button
               onClick={() => setExpanded(v => !v)}
               className="flex items-center gap-2 text-xs font-medium opacity-40 hover:opacity-70 transition-opacity"
@@ -212,7 +212,7 @@ export function QuestCard({
         {!isDone ? (
           <button
             onClick={() => onToggle(quest.id)}
-            className={`w-full py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] ${catMeta.btn}`}
+            className={`w-full py-2 sm:py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-150 active:scale-[0.98] ${catMeta.btn}`}
           >
             Завершить
           </button>

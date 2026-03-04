@@ -106,17 +106,17 @@ export function NutritionTips() {
   const accentBar = selectedGoal === "bulking" ? "bg-violet-500" : "bg-orange-500";
 
   return (
-    <div className="max-w-4xl mx-auto p-4 md:p-8 space-y-4">
+    <div className="max-w-4xl mx-auto p-3 sm:p-4 md:p-8 space-y-3 sm:space-y-4">
 
       {/* Переключатель */}
       <div className={`relative ${sectionCls}`}>
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-        <div className="pl-5 pr-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold">Питание</h1>
-          <div className={`flex rounded-xl overflow-hidden ${isAlwaysDark ? "bg-white/10" : "bg-black/8 dark:bg-white/8"}`}>
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4 flex items-center justify-between gap-3">
+          <h1 className="text-lg sm:text-xl font-bold">Питание</h1>
+          <div className={`flex rounded-xl overflow-hidden flex-shrink-0 ${isAlwaysDark ? "bg-white/10" : "bg-black/8 dark:bg-white/8"}`}>
             <button
               onClick={() => setSelectedGoal("bulking")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-colors ${
                 selectedGoal === "bulking"
                   ? "bg-violet-500 text-white"
                   : "opacity-50"
@@ -126,7 +126,7 @@ export function NutritionTips() {
             </button>
             <button
               onClick={() => setSelectedGoal("cutting")}
-              className={`px-4 py-2 text-sm font-semibold transition-colors ${
+              className={`px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-semibold transition-colors ${
                 selectedGoal === "cutting"
                   ? "bg-orange-500 text-white"
                   : "opacity-50"
@@ -141,17 +141,17 @@ export function NutritionTips() {
       {/* Основная информация */}
       <div className={`relative ${sectionCls}`}>
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-        <div className="pl-5 pr-4 py-4">
-          <h2 className="text-base font-bold mb-1">{data.title}</h2>
-          <p className="text-sm opacity-60 mb-4">{data.description}</p>
-          <div className="grid grid-cols-2 gap-3">
-            <div className={`${colors.insetBg} rounded-xl p-3`}>
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
+          <h2 className="text-sm sm:text-base font-bold mb-1">{data.title}</h2>
+          <p className="text-xs sm:text-sm opacity-60 mb-3 sm:mb-4">{data.description}</p>
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <div className={`${colors.insetBg} rounded-xl p-2.5 sm:p-3`}>
               <p className={`${labelCls} mb-1`}>Калории/день</p>
-              <p className="text-sm font-semibold">{data.dailyCalories}</p>
+              <p className="text-xs sm:text-sm font-semibold">{data.dailyCalories}</p>
             </div>
-            <div className={`${colors.insetBg} rounded-xl p-3`}>
+            <div className={`${colors.insetBg} rounded-xl p-2.5 sm:p-3`}>
               <p className={`${labelCls} mb-1`}>Белок</p>
-              <p className="text-sm font-semibold">{data.proteinIntake}</p>
+              <p className="text-xs sm:text-sm font-semibold">{data.proteinIntake}</p>
             </div>
           </div>
         </div>
@@ -160,8 +160,8 @@ export function NutritionTips() {
       {/* Советы */}
       <div className={`relative ${sectionCls}`}>
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-        <div className="pl-5 pr-4 py-4">
-          <p className={`${labelCls} mb-3`}>Ключевые советы</p>
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
+          <p className={`${labelCls} mb-2 sm:mb-3`}>Ключевые советы</p>
           <div className="space-y-2">
             {data.tips.map((tip, i) => (
               <div key={i} className={`flex items-start gap-2.5 p-2.5 rounded-xl ${colors.insetBg}`}>
@@ -176,8 +176,8 @@ export function NutritionTips() {
       {/* Продукты */}
       <div className={`relative ${sectionCls}`}>
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-        <div className="pl-5 pr-4 py-4">
-          <p className={`${labelCls} mb-3`}>Рекомендуемые продукты</p>
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
+          <p className={`${labelCls} mb-2 sm:mb-3`}>Рекомендуемые продукты</p>
           <div className="grid md:grid-cols-2 gap-2">
             {data.foods.map((food, i) => (
               <div key={i} className={`p-3 rounded-xl ${colors.insetBg}`}>
@@ -193,8 +193,8 @@ export function NutritionTips() {
       {/* Режим питания */}
       <div className={`relative ${sectionCls}`}>
         <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-        <div className="pl-5 pr-4 py-4">
-          <p className={`${labelCls} mb-3`}>Примерный режим питания</p>
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
+          <p className={`${labelCls} mb-2 sm:mb-3`}>Примерный режим питания</p>
           <div className="space-y-1.5">
             {data.mealTiming.map((meal, i) => (
               <div key={i} className={`flex items-start gap-2.5 p-2.5 rounded-xl ${colors.insetBg}`}>
@@ -210,8 +210,8 @@ export function NutritionTips() {
       {data.supplements && (
         <div className={`relative ${sectionCls}`}>
           <div className={`absolute left-0 top-0 bottom-0 w-1 ${accentBar}`} />
-          <div className="pl-5 pr-4 py-4">
-            <p className={`${labelCls} mb-3`}>Добавки (опционально)</p>
+          <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
+            <p className={`${labelCls} mb-2 sm:mb-3`}>Добавки (опционально)</p>
             <div className="space-y-1.5">
               {data.supplements.map((s, i) => (
                 <div key={i} className={`flex items-center gap-2.5 px-3 py-2 rounded-xl ${colors.insetBg}`}>
@@ -228,7 +228,7 @@ export function NutritionTips() {
       {/* Disclaimer */}
       <div className={`relative ${sectionCls}`}>
         <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-500" />
-        <div className="pl-5 pr-4 py-4">
+        <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 py-3 sm:py-4">
           <p className="text-xs font-semibold opacity-60 mb-1">Важно</p>
           <p className="text-sm opacity-60">
             Это общие рекомендации. Для составления индивидуального плана обратитесь к квалифицированному диетологу.

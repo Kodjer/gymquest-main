@@ -4,6 +4,12 @@
 
 html {
   /* Do NOT set overflow here — breaks position:fixed and iOS scroll */
+  font-size: 16px; /* base for rem */
+}
+
+/* На очень маленьких экранах (< 360px) слегка уменьшаем базовый размер */
+@media (max-width: 359px) {
+  html { font-size: 14px; }
 }
 
 body {
@@ -26,7 +32,15 @@ body {
 /* Safe area для вырезов и Home indicator */
 .safe-top    { padding-top:    env(safe-area-inset-top, 0px); }
 .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
-.pb-bottom-nav { padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px)); }
+/* Нижний бар: на маленьких экранах нав немного ниже (py-1.5 ~ 3.5rem) */
+.pb-bottom-nav {
+  padding-bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+}
+@media (min-width: 640px) {
+  .pb-bottom-nav {
+    padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
+  }
+}
 
 .dark body {
   @apply bg-gray-950 text-gray-100;

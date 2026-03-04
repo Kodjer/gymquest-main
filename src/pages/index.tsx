@@ -224,13 +224,43 @@ function AuthenticatedApp() {
   const [player, setPlayer] = usePlayer();
   const db = useDBSync();
 
-  // Проверяем, нужно ли показать выбор класса или опросник
+  // Восстановить данные из БД при входе (если localStorage пустой после переустановки)
+  const [dbHydrated, setDbHydrated] = useState(false);
   useEffect(() => {
-    if (session && !player.onboardingCompleted) {
-      // Показываем выбор класса для новых пользователей
+    if (!session?.user?.email) return;
+    // Если в localStorage уже есть класс — гидрация не нужна
+    if (player.onboardingCompleted && player.playerClass) {
+      setDbHydrated(true);
+      return;
+    }
+    // Загружаем данные игрока из БД
+    fetch("/api/player")
+      .then(r => r.ok ? r.json() : null)
+      .then(dbPlayer => {
+        if (dbPlayer?.onboardingCompleted && dbPlayer?.playerClass) {
+          // Восстанавливаем эксперт-данные из БД в localStorage
+          setPlayer(prev => ({
+            ...prev,
+            onboardingCompleted: true,
+            playerClass: dbPlayer.playerClass,
+            xp: dbPlayer.xp ?? prev.xp,
+            level: dbPlayer.level ?? prev.level,
+            coins: dbPlayer.coins ?? prev.coins,
+            streak: dbPlayer.streak ?? prev.streak,
+            lastQuestDate: dbPlayer.lastQuestDate ?? prev.lastQuestDate,
+          }));
+        }
+        setDbHydrated(true);
+      })
+      .catch(() => setDbHydrated(true));
+  }, [session?.user?.email]);
+
+  // Показываем выбор класса только после гидрации из БД
+  useEffect(() => {
+    if (session && dbHydrated && !player.onboardingCompleted) {
       setShowClassSelection(true);
     }
-  }, [session, player.onboardingCompleted]);
+  }, [session, dbHydrated, player.onboardingCompleted]);
 
   // Автоматическая генерация квестов
   const generateQuests = async () => {
@@ -844,6 +874,7 @@ function AuthenticatedApp() {
           setShowClassSelection(true);
         }}
         currentClass={player.playerClass}
+        onSignOut={() => signOut({ callbackUrl: "/auth/signin" })}
       />
 
       {/* Выбор класса */}

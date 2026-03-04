@@ -65,10 +65,10 @@ export function Achievements({ player, quests }: AchievementsProps) {
       {/* Левая полоска */}
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500" />
 
-      <div className="pl-5 pr-4 pt-4 pb-4">
+      <div className="pl-4 sm:pl-5 pr-3 sm:pr-4 pt-3 sm:pt-4 pb-3 sm:pb-4">
         {/* Заголовок */}
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-base font-bold">Достижения</h3>
+        <div className="flex justify-between items-center mb-3 sm:mb-4">
+          <h3 className="text-sm sm:text-base font-bold">Достижения</h3>
           <div className={`text-xs font-semibold px-2.5 py-1 rounded-full ${isAlwaysDark ? "bg-white/10 text-white/70" : "bg-black/8 dark:bg-white/10 opacity-60"}`}>
             {unlockedCount}/{achievements.length}
           </div>
