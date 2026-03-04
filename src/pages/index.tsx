@@ -741,8 +741,10 @@ function AuthenticatedApp() {
 
         // Автоматически генерируем первые квесты только для новых игроков
         if (!player.playerClass) {
-          setTimeout(() => {
-            loadQuests();
+          setTimeout(async () => {
+            // Вызываем generateQuests напрямую (не loadQuests), чтобы не зависеть
+            // от устаревшего замыкания player.onboardingCompleted
+            await generateQuests();
           }, 500);
         }
       } else {
