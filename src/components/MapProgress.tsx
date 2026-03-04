@@ -836,7 +836,7 @@ export function MapProgress({
 
             return (
               <g key={`path-${node.id}`}>
-                {/* Базовая серая линия — тонкая */}
+                {/* Базовая серая линия — сплошная (была прерывистой) */}
                 <path
                   d={pathData}
                   stroke="#6b7280"
@@ -857,8 +857,6 @@ export function MapProgress({
                     fill="none"
                     pathLength="1"
                     style={{
-                      strokeDasharray: "1",
-                      strokeDashoffset: "0",
                       filter: "brightness(1.4) drop-shadow(0 0 2px rgba(167,139,250,0.6))",
                       opacity: 0.9,
                     }}
