@@ -1,40 +1,91 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# GymQuest
 
-## Getting Started
+## Цель проекта
 
-First, run the development server:
+GymQuest — геймифицированное мобильное фитнес-приложение. Пользователь регистрируется, проходит онбординг (опросник и выбор персонажа), после чего система автоматически генерирует недельные квесты. За выполнение заданий начисляются XP и монеты, которые можно тратить в магазине косметики и бустов. Прогресс отображается на интерактивной карте.
+
+## Технологии и инструменты
+
+- **Next.js 16** (Turbopack) — фреймворк
+- **React 19**, **TypeScript** — UI и типизация
+- **Prisma** + **MySQL / PlanetScale** — база данных и ORM
+- **NextAuth** — аутентификация (Google + credentials)
+- **Tailwind CSS** — стилизация
+- **Capacitor** — сборка нативного Android приложения
+- **next-pwa** — поддержка PWA
+- **Resend** — отправка email
+- **Vercel** — деплой
+
+## Инструкции по выполнению
+
+### Требования
+
+- Node.js 18+
+- npm
+- MySQL (локально) или облачная MySQL-совместимая БД (например PlanetScale)
+
+### Установка
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://disa.codestorage.space/oleksandr.sazonov/gymquest.git
+cd gymquest
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Переменные окружения
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+Создай файл `.env.local` в корне проекта со следующими переменными:
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+```
+DATABASE_URL=mysql://user:pass@localhost:3306/gymquest
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=случайная_строка
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+Опционально:
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+NEXT_PUBLIC_SUPABASE_URL=...
+NEXT_PUBLIC_SUPABASE_ANON_KEY=...
+RESEND_API_KEY=...
+EMAIL_FROM=...
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Запуск
 
-## Learn More
+```bash
+npx prisma migrate dev
+npm run dev
+```
 
-To learn more about Next.js, take a look at the following resources:
+Открой [http://localhost:3000](http://localhost:3000) в браузере.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+### Сборка Android APK
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run build
+npx cap sync android
+npx cap open android
+```
 
-## Deploy on Vercel
+## Структура приложения
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+gymquest/
+├── android/          # Нативный Android проект (Capacitor)
+├── prisma/           # Схема базы данных и миграции
+├── public/           # Статические файлы
+├── src/
+│   ├── components/   # React компоненты
+│   ├── lib/          # Утилиты и хелперы
+│   ├── pages/        # Страницы и API маршруты (Next.js)
+│   └── styles/       # Глобальные стили
+├── .env.example      # Пример переменных окружения
+├── next.config.ts    # Конфигурация Next.js
+└── README.md
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+## Автор
+
+Sazonov Oleksandr
