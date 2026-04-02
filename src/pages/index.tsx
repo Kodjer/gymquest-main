@@ -22,6 +22,7 @@ import { Layout } from "../components/Layout";
 import { ClassSelection, PlayerClass, ClassInfo } from "../components/ClassSelection";
 import { Shop } from "../components/Shop";
 import { useEquipment } from "@/lib/useEquipment";
+import { DailyChallenge } from "../components/DailyChallenge";
 
 // Error Boundary — catches crashes in AuthenticatedApp without kicking user to landing page
 interface EBState { hasError: boolean; retries: number; recovering: boolean }
@@ -629,6 +630,19 @@ function AuthenticatedApp() {
       if (categoryBonus > 0) {
         totalXp = Math.round(totalXp * (1 + categoryBonus));
       }
+
+      // Бонус x2 за вызов дня (по всем квестам, не только pending — чтобы id не менялся)
+      const isDailyChallenge = (() => {
+        if (quests.length === 0) return false;
+        const todayStr = new Date().toISOString().split("T")[0];
+        let hash = 0;
+        for (let i = 0; i < todayStr.length; i++) hash = (hash * 31 + todayStr.charCodeAt(i)) & 0xfffffff;
+        return quests[hash % quests.length].id === id;
+      })();
+      if (isDailyChallenge) {
+        totalXp *= 2;
+        console.log("Вызов дня! XP x2");
+      }
       
       const totalCoins = Math.round(classBonus.coins * streakMultiplier * coinMultiplier) + streakBonus;
 
@@ -895,6 +909,9 @@ function AuthenticatedApp() {
             </MapErrorBoundary>
             </div>
           )}
+
+          {/* Ежедневный вызов */}
+          {!nodeId && <DailyChallenge quests={quests} onToggle={toggleQuest} playerClass={player.playerClass} />}
         </div>
       </div>
 

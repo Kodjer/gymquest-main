@@ -12,6 +12,7 @@ interface Quest {
 interface Player {
   xp: number;
   level: number;
+  streak: number;
 }
 
 interface Achievement {
@@ -45,17 +46,21 @@ export function Achievements({ player, quests }: AchievementsProps) {
   const easyCompleted = completedQuests.filter((q) => q.difficulty === "easy").length;
   const mediumCompleted = completedQuests.filter((q) => q.difficulty === "medium").length;
   const hardCompleted = completedQuests.filter((q) => q.difficulty === "hard").length;
+  const streak = player.streak ?? 0;
 
   const achievements: Achievement[] = [
     { id: "first_quest",      title: "Первые шаги",           description: "Выполните первый квест",                    isUnlocked: totalCompleted >= 1,  progress: Math.min(totalCompleted, 1),   maxProgress: 1,   category: "quests" },
     { id: "five_quests",      title: "Опытный искатель",       description: "Выполните 5 квестов",                       isUnlocked: totalCompleted >= 5,  progress: Math.min(totalCompleted, 5),   maxProgress: 5,   category: "quests" },
     { id: "ten_quests",       title: "Мастер квестов",         description: "Выполните 10 квестов",                      isUnlocked: totalCompleted >= 10, progress: Math.min(totalCompleted, 10),  maxProgress: 10,  category: "quests" },
+    { id: "twenty_quests",    title: "Ветеран",                description: "Выполните 20 квестов",                      isUnlocked: totalCompleted >= 20, progress: Math.min(totalCompleted, 20),  maxProgress: 20,  category: "quests" },
     { id: "xp_hunter",        title: "Охотник за опытом",      description: "Наберите 100 XP",                           isUnlocked: player.xp >= 100,     progress: Math.min(player.xp, 100),      maxProgress: 100, category: "xp" },
     { id: "xp_master",        title: "Мастер опыта",           description: "Наберите 500 XP",                           isUnlocked: player.xp >= 500,     progress: Math.min(player.xp, 500),      maxProgress: 500, category: "xp" },
     { id: "level_five",       title: "Уровень 5",              description: "Достигните 5 уровня",                       isUnlocked: player.level >= 5,    progress: Math.min(player.level, 5),     maxProgress: 5,   category: "xp" },
-    { id: "easy_master",      title: "Мастер лёгких квестов",  description: "Выполните 10 лёгких квестов",               isUnlocked: easyCompleted >= 10,  progress: Math.min(easyCompleted, 10),   maxProgress: 10,  category: "difficulty" },
+    { id: "streak_3",         title: "Три дня подряд",         description: "Сохраняйте серию 3 дня",                    isUnlocked: streak >= 3,          progress: Math.min(streak, 3),           maxProgress: 3,   category: "streak" },
+    { id: "streak_7",         title: "Неделя без остановок",   description: "Сохраняйте серию 7 дней",                   isUnlocked: streak >= 7,          progress: Math.min(streak, 7),           maxProgress: 7,   category: "streak" },
+    { id: "easy_master",      title: "Мастер лёгких",          description: "Выполните 10 лёгких квестов",               isUnlocked: easyCompleted >= 10,  progress: Math.min(easyCompleted, 10),   maxProgress: 10,  category: "difficulty" },
     { id: "hard_challenger",  title: "Любитель вызовов",       description: "Выполните 5 сложных квестов",               isUnlocked: hardCompleted >= 5,   progress: Math.min(hardCompleted, 5),    maxProgress: 5,   category: "difficulty" },
-    { id: "balanced_player",  title: "Сбалансированный игрок", description: "Выполните по 3 квеста каждой сложности",    isUnlocked: easyCompleted >= 3 && mediumCompleted >= 3 && hardCompleted >= 3, progress: Math.min(3, Math.min(easyCompleted, mediumCompleted, hardCompleted)), maxProgress: 3, category: "difficulty" },
+    { id: "balanced_player",  title: "Универсал",              description: "Выполните по 3 квеста каждой сложности",    isUnlocked: easyCompleted >= 3 && mediumCompleted >= 3 && hardCompleted >= 3, progress: Math.min(3, Math.min(easyCompleted, mediumCompleted, hardCompleted)), maxProgress: 3, category: "difficulty" },
   ];
 
   const unlockedCount = achievements.filter((a) => a.isUnlocked).length;
