@@ -89,6 +89,24 @@ const isLifestyleWellness = (quest: { category?: string; title: string }) => {
   return ["сахар", "детокс", "питан", "отдых", "здоровь", "день"].some(w => t.includes(w));
 };
 
+function getYouTubeSearchUrl(title: string, category?: string): string | null {
+  if (category === "wellness") {
+    const t = title.toLowerCase();
+    if (["сахар", "детокс", "питан", "отдых", "здоровь", "день", "сон", "завтрак", "медитац", "водн"].some(w => t.includes(w))) {
+      return null;
+    }
+  }
+  const t = title.toLowerCase();
+  let suffix = "техника выполнения";
+  if (category === "flexibility" || t.includes("йога") || t.includes("растяж") || t.includes("пилатес")) {
+    suffix = "для начинающих";
+  } else if (category === "cardio" || t.includes("бег") || t.includes("hiit") || t.includes("табата") || t.includes("кардио")) {
+    suffix = "правильная техника";
+  }
+  const query = `${title} ${suffix}`;
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
+}
+
 export function QuestCard({
   quest,
   onToggle,
@@ -112,7 +130,8 @@ export function QuestCard({
   const xpText   = isAlwaysDark ? "text-white/90" : catMeta.pillText;
   const diffMeta = difficultyMeta[quest.difficulty];
   const hasAnimation = !isLifestyleWellness(quest);
-  const hasDetails = !!(quest.instructions || quest.description || quest.tip);
+  const videoUrl = isLifestyleWellness(quest) ? null : getYouTubeSearchUrl(quest.title, quest.category);
+  const hasDetails = !!(quest.instructions || quest.description || quest.tip || videoUrl);
 
   return (
     <div
@@ -202,6 +221,25 @@ export function QuestCard({
                     <p className="text-[11px] font-semibold uppercase tracking-wider opacity-50 mb-1">Совет</p>
                     <p className="text-[13px] opacity-90 leading-relaxed">{quest.tip}</p>
                   </div>
+                )}
+                {videoUrl && (
+                  <button
+                    onClick={() => window.open(videoUrl, '_blank')}
+                    className={`w-full flex items-center gap-2.5 px-4 py-3 ${colors.insetBg} hover:bg-red-500/10 transition-colors text-left`}
+                  >
+                    <span className="flex-shrink-0 w-7 h-7 rounded-full bg-red-500/15 flex items-center justify-center">
+                      <svg className="w-3.5 h-3.5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z" />
+                      </svg>
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block text-[11px] font-semibold uppercase tracking-wider opacity-50 mb-0.5">Видео-инструкция</span>
+                      <span className="block text-[13px] text-red-500 dark:text-red-400 font-medium">Смотреть технику на YouTube</span>
+                    </span>
+                    <svg className="w-3.5 h-3.5 opacity-30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </button>
                 )}
               </div>
             )}

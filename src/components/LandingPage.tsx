@@ -27,9 +27,10 @@ export function LandingPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const isNative = useIsNative();
+  const callbackUrl = (router.query.callbackUrl as string) || "/";
 
   useEffect(() => {
-    if (session) window.location.href = "/";
+    if (session) window.location.href = callbackUrl || "/";
   }, [session]);
 
   // Показываем ошибку если NextAuth вернул error в URL
@@ -44,8 +45,6 @@ export function LandingPage() {
       setError(errMap[router.query.error as string] || errMap.Default);
     }
   }, [router.query.error]);
-
-  const callbackUrl = "/";
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,8 +66,12 @@ export function LandingPage() {
         }
         localStorage.setItem("gymquest_native_token", data.token);
         setNativeSession(data.user);
+        localStorage.removeItem("player");
+        localStorage.removeItem("gymquest_quests_cache");
         window.location.href = "/";
       } else {
+        localStorage.removeItem("player");
+        localStorage.removeItem("gymquest_quests_cache");
         const res = await signIn("credentials", { email, password, redirect: false, callbackUrl });
         setLoading(false);
         if (res?.error) setError("Неверный email или пароль");
@@ -112,8 +115,12 @@ export function LandingPage() {
         }
         localStorage.setItem("gymquest_native_token", loginData.token);
         setNativeSession(loginData.user);
+        localStorage.removeItem("player");
+        localStorage.removeItem("gymquest_quests_cache");
         window.location.href = "/";
       } else {
+        localStorage.removeItem("player");
+        localStorage.removeItem("gymquest_quests_cache");
         const signInRes = await signIn("credentials", { email, password, callbackUrl, redirect: false });
         setLoading(false);
         if (signInRes?.error) setError(signInRes.error);

@@ -134,12 +134,12 @@ export default function Home() {
   const { data: session, status } = useSession();
   const [sessionTimedOut, setSessionTimedOut] = useState(false);
   // Если уже показывали сплэш в этой сессии — не показываем снова (при переходе с других вкладок)
-  const [splashDone, setSplashDone] = useState(() => {
-    if (typeof window !== "undefined") {
-      return sessionStorage.getItem("gymquest_splash_done") === "1";
+  const [splashDone, setSplashDone] = useState(false);
+  useEffect(() => {
+    if (sessionStorage.getItem("gymquest_splash_done") === "1") {
+      setSplashDone(true);
     }
-    return false;
-  });
+  }, []);
 
   const handleSplashDone = useCallback(() => {
     sessionStorage.setItem("gymquest_splash_done", "1");
@@ -278,8 +278,10 @@ function AuthenticatedApp() {
   // Автоматическая генерация квестов
   const generateQuests = async () => {
     try {
+      const nativeToken = localStorage.getItem("gymquest_native_token");
       const response = await fetch("/api/quests/generate-week", {
         method: "POST",
+        headers: nativeToken ? { "X-Native-Auth": nativeToken } : {},
       });
       if (response.ok) {
         console.log("✅ Квесты сгенерированы автоматически");
@@ -364,6 +366,13 @@ function AuthenticatedApp() {
       loadQuests();
     }
   }, [session]);
+
+  // После DB-гидрации: если квестов нет и onboarding завершён — генерируем
+  useEffect(() => {
+    if (session && dbHydrated && player.onboardingCompleted && quests.length === 0) {
+      generateQuests();
+    }
+  }, [dbHydrated]);
 
   // Android Back button — предотвращает случайный выход из приложения
   useEffect(() => {

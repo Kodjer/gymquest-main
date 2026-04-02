@@ -9,9 +9,10 @@ const nextConfig: NextConfig = {
   turbopack: {},
 };
 
-export default withPWA({
+const pwaConfig = withPWA({
   ...nextConfig,
   dest: "public",
+  disable: process.env.NODE_ENV === "development",
   register: true,
   skipWaiting: true,
   runtimeCaching: [
@@ -27,3 +28,5 @@ export default withPWA({
     },
   ],
 });
+
+export default process.env.NODE_ENV === "development" ? nextConfig : pwaConfig;

@@ -30,8 +30,12 @@ export default function SignIn() {
         localStorage.setItem("gymquest_native_user", JSON.stringify(nativeData.user));
         setNativeSession(nativeData.user);
       }
+      // Сбрасываем старые данные игрока из localStorage (другой пользователь мог оставить)
+      localStorage.removeItem("player");
+      localStorage.removeItem("gymquest_quests_cache");
+      // Создаём NextAuth сессию для браузера
+      await signIn("credentials", { email, password, redirect: false, callbackUrl });
       setLoading(false);
-      // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
       window.location.href = callbackUrl || "/";
       return;
     }
@@ -94,8 +98,12 @@ export default function SignIn() {
       localStorage.setItem("gymquest_native_user", JSON.stringify(loginData.user));
       setNativeSession(loginData.user);
     }
+    // Сбрасываем старые данные игрока из localStorage (новый пользователь)
+    localStorage.removeItem("player");
+    localStorage.removeItem("gymquest_quests_cache");
+    // Создаём NextAuth сессию для браузера
+    await signIn("credentials", { email, password, redirect: false, callbackUrl });
     setLoading(false);
-    // Полная перезагрузка, чтобы useSession подхватил новую сессию из localStorage
     window.location.href = callbackUrl || "/";
   };
 
