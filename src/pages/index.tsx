@@ -23,6 +23,7 @@ import { ClassSelection, PlayerClass, ClassInfo } from "../components/ClassSelec
 import { Shop } from "../components/Shop";
 import { useEquipment } from "@/lib/useEquipment";
 import { DailyChallenge } from "../components/DailyChallenge";
+import { Leaderboard } from "../components/Leaderboard";
 
 // Error Boundary — catches crashes in AuthenticatedApp without kicking user to landing page
 interface EBState { hasError: boolean; retries: number; recovering: boolean }
@@ -912,6 +913,9 @@ function AuthenticatedApp() {
 
           {/* Ежедневный вызов */}
           {!nodeId && <DailyChallenge quests={quests} onToggle={toggleQuest} playerClass={player.playerClass} />}
+
+          {/* Таблица лидеров */}
+          {!nodeId && <Leaderboard />}
         </div>
       </div>
 

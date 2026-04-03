@@ -29,12 +29,16 @@ interface DailyChallengeProps {
 
 function getDailyQuestId(quests: Quest[]): string | null {
   if (quests.length === 0) return null;
+  // Берём только квесты первых двух дней, чтобы ежедневный вызов не "засчитывал"
+  // квесты из будущих узлов и не показывал их выполненными при открытии.
+  const earlyQuests = quests.filter(q => q.nodeId === "node-1" || q.nodeId === "node-2");
+  const pool = earlyQuests.length > 0 ? earlyQuests : quests;
   const today = new Date().toISOString().split("T")[0];
   let hash = 0;
   for (let i = 0; i < today.length; i++) {
     hash = (hash * 31 + today.charCodeAt(i)) & 0xfffffff;
   }
-  return quests[hash % quests.length].id;
+  return pool[hash % pool.length].id;
 }
 
 export function DailyChallenge({ quests, onToggle, playerClass }: DailyChallengeProps) {

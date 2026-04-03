@@ -43,10 +43,7 @@ export function useDBSync() {
 
     try {
       const response = await fetch("/api/quests");
-      if (!response.ok) {
-        if (response.status === 401) return []; // Не авторизован - это нормально
-        throw new Error("Failed to fetch quests");
-      }
+      if (!response.ok) return []; // 401, 500 и т.д. — возвращаем пустой массив
       return await response.json();
     } catch (error) {
       console.error("Fetch quests error:", error);
@@ -123,10 +120,7 @@ export function useDBSync() {
 
     try {
       const response = await fetch("/api/player");
-      if (!response.ok) {
-        if (response.status === 401) return null; // Не авторизован - это нормально
-        throw new Error("Failed to fetch player");
-      }
+      if (!response.ok) return null; // 401, 500 и т.д. — возвращаем null
       return await response.json();
     } catch (error) {
       console.error("Fetch player error:", error);
@@ -183,10 +177,7 @@ export function useDBSync() {
 
     try {
       const response = await fetch("/api/player/onboarding");
-      if (response.status === 401 || response.status === 404) return null; // Не авторизован или не заполнен
-      if (!response.ok) {
-        throw new Error("Failed to fetch onboarding data");
-      }
+      if (!response.ok) return null; // 401, 404, 500 — просто игнорируем
       return await response.json();
     } catch (error) {
       console.error("Fetch onboarding error:", error);

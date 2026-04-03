@@ -577,8 +577,8 @@ export function MapProgress({
       // Используем ГЛОБАЛЬНЫЙ прогресс (без фильтра по локации)
       const progress = getGlobalNodeProgress(node.id);
 
-      // Для боссовых узлов требуется 100% прогресса
-      const requiredPercent = node.isBoss ? 100 : 50;
+      // Для всех узлов требуется 100% прогресса (полное завершение)
+      const requiredPercent = 100;
 
       // Если хотя бы один из предыдущих узлов не завершен - блокируем
       if (progress.percent < requiredPercent) {

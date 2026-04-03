@@ -102,8 +102,8 @@ export default async function handler(
       // Парсим JSON поля
       const formattedData = {
         ...onboardingData,
-        workoutPreference: JSON.parse(onboardingData.workoutPreference),
-        fitnessGoals: JSON.parse(onboardingData.fitnessGoals),
+        workoutPreference: (() => { try { return JSON.parse(onboardingData.workoutPreference ?? "[]"); } catch { return []; } })(),
+        fitnessGoals: (() => { try { return JSON.parse(onboardingData.fitnessGoals ?? "[]"); } catch { return []; } })(),
       };
 
       return res.status(200).json(formattedData);
