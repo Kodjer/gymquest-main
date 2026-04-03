@@ -1407,7 +1407,7 @@ export function MapProgress({
                         ? "text-gray-700 dark:text-white"
                         : "text-slate-400 dark:text-slate-600"
                     }`}
-                    style={{ textShadow: isUnlocked ? '0 1px 4px rgba(255,255,255,0.85), 0 0 8px rgba(255,255,255,0.60)' : 'none' }}
+                    style={{ textShadow: isUnlocked && !isDark ? '0 1px 4px rgba(255,255,255,0.85), 0 0 8px rgba(255,255,255,0.60)' : 'none' }}
                   >
                     {node.name}
                   </div>
