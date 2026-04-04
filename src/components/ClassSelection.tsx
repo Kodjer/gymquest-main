@@ -7,7 +7,6 @@ export type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
 interface ClassInfo {
   id: PlayerClass;
   name: string;
-  icon: string;
   tagline: string;
   color: string;
   bar: string;
@@ -30,7 +29,6 @@ interface ClassInfo {
   };
   evolution: {
     name: string;
-    icon: string;
     level: number;
   };
   questTypes: string[];
@@ -40,9 +38,8 @@ interface ClassInfo {
 const classes: ClassInfo[] = [
   {
     id: "warrior",
-    name: "Воин",
-    icon: "💪",
-    tagline: "Стань сильнейшим",
+    name: "Силовик",
+    tagline: "Жим, тяга, присед",
     color: "text-orange-500",
     bar: "bg-orange-500",
     ring: "ring-orange-400",
@@ -51,18 +48,18 @@ const classes: ClassInfo[] = [
     cardGradient: "from-orange-500/20 to-red-500/10",
     focus: "Силовые тренировки",
     forWho: "Для тех, кто хочет качать мышцы и становиться сильнее каждую неделю",
-    description: "Воин специализируется на силовых упражнениях — жим, приседания, становая тяга. Ты будешь получать больше XP за тяжёлые тренировки и со временем эволюционируешь в Титана.",
+    description: "Силовик специализируется на базовых упражнениях — жим, приседания, становая тяга. Получает больше XP за тяжёлые тренировки.",
     passive: {
       name: "Железная воля",
       description: "Увеличенный XP за силовые квесты",
       bonus: "+25% XP за силовые упражнения",
     },
     active: {
-      name: "Боевой клич",
+      name: "Предельное усилие",
       description: "Следующий выполненный квест даёт двойной XP",
       cooldown: "1 раз в день",
     },
-    evolution: { name: "Титан", icon: "⚔️", level: 10 },
+    evolution: { name: "Атлет", level: 10 },
     questTypes: ["Жим лёжа", "Приседания", "Становая тяга", "Отжимания"],
     stats: [
       { label: "Сила", value: 5 },
@@ -73,9 +70,8 @@ const classes: ClassInfo[] = [
   },
   {
     id: "scout",
-    name: "Скаут",
-    icon: "🏃",
-    tagline: "Скорость и стрик",
+    name: "Кардио",
+    tagline: "Привычка и стрик",
     color: "text-blue-500",
     bar: "bg-blue-500",
     ring: "ring-blue-400",
@@ -84,18 +80,18 @@ const classes: ClassInfo[] = [
     cardGradient: "from-blue-500/20 to-cyan-500/10",
     focus: "Кардио тренировки",
     forWho: "Для тех, кто любит бегать, двигаться и не пропускать тренировки",
-    description: "Скаут — мастер кардио и серий. Чем дольше твой стрик без пропусков, тем больше бонусов ты получаешь. Идеально если хочешь войти в привычку и не останавливаться.",
+    description: "Кардио — тип для тех, кто хочет войти в привычку. Чем дольше стрик без пропусков, тем больше бонусов. Идеально для ежедневных тренировок.",
     passive: {
       name: "Второе дыхание",
       description: "Увеличенный XP за кардио и бонус к стрику",
       bonus: "+25% XP за кардио, +10% бонус стрика",
     },
     active: {
-      name: "Спринт",
+      name: "Ускорение",
       description: "Мгновенно завершить один лёгкий квест",
       cooldown: "1 раз в 3 дня",
     },
-    evolution: { name: "Следопыт", icon: "🦅", level: 10 },
+    evolution: { name: "Марафонец", level: 10 },
     questTypes: ["Бег 20 мин", "Прыжки", "Берпи", "Скакалка"],
     stats: [
       { label: "Сила", value: 2 },
@@ -106,9 +102,8 @@ const classes: ClassInfo[] = [
   },
   {
     id: "monk",
-    name: "Монах",
-    icon: "🧘",
-    tagline: "Гармония и монеты",
+    name: "Практик",
+    tagline: "Гибкость и восстановление",
     color: "text-purple-500",
     bar: "bg-violet-500",
     ring: "ring-violet-400",
@@ -117,18 +112,18 @@ const classes: ClassInfo[] = [
     cardGradient: "from-purple-500/20 to-pink-500/10",
     focus: "Гибкость и баланс",
     forWho: "Для тех, кто хочет йогу, растяжку и меньший стресс после работы",
-    description: "Монах строит тело через гармонию — йога, растяжка, дыхательные практики. Получает больше монет с каждого квеста, что позволяет быстрее покупать бусты в магазине.",
+    description: "Практик строит тело через гибкость — йога, растяжка, дыхательные практики. Получает больше монет с каждого квеста.",
     passive: {
-      name: "Внутренний мир",
+      name: "Восстановление",
       description: "Увеличенный XP за гибкость и бонусные монеты",
       bonus: "+25% XP за растяжку, +15% монет",
     },
     active: {
-      name: "Медитация",
+      name: "Концентрация",
       description: "Получить 50 бонусных монет",
       cooldown: "1 раз в день",
     },
-    evolution: { name: "Мудрец", icon: "🌟", level: 10 },
+    evolution: { name: "Мастер", level: 10 },
     questTypes: ["Йога 15 мин", "Растяжка", "Планка", "Дыхание"],
     stats: [
       { label: "Сила", value: 1 },
@@ -139,29 +134,28 @@ const classes: ClassInfo[] = [
   },
   {
     id: "berserker",
-    name: "Берсерк",
-    icon: "🔥",
-    tagline: "Максимальный вызов",
+    name: "Интенсив",
+    tagline: "Максимальная нагрузка",
     color: "text-red-500",
     bar: "bg-red-500",
     ring: "ring-red-400",
     borderCls: "border-red-400",
     bgGradient: "from-orange-500 to-red-700",
     cardGradient: "from-red-500/20 to-orange-500/10",
-    focus: "Хардкорные тренировки",
+    focus: "Высокоинтенсивные тренировки",
     forWho: "Для тех, кто уже тренируется и хочет взрывной интенсивности",
-    description: "Берсерк берёт только сложные квесты — HIIT, табата, суперсеты. Огромный XP за тяжёлые тренировки, но за лёгкие платит штраф. Режим для тех, кто не боится боли.",
+    description: "Интенсив — для опытных. HIIT, табата, суперсеты. Большой XP за тяжёлые квесты, но штраф за лёгкие. Только для тех, кто готов выкладываться полностью.",
     passive: {
-      name: "Жажда боя",
+      name: "Перегрузка",
       description: "Огромный бонус за сложные квесты",
       bonus: "+40% XP за сложные, −15% за лёгкие",
     },
     active: {
-      name: "Ярость",
+      name: "Форсаж",
       description: "Следующий квест любой сложности даёт XP как за сложный",
       cooldown: "1 раз в 2 дня",
     },
-    evolution: { name: "Демон", icon: "👹", level: 10 },
+    evolution: { name: "Элита", level: 10 },
     questTypes: ["HIIT 20 мин", "Табата", "Суперсеты", "Комплексы"],
     stats: [
       { label: "Сила", value: 4 },
@@ -246,7 +240,13 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
           {/* Логотип */}
           <div className="mb-8 flex flex-col items-center animate-[fadeInDown_0.6s_ease]">
             <div className="w-20 h-20 bg-white/15 border-2 border-white/30 rounded-3xl flex items-center justify-center mb-4 shadow-2xl">
-              <span className="text-4xl">🏋️</span>
+              <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                <rect x="4" y="18" width="6" height="12" rx="2" fill="white" opacity="0.9"/>
+                <rect x="2" y="20" width="4" height="8" rx="1.5" fill="white"/>
+                <rect x="38" y="18" width="6" height="12" rx="2" fill="white" opacity="0.9"/>
+                <rect x="42" y="20" width="4" height="8" rx="1.5" fill="white"/>
+                <rect x="10" y="21" width="28" height="6" rx="3" fill="white"/>
+              </svg>
             </div>
             <h1 className="text-4xl font-extrabold tracking-tight">GymQuest</h1>
             <p className="text-purple-200 mt-1.5 text-sm font-medium">Превратите фитнес в игру</p>
@@ -256,7 +256,6 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
           <div className="w-full max-w-sm space-y-3 animate-[fadeInUp_0.7s_ease]">
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
               <div className="flex items-start gap-3">
-                <span className="text-2xl mt-0.5">🎮</span>
                 <div>
                   <p className="font-semibold text-sm">RPG-система тренировок</p>
                   <p className="text-xs text-purple-200 mt-0.5 leading-relaxed">Каждый день — новые квесты. Выполняй упражнения, зарабатывай XP и монеты, повышай уровень.</p>
@@ -265,7 +264,6 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
               <div className="flex items-start gap-3">
-                <span className="text-2xl mt-0.5">🗺️</span>
                 <div>
                   <p className="font-semibold text-sm">7 дней — 1 неделя</p>
                   <p className="text-xs text-purple-200 mt-0.5 leading-relaxed">Твой путь разбит на дни. Завершай дни — открывай следующие, дойди до конца недели.</p>
@@ -274,10 +272,9 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
             </div>
             <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/15">
               <div className="flex items-start gap-3">
-                <span className="text-2xl mt-0.5">⚔️</span>
                 <div>
-                  <p className="font-semibold text-sm">Выбери своего героя</p>
-                  <p className="text-xs text-purple-200 mt-0.5 leading-relaxed">Класс определяет стиль тренировок. Воин качает силу, Скаут бегает, Монах тянется, Берсерк — максимальный интенсив.</p>
+                  <p className="font-semibold text-sm">Выбери свой тип</p>
+                  <p className="text-xs text-purple-200 mt-0.5 leading-relaxed">Силовик, Кардио, Практик или Интенсив — каждый тип даёт бонусы под свой стиль тренировок.</p>
                 </div>
               </div>
             </div>
@@ -353,9 +350,6 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
                 {/* Основная строка */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${cls.bgGradient} flex items-center justify-center text-2xl shadow-md flex-shrink-0`}>
-                      {cls.icon}
-                    </div>
                     <div>
                       <div className="flex items-center gap-2">
                         <p className="text-sm font-bold">{cls.name}</p>
@@ -396,12 +390,12 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
                     {/* Пассивка + активка */}
                     <div className="grid grid-cols-2 gap-2">
                       <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2.5">
-                        <p className="text-[9px] font-bold uppercase opacity-40 mb-1">⚡ Пассивка</p>
+                        <p className="text-[9px] font-bold uppercase opacity-40 mb-1">Пассивка</p>
                         <p className="text-xs font-semibold">{cls.passive.name}</p>
                         <p className={`text-[11px] mt-0.5 font-medium ${cls.color}`}>{cls.passive.bonus}</p>
                       </div>
                       <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2.5">
-                        <p className="text-[9px] font-bold uppercase opacity-40 mb-1">🎯 Активка</p>
+                        <p className="text-[9px] font-bold uppercase opacity-40 mb-1">Активное умение</p>
                         <p className="text-xs font-semibold">{cls.active.name}</p>
                         <p className="text-[11px] opacity-50 mt-0.5">{cls.active.cooldown}</p>
                       </div>
@@ -409,7 +403,7 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
 
                     {/* Примеры квестов */}
                     <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2.5">
-                      <p className="text-[9px] font-bold uppercase opacity-40 mb-2">🏋️ Примеры квестов</p>
+                      <p className="text-[9px] font-bold uppercase opacity-40 mb-2">Примеры квестов</p>
                       <div className="flex flex-wrap gap-1.5">
                         {cls.questTypes.map((q) => (
                           <span key={q} className={`text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-gradient-to-r ${cls.bgGradient} text-white`}>
@@ -421,11 +415,10 @@ export function ClassSelection({ onSelectClass, onClose }: ClassSelectionProps) 
 
                     {/* Эволюция */}
                     <div className="bg-black/5 dark:bg-white/5 rounded-xl px-3 py-2.5 flex items-center gap-3">
-                      <p className="text-[9px] font-bold uppercase opacity-40">🌀 Эволюция</p>
+                      <p className="text-[9px] font-bold uppercase opacity-40">Эволюция</p>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-base">{cls.icon}</span>
+                        <span className="text-xs font-bold">{cls.name}</span>
                         <span className="text-xs opacity-30">→</span>
-                        <span className="text-base">{cls.evolution.icon}</span>
                         <span className="text-xs font-bold">{cls.evolution.name}</span>
                         <span className="text-[10px] opacity-40">на {cls.evolution.level} ур.</span>
                       </div>

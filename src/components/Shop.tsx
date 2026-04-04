@@ -11,8 +11,7 @@ import {
   rarityColors,
   rarityNames,
 } from '@/lib/shopData';
-import { useAppTheme, AppTheme } from '@/lib/ThemeContext';
-
+import { AnimatedFrame } from './AnimatedFrame';
 interface ShopProps {
   isOpen: boolean;
   onClose: () => void;
@@ -27,10 +26,6 @@ interface PurchasedItems {
 
 interface Equipment {
   activeFrame?: string | null;
-  activeTitle?: string | null;
-  activeAvatar?: string | null;
-  activeTheme?: string | null;
-  activePet?: string | null;
 }
 
 export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: ShopProps) {
@@ -40,9 +35,6 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
   const [loading, setLoading] = useState(false);
   const [purchaseMessage, setPurchaseMessage] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<ShopItem | null>(null);
-
-  // Хук для управления темами
-  const { setTheme } = useAppTheme();
 
   // Загружаем данные магазина при открытии
   useEffect(() => {
@@ -81,7 +73,10 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
     const utilityPrices: Record<string, number> = {
       reroll: 100,
       easy_day: 150,
-      bonus_quest: 200,
+      protein: 120,
+      double_drop: 120,
+      quest_skip: 200,
+      streak_revival: 350,
     };
 
     const price = utilityPrices[utilityType];
@@ -125,11 +120,24 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
       const utilityMap: Record<string, string> = {
         'utility_reroll': 'reroll',
         'utility_easy_day': 'easy_day',
-        'utility_bonus_quest': 'bonus_quest',
       };
       const utilityType = utilityMap[item.id];
       if (utilityType) {
         await handleUseUtility(utilityType);
+        return;
+      }
+    }
+
+    if (item.type === 'consumable') {
+      const consumableMap: Record<string, string> = {
+        'consumable_protein': 'protein',
+        'consumable_double_drop': 'double_drop',
+        'consumable_quest_skip': 'quest_skip',
+        'consumable_streak_revival': 'streak_revival',
+      };
+      const consumableType = consumableMap[item.id];
+      if (consumableType) {
+        await handleUseUtility(consumableType);
         return;
       }
     }
@@ -146,7 +154,7 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
       return;
     }
 
-    if (purchasedItems[item.id] && item.type !== 'boost' && item.type !== 'utility') {
+    if (purchasedItems[item.id] && item.type !== 'boost' && item.type !== 'utility' && item.type !== 'consumable') {
       setPurchaseMessage('Уже куплено');
       setTimeout(() => setPurchaseMessage(null), 2000);
       return;
@@ -192,20 +200,6 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
       if (res.ok) {
         setPurchaseMessage(data.message);
         setEquipment(data.equipment);
-        if (item.type === 'theme') {
-          const themeMap: Record<string, AppTheme> = {
-            'theme_forest': 'forest',
-            'theme_ocean': 'ocean',
-            'theme_sunset': 'sunset',
-            'theme_cyberpunk': 'cyberpunk',
-            'theme_galaxy': 'galaxy',
-          };
-          if (action === 'equip' && themeMap[item.id]) {
-            setTheme(themeMap[item.id]);
-          } else if (action === 'unequip') {
-            setTheme('default');
-          }
-        }
       } else {
         setPurchaseMessage(data.error || 'Ошибка');
       }
@@ -230,11 +224,8 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
       const data = await res.json();
 
       if (res.ok) {
-        setPurchaseMessage(`${category === 'theme' ? 'Тема' : 'Экипировка'} сброшена`);
+        setPurchaseMessage('Экипировка сброшена');
         setEquipment(data.equipment);
-        if (category === 'theme') {
-          setTheme('default');
-        }
       } else {
         setPurchaseMessage(data.error || 'Ошибка сброса');
       }
@@ -250,10 +241,6 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
   const hasEquippedInCategory = (category: ShopItemType): boolean => {
     switch (category) {
       case 'frame': return !!equipment.activeFrame;
-      case 'title': return !!equipment.activeTitle;
-      case 'avatar': return !!equipment.activeAvatar;
-      case 'theme': return !!equipment.activeTheme;
-      case 'pet': return !!equipment.activePet;
       default: return false;
     }
   };
@@ -261,20 +248,14 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
   const isEquipped = (item: ShopItem): boolean => {
     switch (item.type) {
       case 'frame': return equipment.activeFrame === item.id;
-      case 'title': return equipment.activeTitle === item.id;
-      case 'avatar': return equipment.activeAvatar === item.id;
-      case 'theme': return equipment.activeTheme === item.id;
-      case 'pet': return equipment.activePet === item.id;
       default: return false;
     }
   };
 
-  const hiddenCategories = ['avatar', 'pet'];
-  const visibleCategories = shopCategories.filter(c => !hiddenCategories.includes(c.id));
-  const filteredItems = (activeCategory === 'all'
+  const visibleCategories = shopCategories;
+  const filteredItems = activeCategory === 'all'
     ? allShopItems
-    : getShopItemsByType(activeCategory as ShopItemType)
-  ).filter(item => !hiddenCategories.includes(item.type));
+    : getShopItemsByType(activeCategory as ShopItemType);
 
   if (!isOpen) return null;
 
@@ -308,12 +289,12 @@ export function Shop({ isOpen, onClose, playerCoins, playerLevel, onPurchase }: 
             <div className="space-y-0.5">
               {visibleCategories.map(category => {
                 const icons: Record<string, React.ReactElement> = {
-                  all:     <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
-                  frame:   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>,
-                  title:   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z"/><path strokeLinecap="round" strokeLinejoin="round" d="M6 6h.008v.008H6V6z"/></svg>,
-                  boost:   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>,
-                  theme:   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m8.66-13l-.87.5M4.21 16.5l-.87.5M20.66 16.5l-.87-.5M4.21 7.5l-.87-.5M21 12h-1M4 12H3" /><circle cx="12" cy="12" r="4"/></svg>,
-                  utility: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+                  all:        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>,
+                  consumable: <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 01-2.247 2.118H6.622a2.25 2.25 0 01-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125z" /></svg>,
+                  program:    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" /></svg>,
+                  frame:      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/></svg>,
+                  boost:      <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/></svg>,
+                  utility:    <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M10.343 3.94c.09-.542.56-.94 1.11-.94h1.093c.55 0 1.02.398 1.11.94l.149.894c.07.424.384.764.78.93.398.164.855.142 1.205-.108l.737-.527a1.125 1.125 0 011.45.12l.773.774c.39.389.44 1.002.12 1.45l-.527.737c-.25.35-.272.806-.107 1.204.165.397.505.71.93.78l.893.15c.543.09.94.56.94 1.109v1.094c0 .55-.397 1.02-.94 1.11l-.893.149c-.425.07-.765.383-.93.78-.165.398-.143.854.107 1.204l.527.738c.32.447.269 1.06-.12 1.45l-.774.773a1.125 1.125 0 01-1.449.12l-.738-.527c-.35-.25-.806-.272-1.203-.107-.397.165-.71.505-.781.929l-.149.894c-.09.542-.56.94-1.11.94h-1.094c-.55 0-1.019-.398-1.11-.94l-.148-.894c-.071-.424-.384-.764-.781-.93-.398-.164-.854-.142-1.204.108l-.738.527c-.447.32-1.06.269-1.45-.12l-.773-.774a1.125 1.125 0 01-.12-1.45l.527-.737c.25-.35.273-.806.108-1.204-.165-.397-.505-.71-.93-.78l-.894-.15c-.542-.09-.94-.56-.94-1.109v-1.094c0-.55.398-1.02.94-1.11l.894-.149c.424-.07.765-.383.93-.78.165-.398.143-.854-.108-1.204l-.526-.738a1.125 1.125 0 01.12-1.45l.773-.773a1.125 1.125 0 011.45-.12l.737.527c.35.25.807.272 1.204.107.397-.165.71-.505.78-.929l.15-.894z" /><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
                 };
                 const icon = icons[category.id] ?? <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9"/></svg>;
                 return (
@@ -423,7 +404,14 @@ function ShopItemCard({ item, index, owned, equipped, canAfford, levelLocked, on
         {levelLocked && <span className="w-4 h-4 bg-red-400 rounded-full flex items-center justify-center text-white text-[9px] font-bold">!</span>}
       </div>
 
-      <h3 className="font-semibold text-xs text-gray-900 dark:text-white mt-1 mb-1 leading-tight pr-5">{item.name}</h3>
+      {/* Анимированный превью рамки */}
+      {item.type === 'frame' && (
+        <div className="flex justify-center pt-5 pb-2">
+          <AnimatedFrame frameId={item.id} size={42} innerClassName="bg-gray-900 dark:bg-gray-800" />
+        </div>
+      )}
+
+      <h3 className={`font-semibold text-xs text-gray-900 dark:text-white leading-tight pr-5 ${item.type === 'frame' ? '' : 'mt-1 mb-1'}`}>{item.name}</h3>
       <p className="text-[10px] text-gray-400 dark:text-gray-500 mb-2">{rarityNames[item.rarity]}</p>
       <div className={`flex items-center gap-1 text-xs font-semibold ${!canAfford && !owned ? 'text-red-500' : 'text-amber-600 dark:text-amber-400'}`}>
         <div className="w-2.5 h-2.5 rounded-full bg-gradient-to-br from-yellow-300 to-amber-500 flex-shrink-0" />
@@ -459,14 +447,8 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
         {/* Заголовок */}
         <div className="flex items-center justify-between px-4 sm:px-5 pt-4 sm:pt-5 pb-2 sm:pb-3">
           <div className="flex items-center gap-3">
-            {item.type === 'frame' && item.preview ? (
-              <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${item.preview} p-0.5 flex-shrink-0`}>
-                <div className="w-full h-full rounded-full bg-gray-100 dark:bg-gray-800" />
-              </div>
-            ) : (
-              <div className="w-10 h-10 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center flex-shrink-0">
-                <div className={`w-5 h-5 rounded-full ${rarityColors[item.rarity]?.bg ?? 'bg-gray-400'}`} />
-              </div>
+            {item.type === 'frame' && (
+              <AnimatedFrame frameId={item.id} size={56} innerClassName="bg-white dark:bg-gray-900" />
             )}
             <div>
               <h3 className="font-bold text-gray-900 dark:text-white text-sm sm:text-base">{item.name}</h3>
@@ -492,8 +474,11 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
               {item.effect.type === 'streak_shield' && `Защита серии`}
               {item.effect.type === 'flexibility_xp_bonus' && `+${Math.round(item.effect.value * 100)}% XP за гибкость`}
               {item.effect.type === 'auto_streak_shield' && `Авто-защита серии раз в неделю`}
-              {item.effect.type === 'mega_boost' && `XP x2 + Монеты x2`}
-              {item.duration && <span className="ml-1 opacity-60">({item.duration}ч)</span>}
+              {item.effect.type === 'mega_boost' && `XP x${item.effect.value} + Монеты x${item.effect.value}`}
+              {item.effect.type === 'quest_skip' && `Пропустить квест`}
+              {item.effect.type === 'streak_revival' && `Восстановить серию`}
+              {item.duration && item.type !== 'program' && <span className="ml-1 opacity-60">({item.duration}ч)</span>}
+              {item.duration && item.type === 'program' && <span className="ml-1 opacity-60">({item.duration / 24} дн.)</span>}
             </div>
           )}
 
@@ -525,7 +510,7 @@ function ItemModal({ item, owned, equipped, canAfford, levelLocked, playerLevel,
             </button>
           ) : (
             <div className="space-y-2">
-              {['frame', 'title', 'theme'].includes(item.type) && (
+              {item.type === 'frame' && (
                 <button
                   onClick={() => onEquip(equipped ? 'unequip' : 'equip')}
                   disabled={loading}

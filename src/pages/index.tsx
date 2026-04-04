@@ -24,6 +24,7 @@ import { Shop } from "../components/Shop";
 import { useEquipment } from "@/lib/useEquipment";
 import { DailyChallenge } from "../components/DailyChallenge";
 import { Leaderboard } from "../components/Leaderboard";
+import { OnboardingQuestionnaire } from "../components/OnboardingQuestionnaire";
 
 // Error Boundary — catches crashes in AuthenticatedApp without kicking user to landing page
 interface EBState { hasError: boolean; retries: number; recovering: boolean }
@@ -188,6 +189,7 @@ function AuthenticatedApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showClassSelection, setShowClassSelection] = useState(false);
   const [shopOpen, setShopOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [equipmentVersion, setEquipmentVersion] = useState(0); // Для обновления PlayerCard
   const [quests, setQuests] = useState<Quest[]>([]);
   const [isLoadingQuests, setIsLoadingQuests] = useState(false);
@@ -270,12 +272,26 @@ function AuthenticatedApp() {
       .catch(() => setDbHydrated(true));
   }, [session?.user?.email]);
 
-  // Показываем выбор класса только после гидрации из БД
+  // Показываем опросник, затем выбор класса — только после гидрации из БД
   useEffect(() => {
     if (session && dbHydrated && !player.onboardingCompleted) {
-      setShowClassSelection(true);
+      setShowOnboarding(true);
     }
   }, [session, dbHydrated, player.onboardingCompleted]);
+
+  // Обработчик завершения опросника
+  const handleOnboardingComplete = async (data: import("../lib/usePlayer").OnboardingData) => {
+    // Сохраняем в localStorage чтобы не потерять
+    setPlayer(prev => ({ ...prev, onboardingData: data }));
+    // Сохраняем на сервер в фоне (не ждём — onboarding данные не критичны)
+    fetch("/api/player/onboarding", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    }).catch(console.error);
+    setShowOnboarding(false);
+    setShowClassSelection(true);
+  };
 
   // Автоматическая генерация квестов
   const generateQuests = async () => {
@@ -460,12 +476,12 @@ function AuthenticatedApp() {
 
     // Фильтр по локации (дом/зал)
     if (locationFilter === "home") {
-      // Показываем домашние квесты без инвентаря (location === "home")
-      if (q.location !== "home") return false;
+      // Показываем домашние квесты и универсальные (location === "home" или "both")
+      if (q.location !== "home" && q.location !== "both") return false;
     }
     if (locationFilter === "gym") {
-      // Показываем зальные квесты с инвентарем (location === "gym")
-      if (q.location !== "gym") return false;
+      // Показываем зальные квесты и универсальные (location === "gym" или "both")
+      if (q.location !== "gym" && q.location !== "both") return false;
     }
 
     // Фильтр по статусу
@@ -615,22 +631,13 @@ function AuthenticatedApp() {
         streakMultiplier = 1.1;
       }
 
-      // Добавляем бонус стрика от питомца
-      const petStreakBonus = equipmentData.getStreakBonus();
-      streakMultiplier += petStreakBonus;
-
       const streakBonus = Math.floor(newStreak / 7) * 5; // +5 монет за каждые 7 дней стрика
       
-      // Применяем множители от бустов и питомцев
+      // Применяем множители от бустов
       const xpMultiplier = equipmentData.getXpMultiplier();
       const coinMultiplier = equipmentData.getCoinMultiplier();
-      const categoryBonus = equipmentData.getCategoryXpBonus(quest.category || '');
       
       let totalXp = Math.round(classBonus.xp * streakMultiplier * xpMultiplier);
-      // Добавляем категорийный бонус (например, от кота-йога за гибкость)
-      if (categoryBonus > 0) {
-        totalXp = Math.round(totalXp * (1 + categoryBonus));
-      }
 
       // Бонус x2 за вызов дня (по всем квестам, не только pending — чтобы id не менялся)
       const isDailyChallenge = (() => {
@@ -946,6 +953,13 @@ function AuthenticatedApp() {
           }
         }}
       />
+
+      {/* Опросник при регистрации */}
+      {showOnboarding && (
+        <OnboardingQuestionnaire
+          onComplete={handleOnboardingComplete}
+        />
+      )}
 
       {/* Выбор класса */}
       {showClassSelection && (

@@ -65,6 +65,26 @@ body {
   caret-color: #ffffff !important;
 }
 
+/* ── Avatar frame ring animations ── */
+@keyframes frame-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes frame-spin-rev {
+  from { transform: rotate(360deg); }
+  to   { transform: rotate(0deg); }
+}
+@keyframes frame-breathe {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+@keyframes frame-flicker {
+  0%, 100% { opacity: 1; }
+  25%      { opacity: 0.4; }
+  60%      { opacity: 0.85; }
+  80%      { opacity: 0.55; }
+}
+
 /* Анимации */
 @keyframes animate-in {
   from {

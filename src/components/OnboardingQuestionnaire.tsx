@@ -1,398 +1,295 @@
 // src/components/OnboardingQuestionnaire.tsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { OnboardingData } from "../lib/usePlayer";
-import { ThemedInput } from "./ThemedInput";
 
 type OnboardingQuestionnaireProps = {
   onComplete: (data: OnboardingData) => void;
   onSkip?: () => void;
-  mode?: 'full' | 'edit-program'; // Новый пропс
+  mode?: "full" | "edit-program";
 };
 
-export function OnboardingQuestionnaire({ onComplete, onSkip, mode = 'full' }: OnboardingQuestionnaireProps) {
-  const [step, setStep] = useState(mode === 'edit-program' ? 2 : 1);
-  const [formData, setFormData] = useState<Partial<OnboardingData>>({
-    howDidYouHear: mode === 'edit-program' ? "Редактирование программы" : "",
-    age: 0,
-    weight: 0,
-    height: 0,
-    fitnessExperience: "",
-    availableTime: "",
-    workoutPreference: [],
-    fitnessGoals: [],
-    injuries: "",
-    dietPreference: "",
-  });
+const TOTAL_STEPS = 5;
 
-  const totalSteps = mode === 'edit-program' ? 4 : 5;
+const STEPS_META = [
+  { title: "Какова твоя\nглавная цель?", subtitle: "Выбери одно — это определит твою программу" },
+  { title: "Немного\nо тебе", subtitle: "Данные нужны для персональной нагрузки" },
+  { title: "Твой уровень\nподготовки?", subtitle: "Отвечай честно — это только помогает" },
+  { title: "Сколько времени\nна тренировку?", subtitle: "В среднем за одну сессию" },
+  { title: "Где будешь\nтренироваться?", subtitle: "Выбери основное место" },
+];
 
-  const updateField = (field: keyof OnboardingData, value: any) => {
-    setFormData((prev: Partial<OnboardingData>) => ({ ...prev, [field]: value }));
-  };
+const GOALS = [
+  { value: "Похудение", label: "Сбросить вес", desc: "Сжигать жир и стать стройнее" },
+  { value: "Набор мышечной массы", label: "Набрать мышцы", desc: "Стать сильнее и объёмнее" },
+  { value: "Улучшение выносливости", label: "Выносливость", desc: "Бегать дальше, дышать легче" },
+  { value: "Поддержание здоровья", label: "Здоровый образ жизни", desc: "Поддерживать форму и энергию" },
+];
 
-  const toggleArrayValue = (field: "workoutPreference" | "fitnessGoals", value: string) => {
-    setFormData((prev: Partial<OnboardingData>) => {
-      const current = prev[field] || [];
-      const updated = current.includes(value)
-        ? current.filter((v: string) => v !== value)
-        : [...current, value];
-      return { ...prev, [field]: updated };
-    });
-  };
+const EXPERIENCE_LEVELS = [
+  { value: "начинающий", label: "Новичок", desc: "Почти не тренировался раньше" },
+  { value: "средний", label: "Любитель", desc: "Есть базовый опыт, тренируюсь иногда" },
+  { value: "продвинутый", label: "Опытный", desc: "Тренируюсь регулярно 1+ лет" },
+];
 
-  const handleNext = () => {
-    if (step < totalSteps) {
-      setStep(step + 1);
-    } else {
-      handleSubmit();
-    }
-  };
+const TIMINGS = [
+  { value: "15-30 минут", label: "15–30 минут", desc: "Коротко, но по делу" },
+  { value: "30-60 минут", label: "30–60 минут", desc: "Стандартная тренировка" },
+  { value: "1-2 часа", label: "1–2 часа", desc: "Полноценная сессия" },
+  { value: "Более 2 часов", label: "2+ часа", desc: "Профессиональный уровень" },
+];
 
-  const handlePrev = () => {
-    if (step > (mode === 'edit-program' ? 2 : 1)) setStep(step - 1);
-  };
+const LOCATIONS = [
+  { value: "Домашние тренировки", label: "Дома", desc: "Без оборудования, в любое время" },
+  { value: "Силовые тренировки", label: "В зале", desc: "Тренажёры и свободные веса" },
+  { value: "Кардио", label: "На улице / в парке", desc: "Бег, велосипед, свежий воздух" },
+];
 
-  const handleSubmit = () => {
-    const completeData: OnboardingData = {
-      howDidYouHear: formData.howDidYouHear || "Не указано",
-      age: formData.age || 0,
-      weight: formData.weight || 0,
-      height: formData.height || 0,
-      fitnessExperience: formData.fitnessExperience || "начинающий",
-      availableTime: formData.availableTime || "30 мин",
-      workoutPreference: formData.workoutPreference || [],
-      fitnessGoals: formData.fitnessGoals || [],
-      injuries: formData.injuries || "Нет",
-      dietPreference: formData.dietPreference || "Обычное питание",
-      completedAt: Date.now(),
-    };
-    onComplete(completeData);
-  };
+type OptionCardProps = {
+  label: string;
+  desc: string;
+  selected: boolean;
+  onClick: () => void;
+};
+
+function OptionCard({ label, desc, selected, onClick }: OptionCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`w-full flex items-center gap-4 p-4 rounded-2xl border-2 text-left transition-all duration-200 active:scale-[0.98] ${
+        selected
+          ? "border-white bg-white/20 shadow-lg shadow-white/10"
+          : "border-white/20 bg-white/5 hover:bg-white/10"
+      }`}
+    >
+      <div className="flex-1 min-w-0">
+        <p className={`font-bold text-base leading-tight ${selected ? "text-white" : "text-white/90"}`}>
+          {label}
+        </p>
+        <p className={`text-sm mt-0.5 ${selected ? "text-white/80" : "text-white/50"}`}>{desc}</p>
+      </div>
+      <div
+        className={`flex-none w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+          selected ? "border-white bg-white" : "border-white/30"
+        }`}
+      >
+        {selected && <div className="w-2.5 h-2.5 rounded-full bg-purple-600" />}
+      </div>
+    </button>
+  );
+}
+
+type NumberInputProps = {
+  label: string;
+  unit: string;
+  value: string;
+  onChange: (v: string) => void;
+  min: number;
+  max: number;
+  placeholder: string;
+};
+
+function NumberInput({ label, unit, value, onChange, min, max, placeholder }: NumberInputProps) {
+  return (
+    <div className="bg-white/10 border border-white/20 rounded-2xl p-4">
+      <p className="text-white/60 text-sm mb-2">{label}</p>
+      <div className="flex items-baseline gap-2">
+        <input
+          type="number"
+          inputMode="numeric"
+          value={value}
+          placeholder={placeholder}
+          min={min}
+          max={max}
+          onChange={(e) => onChange(e.target.value)}
+          className="w-full bg-transparent text-white text-3xl font-bold outline-none placeholder-white/25 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+        />
+        <span className="text-white/50 text-lg font-medium flex-none">{unit}</span>
+      </div>
+    </div>
+  );
+}
+
+export function OnboardingQuestionnaire({ onComplete, onSkip, mode = "full" }: OnboardingQuestionnaireProps) {
+  const [step, setStep] = useState(1);
+
+  // Step 1 — goal
+  const [goal, setGoal] = useState("");
+  // Step 2 — body stats
+  const [age, setAge] = useState("");
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
+  // Step 3 — experience
+  const [experience, setExperience] = useState("");
+  // Step 4 — time
+  const [time, setTime] = useState("");
+  // Step 5 — location
+  const [location, setLocation] = useState("");
 
   const isStepValid = () => {
     switch (step) {
       case 1:
-        return mode === 'edit-program' ? true : (formData.howDidYouHear && formData.howDidYouHear.trim() !== "");
-      case 2:
-        return (formData.age || 0) > 0 && (formData.weight || 0) > 0 && (formData.height || 0) > 0;
+        return goal !== "";
+      case 2: {
+        const a = Number(age);
+        const w = Number(weight);
+        const h = Number(height);
+        return age !== "" && weight !== "" && height !== "" &&
+          a >= 10 && a <= 100 && w >= 20 && w <= 400 && h >= 50 && h <= 280;
+      }
       case 3:
-        return formData.fitnessExperience && formData.availableTime;
+        return experience !== "";
       case 4:
-        return (formData.workoutPreference?.length || 0) > 0 && (formData.fitnessGoals?.length || 0) > 0;
+        return time !== "";
       case 5:
-        return true; // Последний шаг необязательный
+        return location !== "";
       default:
         return false;
     }
   };
 
+  const handleNext = () => {
+    if (step < TOTAL_STEPS) {
+      setStep(step + 1);
+    } else {
+      const data: OnboardingData = {
+        howDidYouHear: "Приложение",
+        age: Number(age),
+        weight: Number(weight),
+        height: Number(height),
+        fitnessExperience: experience,
+        availableTime: time,
+        workoutPreference: [location],
+        fitnessGoals: [goal],
+        injuries: "Нет",
+        dietPreference: "Обычное питание",
+        completedAt: Date.now(),
+      };
+      onComplete(data);
+    }
+  };
+
+  const handlePrev = () => {
+    if (step > 1) setStep(step - 1);
+  };
+
+  const meta = STEPS_META[step - 1];
+
+  // Блокируем скролл страницы пока открыт опросник
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          {/* Заголовок */}
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold mb-2">
-              {mode === 'edit-program' ? 'Изменить программу тренировок 🏋️' : 'Добро пожаловать в GymQuest! 🏋️'}
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              {mode === 'edit-program' 
-                ? 'Обновите свои параметры и предпочтения для персонализации квестов'
-                : 'Давайте узнаем о вас больше, чтобы персонализировать ваш опыт'
-              }
-            </p>
-            <div className="flex gap-1 mt-4">
-              {Array.from({ length: totalSteps }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`h-2 flex-1 rounded ${
-                    i + 1 <= step
-                      ? "bg-blue-600"
-                      : "bg-gray-300 dark:bg-gray-600"
-                  }`}
-                />
-              ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Шаг {step} из {totalSteps}
-            </p>
-          </div>
-
-          {/* Шаг 1: Как узнали о приложении - пропускаем в режиме редактирования */}
-          {step === 1 && mode === 'full' && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Как вы узнали о GymQuest?</h3>
-              <div className="space-y-3">
-                {[
-                  "Поиск в интернете",
-                  "Социальные сети",
-                  "Рекомендация друга",
-                  "Реклама",
-                  "Блог/статья",
-                  "Другое",
-                ].map((option) => (
-                  <label key={option} className="flex items-center gap-3 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="howDidYouHear"
-                      value={option}
-                      checked={formData.howDidYouHear === option}
-                      onChange={(e) => updateField("howDidYouHear", e.target.value)}
-                      className="w-4 h-4"
-                    />
-                    <span>{option}</span>
-                  </label>
-                ))}
-              </div>
-              {formData.howDidYouHear === "Другое" && (
-                <ThemedInput
-                  placeholder="Укажите подробнее..."
-                  value={formData.howDidYouHear === "Другое" ? "" : formData.howDidYouHear || ""}
-                  onChange={(e) => updateField("howDidYouHear", e.target.value)}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Шаг 2: Физические параметры */}
-          {step === 2 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Ваши физические параметры</h3>
-              <div className="space-y-3">
-                <div>
-                  <label className="block mb-2 font-medium">Возраст (лет)</label>
-                  <ThemedInput
-                    type="number"
-                    placeholder="Например: 25"
-                    value={formData.age || ""}
-                    onChange={(e) => updateField("age", Number(e.target.value))}
-                    min="10"
-                    max="100"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 font-medium">Вес (кг)</label>
-                  <ThemedInput
-                    type="number"
-                    placeholder="Например: 70"
-                    value={formData.weight || ""}
-                    onChange={(e) => updateField("weight", Number(e.target.value))}
-                    min="30"
-                    max="300"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-2 font-medium">Рост (см)</label>
-                  <ThemedInput
-                    type="number"
-                    placeholder="Например: 175"
-                    value={formData.height || ""}
-                    onChange={(e) => updateField("height", Number(e.target.value))}
-                    min="100"
-                    max="250"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Шаг 3: Опыт и время */}
-          {step === 3 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Опыт тренировок</h3>
-              
-              <div>
-                <label className="block mb-2 font-medium">Уровень опыта</label>
-                <div className="space-y-2">
-                  {[
-                    { value: "начинающий", label: "Начинающий (менее 6 месяцев)" },
-                    { value: "средний", label: "Средний (6 месяцев - 2 года)" },
-                    { value: "продвинутый", label: "Продвинутый (более 2 лет)" },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="fitnessExperience"
-                        value={option.value}
-                        checked={formData.fitnessExperience === option.value}
-                        onChange={(e) => updateField("fitnessExperience", e.target.value)}
-                        className="w-4 h-4"
-                      />
-                      <span>{option.label}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">Доступное время для тренировок в день</label>
-                <div className="space-y-2">
-                  {[
-                    "15-30 минут",
-                    "30-60 минут",
-                    "1-2 часа",
-                    "Более 2 часов",
-                  ].map((option) => (
-                    <label key={option} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="availableTime"
-                        value={option}
-                        checked={formData.availableTime === option}
-                        onChange={(e) => updateField("availableTime", e.target.value)}
-                        className="w-4 h-4"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Шаг 4: Предпочтения и цели */}
-          {step === 4 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Ваши предпочтения и цели</h3>
-              
-              <div>
-                <label className="block mb-2 font-medium">
-                  Предпочитаемые виды тренировок (можно выбрать несколько)
-                </label>
-                <div className="space-y-2">
-                  {[
-                    "Силовые тренировки",
-                    "Кардио",
-                    "Йога/Растяжка",
-                    "Кроссфит",
-                    "Плавание",
-                    "Бег",
-                    "Групповые занятия",
-                    "Домашние тренировки",
-                  ].map((option) => (
-                    <label key={option} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.workoutPreference?.includes(option)}
-                        onChange={() => toggleArrayValue("workoutPreference", option)}
-                        className="w-4 h-4"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">
-                  Ваши фитнес-цели (можно выбрать несколько)
-                </label>
-                <div className="space-y-2">
-                  {[
-                    "Похудение",
-                    "Набор мышечной массы",
-                    "Улучшение выносливости",
-                    "Поддержание здоровья",
-                    "Улучшение гибкости",
-                    "Подготовка к соревнованиям",
-                    "Реабилитация",
-                  ].map((option) => (
-                    <label key={option} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={formData.fitnessGoals?.includes(option)}
-                        onChange={() => toggleArrayValue("fitnessGoals", option)}
-                        className="w-4 h-4"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Шаг 5: Дополнительная информация */}
-          {step === 5 && (
-            <div className="space-y-4">
-              <h3 className="text-xl font-semibold">Дополнительная информация</h3>
-              
-              <div>
-                <label className="block mb-2 font-medium">
-                  Травмы или ограничения (необязательно)
-                </label>
-                <textarea
-                  className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 min-h-[100px]"
-                  placeholder="Опишите любые травмы, боли или ограничения, которые мы должны учитывать..."
-                  value={formData.injuries || ""}
-                  onChange={(e) => updateField("injuries", e.target.value)}
-                />
-              </div>
-
-              <div>
-                <label className="block mb-2 font-medium">
-                  Предпочтения в питании
-                </label>
-                <div className="space-y-2">
-                  {[
-                    "Обычное питание",
-                    "Вегетарианство",
-                    "Веганство",
-                    "Безглютеновая диета",
-                    "Кето-диета",
-                    "Другое",
-                  ].map((option) => (
-                    <label key={option} className="flex items-center gap-3 cursor-pointer">
-                      <input
-                        type="radio"
-                        name="dietPreference"
-                        value={option}
-                        checked={formData.dietPreference === option}
-                        onChange={(e) => updateField("dietPreference", e.target.value)}
-                        className="w-4 h-4"
-                      />
-                      <span>{option}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Кнопки навигации */}
-          <div className="flex justify-between items-center mt-6 pt-6 border-t dark:border-gray-700">
-            <div className="flex gap-2">
-              {step > 1 && (
-                <button
-                  onClick={handlePrev}
-                  className="px-4 py-2 border rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 dark:border-gray-600"
-                >
-                  ← Назад
-                </button>
-              )}
-              {onSkip && step === 1 && (
-                <button
-                  onClick={onSkip}
-                  className="px-4 py-2 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  Пропустить опрос
-                </button>
-              )}
-            </div>
-            
-            <button
-              onClick={handleNext}
-              disabled={!isStepValid()}
-              className={`px-6 py-2 rounded-lg font-semibold ${
-                isStepValid()
-                  ? "bg-blue-600 text-white hover:bg-blue-700"
-                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
+    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-700 via-indigo-800 to-purple-900 overflow-hidden">
+      {/* Top bar */}
+      <div className="flex-none px-5 pt-12 pb-2">
+        {/* Step progress dots */}
+        <div className="flex gap-2 mb-5">
+          {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+            <div
+              key={i}
+              className={`h-1.5 flex-1 rounded-full transition-all duration-300 ${
+                i + 1 <= step ? "bg-white" : "bg-white/25"
               }`}
-            >
-              {step === totalSteps ? "Завершить" : "Далее →"}
-            </button>
-          </div>
+            />
+          ))}
         </div>
+
+        {/* Back button */}
+        {step > 1 && (
+          <button
+            onClick={handlePrev}
+            className="flex items-center gap-1.5 text-white/60 hover:text-white transition-colors mb-4 text-sm"
+          >
+            <span className="text-lg leading-none">←</span> Назад
+          </button>
+        )}
+
+        <p className="text-white/55 text-sm leading-snug">{meta.subtitle}</p>
+        <h1 className="text-white text-[28px] font-extrabold mt-1 leading-tight whitespace-pre-line">
+          {meta.title}
+        </h1>
+      </div>
+
+      {/* Scrollable options */}
+      <div className="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+        {/* Step 1 — Goal */}
+        {step === 1 && GOALS.map((g) => (
+          <OptionCard
+            key={g.value}
+            label={g.label}
+            desc={g.desc}
+            selected={goal === g.value}
+            onClick={() => setGoal(g.value)}
+          />
+        ))}
+
+        {/* Step 2 — Body stats */}
+        {step === 2 && (
+          <div className="space-y-3">
+            <NumberInput label="Возраст" unit="лет" value={age} onChange={setAge} min={10} max={100} placeholder="25" />
+            <NumberInput label="Вес" unit="кг" value={weight} onChange={setWeight} min={20} max={400} placeholder="70" />
+            <NumberInput label="Рост" unit="см" value={height} onChange={setHeight} min={50} max={280} placeholder="175" />
+          </div>
+        )}
+
+        {/* Step 3 — Experience */}
+        {step === 3 && EXPERIENCE_LEVELS.map((e) => (
+          <OptionCard
+            key={e.value}
+            label={e.label}
+            desc={e.desc}
+            selected={experience === e.value}
+            onClick={() => setExperience(e.value)}
+          />
+        ))}
+
+        {/* Step 4 — Time */}
+        {step === 4 && TIMINGS.map((t) => (
+          <OptionCard
+            key={t.value}
+            label={t.label}
+            desc={t.desc}
+            selected={time === t.value}
+            onClick={() => setTime(t.value)}
+          />
+        ))}
+
+        {/* Step 5 — Location */}
+        {step === 5 && LOCATIONS.map((l) => (
+          <OptionCard
+            key={l.value}
+            label={l.label}
+            desc={l.desc}
+            selected={location === l.value}
+            onClick={() => setLocation(l.value)}
+          />
+        ))}
+      </div>
+
+      {/* Bottom CTA */}
+      <div className="flex-none px-5 pb-10 pt-3">
+        {onSkip && step === 1 && (
+          <button
+            onClick={onSkip}
+            className="w-full text-center text-white/40 text-sm mb-3 py-1 hover:text-white/60 transition-colors"
+          >
+            Пропустить опрос
+          </button>
+        )}
+        <button
+          onClick={handleNext}
+          disabled={!isStepValid()}
+          className={`w-full py-4 rounded-2xl text-base font-bold transition-all duration-200 ${
+            isStepValid()
+              ? "bg-white text-purple-800 hover:bg-white/90 active:scale-[0.98] shadow-xl shadow-black/30"
+              : "bg-white/20 text-white/40 cursor-not-allowed"
+          }`}
+        >
+          {step < TOTAL_STEPS ? "Продолжить →" : "Начать тренировки"}
+        </button>
       </div>
     </div>
   );

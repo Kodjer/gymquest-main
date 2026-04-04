@@ -40,10 +40,6 @@ export default async function handler(
       const category = itemId.replace('reset_', '');
       const fieldMap: Record<string, string> = {
         frame: 'activeFrame',
-        title: 'activeTitle',
-        avatar: 'activeAvatar',
-        theme: 'activeTheme',
-        pet: 'activePet',
       };
 
       const field = fieldMap[category];
@@ -92,10 +88,6 @@ export default async function handler(
     // Определяем поле для обновления
     const fieldMap: Record<string, string> = {
       frame: 'activeFrame',
-      title: 'activeTitle',
-      avatar: 'activeAvatar',
-      theme: 'activeTheme',
-      pet: 'activePet',
     };
 
     const field = fieldMap[item.type];

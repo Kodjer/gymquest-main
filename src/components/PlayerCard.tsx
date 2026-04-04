@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { AnimatedStat, FadeIn } from "./AnimatedComponents";
 import { useEquipment } from "@/lib/useEquipment";
 import { useAppTheme } from "@/lib/ThemeContext";
+import { AnimatedFrame } from "./AnimatedFrame";
 
 type PlayerClass = "warrior" | "scout" | "monk" | "berserker";
 
@@ -96,9 +97,6 @@ export function PlayerCard({
   const classInfo = player.playerClass
     ? classDisplayInfo[player.playerClass]
     : null;
-  const displayIcon =
-    equipmentItems.avatar?.icon ||
-    (classInfo ? "/" : null);
   // Для класса - буква-метка вместо эмоджи
   const classLetter = classInfo
     ? player.isEvolved
@@ -152,25 +150,41 @@ export function PlayerCard({
           {/* Аватар */}
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <div className="relative flex-shrink-0">
-              <div
-                className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${frameGradient} p-0.5 shadow`}
-              >
-                <div
-                  className={`w-full h-full rounded-full ${colors.cardBg} flex items-center justify-center text-xl sm:text-2xl overflow-hidden`}
+              {equipmentItems.frame ? (
+                <AnimatedFrame
+                  frameId={equipmentItems.frame.id}
+                  size={50}
+                  innerClassName={`${colors.cardBg} flex items-center justify-center overflow-hidden`}
                 >
                   {customPhoto ? (
-                    <img
-                      src={customPhoto}
-                      alt="avatar"
-                      className="w-full h-full object-cover rounded-full"
-                    />
+                    <img src={customPhoto} alt="avatar" className="w-full h-full object-cover" />
                   ) : classLetter ? (
-                    <span className={`text-sm font-black text-white`}>{classLetter}</span>
+                    <span className="text-sm font-black text-white">{classLetter}</span>
                   ) : (
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
                   )}
+                </AnimatedFrame>
+              ) : (
+                <div
+                  className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br ${frameGradient} p-0.5 shadow`}
+                >
+                  <div
+                    className={`w-full h-full rounded-full ${colors.cardBg} flex items-center justify-center text-xl sm:text-2xl overflow-hidden`}
+                  >
+                    {customPhoto ? (
+                      <img
+                        src={customPhoto}
+                        alt="avatar"
+                        className="w-full h-full object-cover rounded-full"
+                      />
+                    ) : classLetter ? (
+                      <span className={`text-sm font-black text-white`}>{classLetter}</span>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 opacity-40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" /></svg>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Кнопка загрузки фото */}
               <button
                 onClick={() => fileInputRef.current?.click()}
@@ -202,11 +216,6 @@ export function PlayerCard({
 
             {/* Имя / класс */}
             <div className="min-w-0">
-              {equipmentItems.title && (
-                <p className="text-[11px] font-semibold text-amber-500 mb-0.5 truncate">
-                  {equipmentItems.title.icon} {equipmentItems.title.name}
-                </p>
-              )}
               <h2 className="text-lg sm:text-xl font-bold leading-tight">
                 Уровень {player.level}
               </h2>

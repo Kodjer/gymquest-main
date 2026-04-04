@@ -63,12 +63,7 @@ export default async function handler(
       const itemsWithOwnership = items.map(item => ({
         ...item,
         owned: purchases.some(p => p.itemId === item.id),
-        equipped: 
-          equipment?.activeFrame === item.id ||
-          equipment?.activeTitle === item.id ||
-          equipment?.activeAvatar === item.id ||
-          equipment?.activeTheme === item.id ||
-          equipment?.activePet === item.id,
+        equipped: equipment?.activeFrame === item.id,
         canAfford: (user.player?.xp || 0) >= 0, // Проверяем монеты на клиенте
         levelLocked: item.requiredLevel ? (user.player?.level || 1) < item.requiredLevel : false,
       }));

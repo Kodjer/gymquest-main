@@ -1,7 +1,7 @@
 // src/lib/shopData.ts
 // Каталог товаров магазина GymQuest
 
-export type ShopItemType = 'frame' | 'title' | 'avatar' | 'theme' | 'boost' | 'pet' | 'utility';
+export type ShopItemType = 'frame' | 'boost' | 'utility' | 'consumable' | 'program';
 
 export interface ShopItem {
   id: string;
@@ -106,142 +106,53 @@ export const frameItems: ShopItem[] = [
   },
 ];
 
-// 🏷️ Титулы
-export const titleItems: ShopItem[] = [
+// 📦 Расходники
+export const consumableItems: ShopItem[] = [
   {
-    id: 'title_beginner',
-    name: 'Новичок',
-    description: 'Каждый мастер когда-то был учеником',
-    price: 50,
-    type: 'title',
-    icon: '🌱',
-    rarity: 'common',
-  },
-  {
-    id: 'title_athlete',
-    name: 'Атлет',
-    description: 'Признание ваших усилий',
-    price: 150,
-    type: 'title',
-    icon: '🏃',
+    id: 'consumable_protein',
+    name: 'Протеиновый шок',
+    description: 'x2 XP за следующие 3 часа. Одноразовое использование.',
+    price: 120,
+    type: 'consumable',
+    icon: '⚗️',
     rarity: 'uncommon',
+    effect: { type: 'xp_multiplier', value: 2 },
+    duration: 3,
   },
   {
-    id: 'title_ironman',
-    name: 'Железный человек',
-    description: 'Несгибаемая воля к победе',
-    price: 300,
-    type: 'title',
-    icon: '🦾',
+    id: 'consumable_double_drop',
+    name: 'Двойной дроп',
+    description: 'x2 монет за следующие 3 часа.',
+    price: 120,
+    type: 'consumable',
+    icon: '💎',
+    rarity: 'uncommon',
+    effect: { type: 'coin_multiplier', value: 2 },
+    duration: 3,
+  },
+  {
+    id: 'consumable_quest_skip',
+    name: 'Пропуск квеста',
+    description: 'Засчитать один невыполненный квест без тренировки.',
+    price: 200,
+    type: 'consumable',
+    icon: '🎫',
     rarity: 'rare',
+    effect: { type: 'quest_skip', value: 1 },
   },
   {
-    id: 'title_cardio_master',
-    name: 'Мастер кардио',
-    description: 'Сердце бьётся в ритме победы',
-    price: 400,
-    type: 'title',
-    icon: '❤️‍🔥',
-    rarity: 'rare',
-  },
-  {
-    id: 'title_flex_guru',
-    name: 'Гуру гибкости',
-    description: 'Гибкость тела и разума',
-    price: 400,
-    type: 'title',
-    icon: '🧘',
-    rarity: 'rare',
-  },
-  {
-    id: 'title_strength_king',
-    name: 'Король силы',
-    description: 'Сила, которой завидуют все',
-    price: 500,
-    type: 'title',
-    icon: '👑',
+    id: 'consumable_streak_revival',
+    name: 'Восстановление серии',
+    description: 'Вернуть один пропущенный день серии.',
+    price: 350,
+    type: 'consumable',
+    icon: '🔰',
     rarity: 'epic',
-  },
-  {
-    id: 'title_legend',
-    name: 'Легенда GymQuest',
-    description: 'Ваше имя войдёт в историю',
-    price: 1000,
-    type: 'title',
-    icon: '⭐',
-    rarity: 'legendary',
-    requiredLevel: 20,
-  },
-  {
-    id: 'title_champion',
-    name: 'Чемпион',
-    description: 'Непобедимый воин фитнеса',
-    price: 800,
-    type: 'title',
-    icon: '🏆',
-    rarity: 'epic',
-    requiredLevel: 10,
+    effect: { type: 'streak_revival', value: 1 },
   },
 ];
 
-// 👤 Аватары
-export const avatarItems: ShopItem[] = [
-  {
-    id: 'avatar_ninja',
-    name: 'Ниндзя',
-    description: 'Тихий, быстрый, смертоносный',
-    price: 300,
-    type: 'avatar',
-    icon: '🥷',
-    rarity: 'uncommon',
-  },
-  {
-    id: 'avatar_robot',
-    name: 'Робот',
-    description: 'Машина для тренировок',
-    price: 350,
-    type: 'avatar',
-    icon: '🤖',
-    rarity: 'uncommon',
-  },
-  {
-    id: 'avatar_knight',
-    name: 'Рыцарь',
-    description: 'Благородный защитник здоровья',
-    price: 400,
-    type: 'avatar',
-    icon: '🛡️',
-    rarity: 'rare',
-  },
-  {
-    id: 'avatar_alien',
-    name: 'Инопланетянин',
-    description: 'Тренировки из другой галактики',
-    price: 500,
-    type: 'avatar',
-    icon: '👽',
-    rarity: 'rare',
-  },
-  {
-    id: 'avatar_phoenix',
-    name: 'Феникс',
-    description: 'Возрождение после каждой тренировки',
-    price: 800,
-    type: 'avatar',
-    icon: '🦅',
-    rarity: 'epic',
-  },
-  {
-    id: 'avatar_dragon_warrior',
-    name: 'Воин дракона',
-    description: 'Легендарный мастер боевых искусств',
-    price: 1200,
-    type: 'avatar',
-    icon: '🐲',
-    rarity: 'legendary',
-    requiredLevel: 15,
-  },
-];
+
 
 // ⚡ Бустеры
 export const boostItems: ShopItem[] = [
@@ -312,124 +223,43 @@ export const boostItems: ShopItem[] = [
   },
 ];
 
-// 🐾 Питомцы
-export const petItems: ShopItem[] = [
+
+
+// 🗓️ Программы тренировок
+export const programItems: ShopItem[] = [
   {
-    id: 'pet_dog',
-    name: 'Пёс-тренер',
-    description: 'Верный друг, который всегда мотивирует. +5% XP',
-    price: 500,
-    type: 'pet',
-    icon: '🐕',
+    id: 'program_power_week',
+    name: 'Силовая неделя',
+    description: '7 дней фокуса на силе. +20% XP за все квесты в течение недели.',
+    price: 400,
+    type: 'program',
+    icon: '💪',
     rarity: 'rare',
-    effect: { type: 'xp_bonus', value: 0.05 },
+    duration: 168, // 7 дней в часах
+    effect: { type: 'xp_multiplier', value: 1.2 },
   },
   {
-    id: 'pet_cat',
-    name: 'Кот-йог',
-    description: 'Мастер растяжки и релаксации. +10% XP за гибкость',
-    price: 500,
-    type: 'pet',
-    icon: '🐱',
-    rarity: 'rare',
-    effect: { type: 'flexibility_xp_bonus', value: 0.10 },
-  },
-  {
-    id: 'pet_fox',
-    name: 'Лис-скаут',
-    description: 'Хитрый и быстрый. +10% бонус серии',
-    price: 800,
-    type: 'pet',
-    icon: '🦊',
+    id: 'program_cardio_2weeks',
+    name: 'Кардио-марафон',
+    description: '14 дней интенсивного кардио. +25% XP за все квесты.',
+    price: 700,
+    type: 'program',
+    icon: '🏃',
     rarity: 'epic',
-    effect: { type: 'streak_bonus', value: 0.10 },
+    duration: 336, // 14 дней в часах
+    effect: { type: 'xp_multiplier', value: 1.25 },
   },
   {
-    id: 'pet_owl',
-    name: 'Сова-мудрец',
-    description: 'Знает секреты эффективных тренировок. +5% монет',
-    price: 600,
-    type: 'pet',
-    icon: '🦉',
-    rarity: 'rare',
-    effect: { type: 'coin_bonus', value: 0.05 },
-  },
-  {
-    id: 'pet_dragon',
-    name: 'Дракончик',
-    description: 'Легендарный компаньон. +15% XP ко всем квестам',
-    price: 2000,
-    type: 'pet',
-    icon: '🐉',
-    rarity: 'legendary',
-    effect: { type: 'xp_bonus', value: 0.15 },
-    requiredLevel: 20,
-  },
-  {
-    id: 'pet_phoenix',
-    name: 'Феникс',
-    description: 'Возрождается вместе с вами. Автоматическая защита серии раз в неделю',
-    price: 2500,
-    type: 'pet',
+    id: 'program_fullbody_month',
+    name: 'Тотальная прокачка',
+    description: '30 дней комплексной программы. +30% XP + +30% монет за все квесты.',
+    price: 1200,
+    type: 'program',
     icon: '🔥',
     rarity: 'legendary',
-    effect: { type: 'auto_streak_shield', value: 1 },
-    requiredLevel: 25,
-  },
-];
-
-// 🎨 Темы интерфейса
-export const themeItems: ShopItem[] = [
-  {
-    id: 'theme_forest',
-    name: 'Лесная тема',
-    description: 'Спокойствие природы в каждом элементе',
-    price: 400,
-    type: 'theme',
-    icon: '🌲',
-    rarity: 'uncommon',
-    preview: 'forest',
-  },
-  {
-    id: 'theme_ocean',
-    name: 'Океанская тема',
-    description: 'Глубины моря вдохновляют',
-    price: 400,
-    type: 'theme',
-    icon: '🌊',
-    rarity: 'uncommon',
-    preview: 'ocean',
-  },
-  {
-    id: 'theme_sunset',
-    name: 'Закатная тема',
-    description: 'Тёплые оттенки заката',
-    price: 500,
-    type: 'theme',
-    icon: '🌅',
-    rarity: 'rare',
-    preview: 'sunset',
-  },
-  {
-    id: 'theme_cyberpunk',
-    name: 'Киберпанк',
-    description: 'Неоновое будущее уже здесь',
-    price: 800,
-    type: 'theme',
-    icon: '🌆',
-    rarity: 'epic',
-    preview: 'cyberpunk',
-  },
-  {
-    id: 'theme_galaxy',
-    name: 'Галактическая тема',
-    description: 'Тренировки среди звёзд',
-    price: 1000,
-    type: 'theme',
-    icon: '🌌',
-    rarity: 'legendary',
-    preview: 'galaxy',
-    requiredLevel: 15,
+    duration: 720, // 30 дней в часах
+    effect: { type: 'mega_boost', value: 1.3 },
+    requiredLevel: 5,
   },
 ];
 
@@ -453,25 +283,14 @@ export const utilityItems: ShopItem[] = [
     icon: '😌',
     rarity: 'uncommon',
   },
-  {
-    id: 'utility_bonus_quest',
-    name: 'Бонусный квест',
-    description: 'Добавляет дополнительный квест с повышенной наградой',
-    price: 200,
-    type: 'utility',
-    icon: '🎯',
-    rarity: 'rare',
-  },
 ];
 
 // Все товары магазина
 export const allShopItems: ShopItem[] = [
+  ...consumableItems,
+  ...programItems,
   ...frameItems,
-  ...titleItems,
-  ...avatarItems,
   ...boostItems,
-  ...petItems,
-  ...themeItems,
   ...utilityItems,
 ];
 
@@ -506,11 +325,9 @@ export const rarityNames: Record<string, string> = {
 // Категории магазина
 export const shopCategories = [
   { id: 'all', name: 'Все', icon: '🛒' },
+  { id: 'consumable', name: 'Расходники', icon: '📦' },
+  { id: 'program', name: 'Программы', icon: '🗓️' },
   { id: 'frame', name: 'Рамки', icon: '🖼️' },
-  { id: 'title', name: 'Титулы', icon: '🏷️' },
-  { id: 'avatar', name: 'Аватары', icon: '👤' },
   { id: 'boost', name: 'Бустеры', icon: '⚡' },
-  { id: 'pet', name: 'Питомцы', icon: '🐾' },
-  { id: 'theme', name: 'Темы', icon: '🎨' },
   { id: 'utility', name: 'Утилиты', icon: '🔧' },
 ];

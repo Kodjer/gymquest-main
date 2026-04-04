@@ -58,7 +58,7 @@ export default async function handler(
     }
 
     // Проверяем, не куплен ли уже (для постоянных товаров)
-    if (item.type !== 'boost' && item.type !== 'utility') {
+    if (item.type !== 'boost' && item.type !== 'utility' && item.type !== 'consumable') {
       const existingPurchase = await prisma.playerPurchase.findUnique({
         where: {
           userId_itemId: {
@@ -97,6 +97,28 @@ export default async function handler(
           expiresAt,
         },
       });
+    } else if (item.type === 'program') {
+      // Программы: длительность в часах (7d=168ч, 14d=336ч, 30d=720ч)
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + (item.duration || 168));
+
+      await prisma.activeBoost.create({
+        data: {
+          userId: user.id,
+          boostType: item.effect?.type || 'xp_multiplier',
+          multiplier: item.effect?.value || 1.2,
+          expiresAt,
+        },
+      });
+
+      await prisma.playerPurchase.create({
+        data: {
+          userId: user.id,
+          itemId: item.id,
+          itemType: item.type,
+          expiresAt,
+        },
+      });
     } else if (item.type === 'utility') {
       // Утилиты используются сразу, просто записываем в историю
       await prisma.playerPurchase.create({
@@ -107,7 +129,7 @@ export default async function handler(
         },
       });
     } else {
-      // Постоянные товары (рамки, титулы, аватары, темы, питомцы)
+      // Постоянные товары (рамки)
       await prisma.playerPurchase.create({
         data: {
           userId: user.id,

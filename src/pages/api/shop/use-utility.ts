@@ -35,7 +35,10 @@ export default async function handler(
     const utilityPrices: Record<string, number> = {
       reroll: 100,      // Перегенерация квестов
       easy_day: 150,    // Лёгкий день
-      bonus_quest: 200, // Бонусный квест
+      protein: 120,     // Протеиновый шок
+      double_drop: 120, // Двойной дроп
+      quest_skip: 200,  // Пропуск квеста
+      streak_revival: 350, // Восстановление серии
     };
 
     const price = utilityPrices[utilityType];
@@ -108,73 +111,89 @@ export default async function handler(
         };
         break;
 
-      case "bonus_quest":
-        // Добавляем бонусный квест с повышенной наградой
-        const bonusQuests = [
-          {
-            title: "🎁 Бонус: 50 отжиманий",
-            description: "Специальный бонусный квест! Выполните 50 отжиманий за любое количество подходов.",
-            xpReward: 100,
-            difficulty: "hard",
-            category: "strength",
-          },
-          {
-            title: "🎁 Бонус: 10 минут планки",
-            description: "Специальный бонусный квест! Удерживайте планку суммарно 10 минут.",
-            xpReward: 100,
-            difficulty: "hard",
-            category: "strength",
-          },
-          {
-            title: "🎁 Бонус: 100 приседаний",
-            description: "Специальный бонусный квест! Выполните 100 приседаний за любое количество подходов.",
-            xpReward: 100,
-            difficulty: "hard", 
-            category: "strength",
-          },
-          {
-            title: "🎁 Бонус: 30 минут кардио",
-            description: "Специальный бонусный квест! Выполните 30 минут любого кардио.",
-            xpReward: 100,
-            difficulty: "hard",
-            category: "cardio",
-          },
-        ];
+      case "protein":
+        // XP x2 на 3 часа
+        {
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 3);
+          await prisma.activeBoost.create({
+            data: {
+              userId: user.id,
+              boostType: 'xp_multiplier',
+              multiplier: 2,
+              expiresAt,
+            },
+          });
+          result = { message: 'Протеиновый шок активирован! XP x2 на 3 часа.' };
+        }
+        break;
 
-        const randomBonus = bonusQuests[Math.floor(Math.random() * bonusQuests.length)];
-        const todayBonus = new Date();
-        const dayOfWeekBonus = todayBonus.getDay();
-        const nodeIdBonus = `node-${dayOfWeekBonus === 0 ? 7 : dayOfWeekBonus}`;
+      case "double_drop":
+        // Монеты x2 на 3 часа
+        {
+          const expiresAt = new Date();
+          expiresAt.setHours(expiresAt.getHours() + 3);
+          await prisma.activeBoost.create({
+            data: {
+              userId: user.id,
+              boostType: 'coin_multiplier',
+              multiplier: 2,
+              expiresAt,
+            },
+          });
+          result = { message: 'Двойной дроп активирован! Монеты x2 на 3 часа.' };
+        }
+        break;
 
-        await prisma.quest.create({
-          data: {
-            userId: user.id,
-            title: randomBonus.title,
-            description: randomBonus.description,
-            xpReward: randomBonus.xpReward,
-            difficulty: randomBonus.difficulty,
-            category: randomBonus.category,
-            status: "pending",
-            isGenerated: false,
-            nodeId: nodeIdBonus,
-            location: "both",
-            showInAllMode: true,
-          },
-        });
+      case "quest_skip":
+        // Засчитать один pending квест как выполненный
+        {
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const dayOfWeek = today.getDay();
+          const nodeId = `node-${dayOfWeek === 0 ? 7 : dayOfWeek}`;
 
-        result = { 
-          message: `Добавлен бонусный квест: ${randomBonus.title}`,
-          action: "refresh"
-        };
+          const pendingQuest = await prisma.quest.findFirst({
+            where: { userId: user.id, nodeId, status: 'pending' },
+          });
+
+          if (!pendingQuest) {
+            return res.status(400).json({ error: 'Нет активных квестов для пропуска' });
+          }
+
+          await prisma.quest.update({
+            where: { id: pendingQuest.id },
+            data: { status: 'completed' },
+          });
+
+          result = { message: `Квест "${pendingQuest.title}" засчитан!`, action: 'refresh' };
+        }
+        break;
+
+      case "streak_revival":
+        // Восстановить серию — сбросить lastActivityDate на вчера
+        {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          yesterday.setHours(12, 0, 0, 0);
+
+          await prisma.player.update({
+            where: { userId: user.id },
+            data: { lastActivityDate: yesterday },
+          });
+
+          result = { message: 'Серия восстановлена! Сделайте хотя бы один квест сегодня.' };
+        }
         break;
     }
 
-    // Записываем использование утилиты
+    // Записываем использование
+    const isConsumable = ['protein', 'double_drop', 'quest_skip', 'streak_revival'].includes(utilityType);
     await prisma.playerPurchase.create({
       data: {
         userId: user.id,
-        itemId: `utility_${utilityType}_${Date.now()}`,
-        itemType: "utility",
+        itemId: `${isConsumable ? 'consumable' : 'utility'}_${utilityType}_${Date.now()}`,
+        itemType: isConsumable ? 'consumable' : 'utility',
       },
     });
 
