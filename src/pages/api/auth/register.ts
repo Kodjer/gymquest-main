@@ -45,3 +45,4 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     console.error("Register error:", error);
     return res.status(500).json({ error: "Ошибка сервера при регистрации" });
   }
+}
