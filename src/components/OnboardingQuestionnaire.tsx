@@ -182,7 +182,7 @@ export function OnboardingQuestionnaire({ onComplete, onSkip, mode = "full" }: O
   }, []);
 
   return (
-    <div className="fixed inset-0 z-50 flex flex-col bg-gradient-to-br from-purple-700 via-indigo-800 to-purple-900 overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex flex-col bg-gradient-to-br from-purple-700 via-indigo-800 to-purple-900 overflow-hidden">
       {/* Top bar */}
       <div className="flex-none px-5 pt-12 pb-2">
         {/* Step progress dots */}

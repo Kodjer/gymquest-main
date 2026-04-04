@@ -778,6 +778,7 @@ function AuthenticatedApp() {
       });
 
       if (response.ok) {
+        const data = await response.json();
         // Если это смена класса, снимаем монеты
         const newCoins = player.playerClass ? player.coins - 500 : player.coins;
         
@@ -789,13 +790,10 @@ function AuthenticatedApp() {
         });
         setShowClassSelection(false);
 
-        // Автоматически генерируем первые квесты только для новых игроков
-        if (!player.playerClass) {
-          setTimeout(async () => {
-            // Вызываем generateQuests напрямую (не loadQuests), чтобы не зависеть
-            // от устаревшего замыкания player.onboardingCompleted
-            await generateQuests();
-          }, 500);
+        // Для новых игроков квесты уже вернулись в ответе — ставим сразу
+        if (!player.playerClass && data.quests?.length > 0) {
+          setQuests(data.quests);
+          try { localStorage.setItem("gymquest_quests_cache", JSON.stringify(data.quests)); } catch {}
         }
       } else {
         console.error("Failed to save class");

@@ -2,6 +2,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { getAuthSession } from "../../../lib/getAuthSession";
 import { PrismaClient } from "@prisma/client";
+import { generateWeeklyQuests } from "../../../lib/generateWeeklyQuests";
 
 const prisma = new PrismaClient();
 
@@ -59,6 +60,8 @@ export default async function handler(
       where: { userId: user.id },
     });
 
+    const isNewPlayer = !player?.playerClass;
+
     if (!player) {
       player = await prisma.player.create({
         data: {
@@ -104,6 +107,19 @@ export default async function handler(
       },
     });
 
+    const isNewPlayer = !player.playerClass;
+
+    // Получаем финальный onboardingData
+    const finalOnboardingData = await prisma.onboardingData.findUnique({
+      where: { playerId: player.id },
+    });
+
+    // Генерируем квесты только для новых игроков (не при смене класса)
+    let quests: any[] = [];
+    if (isNewPlayer) {
+      quests = await generateWeeklyQuests(user.id, player, finalOnboardingData);
+    }
+
     return res.status(200).json({
       success: true,
       player: {
@@ -113,6 +129,7 @@ export default async function handler(
         level: player.level,
         xp: player.xp,
       },
+      quests,
     });
   } catch (error) {
     console.error("Select class error:", error);
