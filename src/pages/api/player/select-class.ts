@@ -107,8 +107,6 @@ export default async function handler(
       },
     });
 
-    const isNewPlayer = !player.playerClass;
-
     // Получаем финальный onboardingData
     const finalOnboardingData = await prisma.onboardingData.findUnique({
       where: { playerId: player.id },
