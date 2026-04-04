@@ -171,15 +171,15 @@ export default async function handler(
         break;
 
       case "streak_revival":
-        // Восстановить серию — сбросить lastActivityDate на вчера
+        // Восстановить серию — установить lastQuestDate на вчера
         {
           const yesterday = new Date();
           yesterday.setDate(yesterday.getDate() - 1);
-          yesterday.setHours(12, 0, 0, 0);
+          const yesterdayStr = yesterday.toISOString().split("T")[0];
 
           await prisma.player.update({
             where: { userId: user.id },
-            data: { lastActivityDate: yesterday },
+            data: { lastQuestDate: yesterdayStr },
           });
 
           result = { message: 'Серия восстановлена! Сделайте хотя бы один квест сегодня.' };

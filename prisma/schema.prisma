@@ -80,8 +80,11 @@ model Player {
   onboardingCompleted Boolean  @default(false)
   completedQuests     Int      @default(0) // Количество завершенных квестов
   lastQuestGenerated  DateTime? // Дата последней генерации квестов
+  lastQuestDate       String?  // Дата последнего выполненного квеста (YYYY-MM-DD)
   currentWeek         Int      @default(1) // Текущая неделя тренировок
   weekStartDate       DateTime? // Дата начала текущей недели
+  coins               Int      @default(0) // Монеты игрока
+  streak              Int      @default(0) // Текущая серия
   
   // Система классов
   playerClass         String?  // warrior, scout, monk, berserker
