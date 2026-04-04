@@ -11,8 +11,7 @@ const nextConfig: NextConfig = {
   ...(isCapacitor ? { output: "export", images: { unoptimized: true } } : {}),
 };
 
-const pwaConfig = withPWA({
-  ...nextConfig,
+const withPWAConfig = withPWA({
   dest: "public",
   disable: process.env.NODE_ENV === "development",
   register: true,
@@ -32,4 +31,4 @@ const pwaConfig = withPWA({
 });
 
 // При сборке APK (Capacitor) — PWA не нужен, используем чистый конфиг
-export default (isCapacitor || process.env.NODE_ENV === "development") ? nextConfig : pwaConfig;
+export default (isCapacitor || process.env.NODE_ENV === "development") ? nextConfig : withPWAConfig(nextConfig);
