@@ -9,12 +9,6 @@ const nextConfig: NextConfig = {
     ignoreBuildErrors: false,
   },
   ...(isCapacitor ? { output: "export", images: { unoptimized: true } } : {}),
-  turbopack: {
-    root: __dirname,
-  },
-  experimental: {
-    cpus: 2,
-  },
 };
 
 const pwaConfig = withPWA({

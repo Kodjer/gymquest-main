@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && node --max-old-space-size=1024 node_modules/next/dist/bin/next build",
+    "build": "prisma generate && node --max-old-space-size=1024 node_modules/next/dist/bin/next build --webpack",
     "build:apk": "prisma generate && cross-env CAPACITOR_BUILD=true node --max-old-space-size=2048 node_modules/next/dist/bin/next build --webpack",
     "start": "next start",
     "lint": "next lint",
