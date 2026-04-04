@@ -24,20 +24,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: "Пароль должен быть не менее 6 символов" });
   }
 
-  const existing = await prisma.user.findUnique({ where: { email } });
+  const existing = await prisma.user.findUnique({ where: { email } }).catch(() => null);
   if (existing) {
     return res.status(400).json({ error: "Пользователь с таким email уже существует" });
   }
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-  await prisma.user.create({
-    data: {
-      email,
-      name: name || email.split("@")[0],
-      password: hashedPassword,
-    },
-  });
+    await prisma.user.create({
+      data: {
+        email,
+        name: name || email.split("@")[0],
+        password: hashedPassword,
+      },
+    });
 
-  return res.status(201).json({ success: true });
-}
+    return res.status(201).json({ success: true });
+  } catch (error) {
+    console.error("Register error:", error);
+    return res.status(500).json({ error: "Ошибка сервера при регистрации" });
+  }
